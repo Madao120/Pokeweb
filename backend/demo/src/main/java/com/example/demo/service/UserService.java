@@ -42,4 +42,20 @@ public class UserService{
         user.setScore(newScore);
         return userRepository.save(user);
     }
+
+    // Logeo simple, sin cifrado aun es un esquema sencillo
+    public PokeUser login(String email, String password) {
+
+    // Para encontrar el usuario debemos de poner el email y contraseña, en caso de no encontrarlo
+    // lanzamos una excepcion
+    PokeUser user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("Email not found"));
+
+    if (!user.getPassword().equals(password)) {
+        throw new RuntimeException("El usuario o la contraseña es incorrecta");
+    }
+
+    // Si lo encontramos (que no salte al excepción) devolvemos el usuario
+    return user;
+    }
 }
