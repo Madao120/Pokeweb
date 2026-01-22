@@ -19,3 +19,21 @@ export async function createUser(user) {
 
   return await response.json();
 }
+
+// Función para login
+export async function login(credentials) {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const message = await response.text(); // backend manda texto
+    throw new Error(message);
+  }
+
+  return await response.json();
+}
