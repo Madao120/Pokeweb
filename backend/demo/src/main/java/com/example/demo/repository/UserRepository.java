@@ -8,5 +8,6 @@ import com.example.demo.model.PokeUser;
 
 public interface UserRepository extends JpaRepository<PokeUser, Long> {
     Optional<PokeUser> findByEmail(String email);
+    Optional<PokeUser> findByName(String name);
 }
 

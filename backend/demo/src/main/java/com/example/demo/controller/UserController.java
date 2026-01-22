@@ -44,6 +44,11 @@ public class UserController {
                     .status(HttpStatus.BAD_REQUEST)
                     .body("El email ya está registrado");
         }
+        else if (e.getMessage().equals("NAME_ALREADY_EXISTS")) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("El nombre de usuario ya está registrado");
+        }
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

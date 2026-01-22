@@ -15,10 +15,14 @@ public class UserService{
         this.userRepository = userRepository;
     }
 
+    // Creación de usuario, con excepción si el email ya existe y si el nombre también
     public PokeUser createUser(UserRequest request) {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-        throw new RuntimeException("EMAIL_ALREADY_EXISTS");
+            throw new RuntimeException("EMAIL_ALREADY_EXISTS");
+        }
+        if (userRepository.findByName(request.getName()).isPresent()) {
+            throw new RuntimeException("NAME_ALREADY_EXISTS");
         }
 
         PokeUser user = new PokeUser();
@@ -31,10 +35,13 @@ public class UserService{
         return userRepository.save(user);
     }
 
+    // Obtener usuario por id
     public Optional<PokeUser> getUser(Long id) {
         return userRepository.findById(id);
     }
 
+    // Atualiza la puntuación, provisional (posteriormente hacer prev + puntos ganados)
+    // Cuando inicies un minijuego prev - puntos directamente, luego si ganas te suman puntos
     public PokeUser updateScore(Long id, int newScore) {
         PokeUser user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
