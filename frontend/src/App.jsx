@@ -8,7 +8,7 @@ import ModeSelector from "./pages/ModeSelector";
 function App() {
   const [user, setUser] = useState(null);
 
-  // Si no hay usuario logueado → mostramos login / register
+  // Si no hay usuario logueado debemos de mostrar el login o register
   if (!user) {
     return (
       <div>
@@ -19,7 +19,7 @@ function App() {
     );
   }
 
-  // Si hay usuario → vamos a selección de modo
+  // Si hay usuario iremos directamente a selección del modo de juego
   return <ModeSelector user={user} />;
 }
 

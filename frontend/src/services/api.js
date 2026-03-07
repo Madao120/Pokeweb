@@ -37,3 +37,14 @@ export async function login(credentials) {
 
   return await response.json();
 }
+
+// Función para obtener pokemon aleatorio
+export async function getRandomPokemon() {
+  const response = await fetch("http://localhost:8080/game/random-pokemon");
+
+  if (!response.ok) {
+    throw new Error("Error fetching pokemon");
+  }
+
+  return await response.text();
+}

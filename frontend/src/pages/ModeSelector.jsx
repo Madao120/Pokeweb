@@ -1,4 +1,14 @@
+import React, { useState } from "react";
+import GuessPokemon from "./GuessPokemon";
+
 function ModeSelector({ user }) {
+
+  const [mode, setMode] = useState(null);
+
+  if (mode === "single") {
+    return <GuessPokemon />;
+  }
+
   return (
     <div>
       <h2>Bienvenido, {user.name}</h2>
@@ -6,8 +16,12 @@ function ModeSelector({ user }) {
 
       <h3>Elige modo de juego</h3>
 
-      <button>Individual</button>
-      <button>Multijugador</button>
+      <button onClick={() => setMode("single")}>
+        Individual
+      </button>
+      <button onClick={() => setMode("multi")}>
+        Multijugador
+      </button>
     </div>
   );
 }
