@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.demo.model.PokeUser;
 
-public interface UserRepository extends JpaRepository<PokeUser, Long> {
+public interface PokeUserRepository extends JpaRepository<PokeUser, Long> {
     Optional<PokeUser> findByEmail(String email);
     Optional<PokeUser> findByName(String name);
 }

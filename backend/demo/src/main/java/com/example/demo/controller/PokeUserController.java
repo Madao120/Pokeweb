@@ -4,37 +4,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.example.demo.dto.UserRequest;
-import com.example.demo.dto.UserResponse;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dto.PokeUserRequest;
+import com.example.demo.dto.PokeUserResponse;
 import com.example.demo.model.PokeUser;
+import com.example.demo.service.PokeUserService;
 
 import jakarta.validation.Valid;
-import com.example.demo.service.UserService;
 
 @RestController
 @RequestMapping("/users")
 @CrossOrigin(origins = "http://localhost:5173")
-public class UserController {
+public class PokeUserController {
 
 
     // En ved de autowired uso uin constructor por probar otra cosa
-    private final UserService userService;
+    private final PokeUserService userService;
 
-    public UserController(UserService userService) {
+    public PokeUserController(PokeUserService userService) {
         this.userService = userService;
     }
 
 
     // Crear un nuevo usuario
     @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserRequest request) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody PokeUserRequest request) {
     try {
         PokeUser user = userService.createUser(request);
         return ResponseEntity.ok(mapToResponse(user));
@@ -56,23 +57,25 @@ public class UserController {
         }
     }
 
+    // Obtener un usuario por su ID
     @GetMapping("/{id}")
-    public UserResponse getUser(@PathVariable Long id) {
+    public PokeUserResponse getUser(@PathVariable Long id) {
         PokeUser user = userService.getUser(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         return mapToResponse(user);
     }
 
+    // Actualizar el score de un usuario
     @PutMapping("/{id}/score")
-    public UserResponse updateScore(@PathVariable Long id, @RequestParam int score) {
+    public PokeUserResponse updateScore(@PathVariable Long id, @RequestParam int score) {
         PokeUser user = userService.updateScore(id, score);
         return mapToResponse(user);
     }
 
     // Mapper para pasar de PokeUser (Enttidad) a UserResponse (DTOs)
-    private UserResponse mapToResponse(PokeUser user) {
-        UserResponse res = new UserResponse();
+    private PokeUserResponse mapToResponse(PokeUser user) {
+        PokeUserResponse res = new PokeUserResponse();
         res.setId(user.getId());
         res.setEmail(user.getEmail());
         res.setName(user.getName());
