@@ -9,16 +9,41 @@ import com.example.demo.service.PokemonApiService;
 
 @RestController
 @RequestMapping("/game")
+@CrossOrigin
 public class GameController {
 
-    private final PokemonApiService pokemonService;
+    private final PokemonApiService pokemonApiService;
 
-    public GameController(PokemonApiService pokemonService) {
-        this.pokemonService = pokemonService;
+    private GameSession currentSession;
+
+    public GameController(PokemonApiService pokemonApiService) {
+        this.pokemonApiService = pokemonApiService;
     }
 
-    @GetMapping("/random-pokemon")
-    public String randomPokemon() {
-        return pokemonService.getRandomPokemon();
+    @PostMapping("/start")
+    public GameSession startGame() {
+
+        currentSession = new GameSession(
+                pokemonApiService.getRandomPokemon()
+        );
+
+        return currentSession;
+    }
+
+    @GetMapping("/state")
+    public GameSession getState() {
+        return currentSession;
+    }
+
+    @PostMapping("/guess")
+    public GameSession guess(@RequestParam String letter) {
+
+        if (currentSession == null) {
+            throw new RuntimeException("Game not started");
+        }
+
+        currentSession.guessLetter(letter);
+
+        return currentSession;
     }
 }
