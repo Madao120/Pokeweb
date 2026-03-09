@@ -1,11 +1,14 @@
 package com.example.demo.service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.demo.dto.PokemonResponse;
+import com.example.demo.dto.PokemonM1;
+
 
 @Service
 public class PokemonApiService {
@@ -16,44 +19,45 @@ public class PokemonApiService {
     // Para un pokemon aleatorio
     private final Random random = new Random();
 
-    public String getRandomPokemon() {
+    public PokemonM1 getRandomPokemon() {
 
         int id = random.nextInt(1025) + 1;
 
         String url = "https://pokeapi.co/api/v2/pokemon/" + id;
 
-        PokemonResponse response =
-                restTemplate.getForObject(url, PokemonResponse.class);
+        Map response = restTemplate.getForObject(url, Map.class);
 
-        String type1 = response.getTypes().get(0).getType().getName();
+        String name = (String) response.get("name");
+
+        List<Map> types = (List<Map>) response.get("types");
+
+        Map type1Map = (Map) types.get(0).get("type");
+        String type1 = (String) type1Map.get("name");
 
         String type2 = null;
-        if (response.getTypes().size() > 1) {
-            type2 = response.getTypes().get(1).getType().getName();
+
+        if (types.size() > 1) {
+            Map type2Map = (Map) types.get(1).get("type");
+            type2 = (String) type2Map.get("name");
         }
 
         String generation = getGenerationFromId(id);
 
-        return new PokemonData(
-                response.getName(),
-                type1,
-                type2,
-                generation
-        );
+        return new PokemonM1(name, type1, type2, generation);
     }
 
     private String getGenerationFromId(int id) {
 
-        if (id <= 151) return "Kanto (Generation I)";
-        if (id <= 251) return "Johto (Generation II)";
-        if (id <= 386) return "Hoenn (Generation III)";
-        if (id <= 493) return "Sinnoh (Generation IV)";
-        if (id <= 649) return "Unova (Generation V)";
-        if (id <= 721) return "Kalos (Generation VI)";
-        if (id <= 809) return "Alola (Generation VII)";
-        if (id <= 905) return "Galar (Generation VIII)";
-        if (id <= 1025) return "Paldea (Generation IX)";
+        if (id <= 151) return "Generation I";
+        if (id <= 251) return "Generation II";
+        if (id <= 386) return "Generation III";
+        if (id <= 493) return "Generation IV";
+        if (id <= 649) return "Generation V";
+        if (id <= 721) return "Generation VI";
+        if (id <= 809) return "Generation VII";
+        if (id <= 905) return "Generation VIII";
+        if (id <= 1025) return "Generation IX";
 
-        return "Generation X"; // futura generación
+        return "Generation X";
     }
 }

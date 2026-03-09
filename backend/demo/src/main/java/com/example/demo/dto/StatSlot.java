@@ -1,7 +1,6 @@
-package com.example.demo.model;
+package com.example.demo.dto;
 
 public class StatSlot {
-    public static class StatSlot {
 
     private int base_stat;
     private Stat stat;
@@ -9,5 +8,4 @@ public class StatSlot {
     public static class Stat {
         private String name;
     }
-}
 }

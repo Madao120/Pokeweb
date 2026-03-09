@@ -1,10 +1,14 @@
 package com.example.demo.controller;
 
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.model.GameSession;
 import com.example.demo.service.PokemonApiService;
 
 @RestController
@@ -14,7 +18,7 @@ public class GameController {
 
     private final PokemonApiService pokemonApiService;
 
-    private GameSession currentSession;
+    private GameSession session;
 
     public GameController(PokemonApiService pokemonApiService) {
         this.pokemonApiService = pokemonApiService;
@@ -23,27 +27,23 @@ public class GameController {
     @PostMapping("/start")
     public GameSession startGame() {
 
-        currentSession = new GameSession(
+        session = new GameSession(
                 pokemonApiService.getRandomPokemon()
         );
 
-        return currentSession;
+        return session;
     }
 
     @GetMapping("/state")
     public GameSession getState() {
-        return currentSession;
+        return session;
     }
 
     @PostMapping("/guess")
-    public GameSession guess(@RequestParam String letter) {
+    public GameSession guess(@RequestParam String letra) {
 
-        if (currentSession == null) {
-            throw new RuntimeException("Game not started");
-        }
+        session.adivinarLetra(letra);
 
-        currentSession.guessLetter(letter);
-
-        return currentSession;
+        return session;
     }
 }
