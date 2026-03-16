@@ -1,12 +1,25 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import GuessPokemon from "./GuessPokemon";
 
 function ModeSelector({ user }) {
-
   const [mode, setMode] = useState(null);
 
   if (mode === "single") {
-    return <GuessPokemon />;
+    return (
+      <div>
+        <button onClick={() => setMode(null)}>← Volver</button>
+        <GuessPokemon user={user} />
+      </div>
+    );
+  }
+
+  if (mode === "multi") {
+    return (
+      <div>
+        <button onClick={() => setMode(null)}>← Volver</button>
+        <p>Modo multijugador — próximamente.</p>
+      </div>
+    );
   }
 
   return (
@@ -16,12 +29,8 @@ function ModeSelector({ user }) {
 
       <h3>Elige modo de juego</h3>
 
-      <button onClick={() => setMode("single")}>
-        Individual
-      </button>
-      <button onClick={() => setMode("multi")}>
-        Multijugador
-      </button>
+      <button onClick={() => setMode("single")}>Individual</button>
+      <button onClick={() => setMode("multi")}>Multijugador</button>
     </div>
   );
 }

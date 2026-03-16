@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PokemonResponse {
+public class OldPokemonResponse {
 
     private int id;
     private String name;

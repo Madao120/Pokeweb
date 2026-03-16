@@ -1,29 +1,32 @@
 import { useState } from "react"; //UseState, sirve para manejar estados en componentes funcionales
 import { createUser } from "../services/api"; //Es la funcion proveniente del backend (backend -> services(react(api.js)) -> Register.jsx)
 
-function Register() {
+function Register({ onRegistered }) {
   const [form, setForm] = useState({
     email: "",
     name: "",
     password: "",
     profilePictureUrl: "",
   });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
 
     try {
-      const user = await createUser(form);
-      alert("Usuario creado con id " + user.id);
+      await createUser(form);
+      onRegistered(); // vuelve a la pantalla de login
     } catch (err) {
-      alert("Error al crear usuario", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,8 +48,8 @@ function Register() {
           onChange={handleChange}
         />
         <input
-          name="password"
           type="password"
+          name="password"
           placeholder="Contraseña"
           onChange={handleChange}
         />
@@ -56,8 +59,12 @@ function Register() {
           onChange={handleChange}
         />
 
-        <button type="submit">Registrarse</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Registrando..." : "Registrarse"}
+        </button>
       </form>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

@@ -6,20 +6,26 @@ import Login from "./pages/Login";
 import ModeSelector from "./pages/ModeSelector";
 
 function App() {
+  // "login" | "register" | "app"
+  const [view, setView] = useState("login");
   const [user, setUser] = useState(null);
 
-  // Si no hay usuario logueado debemos de mostrar el login o register
-  if (!user) {
+  if (view === "register") {
+    return <Register onRegistered={() => setView("login")} />;
+  }
+
+  if (view === "login" && !user) {
     return (
-      <div>
-        <Register />
-        <hr />
-        <Login onLogin={setUser} />
-      </div>
+      <Login
+        onLogin={(loggedUser) => {
+          setUser(loggedUser);
+          setView("app");
+        }}
+        onGoRegister={() => setView("register")}
+      />
     );
   }
 
-  // Si hay usuario iremos directamente a selección del modo de juego
   return <ModeSelector user={user} />;
 }
 

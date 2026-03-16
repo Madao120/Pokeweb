@@ -1,50 +1,74 @@
-// La ruta por la cual estará el API de backend
 const API_URL = "http://localhost:8080";
 
-// Función para crear un usuario que viene del servicio de backend
+// Crear usuario nuevo
 export async function createUser(user) {
-  //Haremos un fetch a API_URL y /users que es el requestParam que he escogido, no hay nada maás en este endpoint
   const response = await fetch(`${API_URL}/users`, {
-    method: "POST", //Método post, para crear el usuario
-    headers: {
-      "Content-Type": "application/json",
-    },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(user),
   });
 
-  //Error por si las validaciones del frontend no son suficientes
   if (!response.ok) {
-    throw new Error("Error creating user");
-  }
-
-  return await response.json();
-}
-
-// Función para login
-export async function login(credentials) {
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(credentials),
-  });
-
-  if (!response.ok) {
-    const message = await response.text(); // backend manda texto
+    const message = await response.text();
     throw new Error(message);
   }
 
   return await response.json();
 }
 
-// Función para obtener pokemon aleatorio
-export async function getRandomPokemon() {
-  const response = await fetch("http://localhost:8080/game/random-pokemon");
+// Login
+export async function login(credentials) {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(credentials),
+  });
 
   if (!response.ok) {
-    throw new Error("Error fetching pokemon");
+    const message = await response.text();
+    throw new Error(message);
   }
 
-  return await response.text();
+  return await response.json();
+}
+
+// Iniciar partida de ahorcado para un usuario
+export async function startGame(userId) {
+  const response = await fetch(`${API_URL}/game/start?userId=${userId}`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al iniciar la partida");
+  }
+
+  return await response.json();
+}
+
+// Enviar una letra al backend
+export async function guessLetter(userId, letra) {
+  const response = await fetch(
+    `${API_URL}/game/guess?userId=${userId}&letra=${letra}`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    throw new Error("Error al enviar la letra");
+  }
+
+  return await response.json();
+}
+
+// Actualizar puntuación de un usuario
+export async function updateScore(userId, score) {
+  const response = await fetch(
+    `${API_URL}/users/${userId}/score?score=${score}`,
+    { method: "PUT" },
+  );
+
+  if (!response.ok) {
+    throw new Error("Error al actualizar la puntuación");
+  }
+
+  return await response.json();
 }

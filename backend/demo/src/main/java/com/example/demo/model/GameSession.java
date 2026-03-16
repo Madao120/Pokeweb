@@ -5,53 +5,66 @@ import java.util.Set;
 
 import com.example.demo.dto.PokemonM1;
 
-import jakarta.persistence.Entity;
 import lombok.Data;
 
 @Data
-@Entity
 public class GameSession {
-// En esta clase controlaremos en número de intentos, el pokemon aleatorio y la palabra escondida(masked)
-
+ 
+    private static final int MAX_INTENTOS = 6;
+ 
     private PokemonM1 pokemon;
     private String maskedWord;
     private int intentos;
-
-    // Character es para almacenar las letras adivinadas una a una
+    private boolean gameOver;
+    private boolean ganado;
     private Set<Character> guessedLetters = new HashSet<>();
-
+ 
     public GameSession(PokemonM1 pokemon) {
-
         this.pokemon = pokemon;
         this.intentos = 0;
-
+        this.gameOver = false;
+        this.ganado = false;
         this.maskedWord = "_".repeat(pokemon.getName().length());
     }
-
+ 
     public void adivinarLetra(String letra) {
-        ////Variables de la funcion adivinar letra////
-        //Guardaremos el nombre del pokemon
-        String name = pokemon.getName().toLowerCase();
-        //Palabra a mostrar al frontend
-        StringBuilder newMasked = new StringBuilder(maskedWord);
-        
-        ////Variables a partir de la interacción del usuario////
-        // Ahora tendremos como variable la letra introducida por el usuario
+        if (gameOver) return;
+ 
         char c = letra.toLowerCase().charAt(0);
-
+ 
+        // Si la letra ya fue usada, ignorar
+        if (guessedLetters.contains(c)) return;
+ 
         guessedLetters.add(c);
-        if (guessedLetters.contains(c)) {
-            for (int i = 0; i < name.length(); i++) {
-                if (name.charAt(i) == c) {
-                    newMasked.setCharAt(i, c);
-                }
+ 
+        String name = pokemon.getName().toLowerCase();
+        boolean acierto = false;
+ 
+        StringBuilder newMasked = new StringBuilder(maskedWord);
+        for (int i = 0; i < name.length(); i++) {
+            if (name.charAt(i) == c) {
+                newMasked.setCharAt(i, c);
+                acierto = true;
             }
         }
-        else {
+ 
+        maskedWord = newMasked.toString();
+ 
+        // Solo sumar intento si la letra NO estaba en el nombre
+        if (!acierto) {
             intentos++;
         }
-
-        maskedWord = newMasked.toString();
-
+ 
+        // Comprobar si ganó (no quedan guiones bajos)
+        if (!maskedWord.contains("_")) {
+            gameOver = true;
+            ganado = true;
+        }
+ 
+        // Comprobar si perdió
+        if (intentos >= MAX_INTENTOS) {
+            gameOver = true;
+            ganado = false;
+        }
     }
 }

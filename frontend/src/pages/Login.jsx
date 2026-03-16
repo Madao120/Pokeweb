@@ -1,30 +1,27 @@
 import { useState } from "react";
 import { login } from "../services/api";
 
-function Login({ onLogin }) {
-  const [form, setForm] = useState({
-    email: "",
-    password: ""
-  });
-
+function Login({ onLogin, onGoRegister }) {
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
     try {
       const user = await login(form);
-      onLogin(user); // avisamos al padre que el login fue correcto
+      onLogin(user);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,18 +36,22 @@ function Login({ onLogin }) {
           placeholder="Email"
           onChange={handleChange}
         />
-
         <input
           type="password"
           name="password"
           placeholder="Contraseña"
           onChange={handleChange}
         />
-
-        <button type="submit">Entrar</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Entrando..." : "Entrar"}
+        </button>
       </form>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <p>
+        ¿No tienes cuenta? <button onClick={onGoRegister}>Registrarse</button>
+      </p>
     </div>
   );
 }
