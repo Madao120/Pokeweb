@@ -36,6 +36,9 @@ public class GameController {
     // Inicia una nueva partida para el usuario
     @PostMapping("/start")
     public GameSession startGame(@RequestParam Long userId) {
+        //Penalización en caso de abandonar la partida o perder
+        pokeUserService.addScore(userId, -25);
+
         GameSession session = new GameSession(pokemonApiService.getRandomPokemon());
         sessions.put(userId, session);
         return session;
@@ -56,8 +59,9 @@ public class GameController {
         }
         session.adivinarLetra(letra);
         
-        // Si la partida acaba de terminar, actualizar score en BD
-        if (session.isGameOver()) {
+        // scoreAplicado evita que se sume más de una vez si llegan peticiones duplicadas (en esto me ayudó la IA, no sabia que era algo que podía pasar)
+        if (session.isGameOver() && !session.isScoreAplicado()) {
+            session.setScoreAplicado(true);
             pokeUserService.addScore(userId, session.getPuntosGanados());
         }
 

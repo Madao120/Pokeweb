@@ -18,6 +18,7 @@ public class GameSession {
     private boolean gameOver;
     private boolean ganado;
     private int puntosGanados;
+    private boolean scoreAplicado = false;
     private Set<Character> guessedLetters = new HashSet<>();
  
     //PISTAS
@@ -42,9 +43,9 @@ public class GameSession {
 
         // Para enmascarar solo las lertas del nombre deberemos de hacer lo siguiente;
         this.maskedWord = pokemon.getName().toLowerCase()
-        .chars()
-        .mapToObj(c -> Character.isLetter(c) ? "_" : String.valueOf((char) c))
-        .collect(java.util.stream.Collectors.joining());
+            .chars()
+            .mapToObj(c -> Character.isLetter(c) ? "_" : String.valueOf((char) c))
+            .collect(java.util.stream.Collectors.joining());
         // Esto es debido a que hay nombres con caracteres especiales, como guiones espacios, etc
     }
  
@@ -94,7 +95,8 @@ public class GameSession {
         if (intentos >= MAX_INTENTOS) {
             gameOver = true;
             ganado = false;
-            puntosGanados = -25;
+            puntosGanados = 0;
+            //La penalización se hace en el controller ya que es lo primero que quiero ejecutar
         }
     }
     private void actualizarPistas() {
@@ -105,14 +107,14 @@ public class GameSession {
  
     private int calcularPuntos() {
         return switch (intentos) {
-            case 0 -> 100; // golpe crítico
-            case 1 -> 70;
-            case 2 -> 60;
-            case 3 -> 50;
-            case 4 -> 40;
-            case 5 -> 30;
-            case 6 -> 20;
-            default -> 10;
+            case 0 -> 125; // neto +100 (golpe crítico)
+            case 1 -> 95;  // neto +70
+            case 2 -> 85;  // neto +60
+            case 3 -> 75;  // neto +50
+            case 4 -> 65;  // neto +40
+            case 5 -> 55;  // neto +30
+            case 6 -> 45;  // neto +20
+            default -> 35; // neto +10
         };
     }
 }

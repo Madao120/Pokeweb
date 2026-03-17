@@ -72,3 +72,14 @@ export async function updateScore(userId, score) {
 
   return await response.json();
 }
+
+// Obtener datos actualizados de un usuario por id
+export async function getUser(userId) {
+  const response = await fetch(`${API_URL}/users/${userId}`);
+
+  if (!response.ok) {
+    throw new Error("Error al obtener el usuario");
+  }
+
+  return await response.json();
+}

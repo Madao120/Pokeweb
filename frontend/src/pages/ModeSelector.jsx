@@ -4,10 +4,16 @@ import GuessPokemon from "./GuessPokemon";
 function ModeSelector({ user }) {
   const [mode, setMode] = useState(null);
 
+  const handleVolver = async () => {
+    // Refresca el score antes de volver al menú
+    await onReturnToMenu();
+    setMode(null);
+  };
+
   if (mode === "single") {
     return (
       <div>
-        <button onClick={() => setMode(null)}>← Volver</button>
+        <button onClick={handleVolver}>← Volver</button>
         <GuessPokemon user={user} />
       </div>
     );
@@ -16,7 +22,7 @@ function ModeSelector({ user }) {
   if (mode === "multi") {
     return (
       <div>
-        <button onClick={() => setMode(null)}>← Volver</button>
+        <button onClick={handleVolver}>← Volver</button>
         <p>Modo multijugador — próximamente.</p>
       </div>
     );

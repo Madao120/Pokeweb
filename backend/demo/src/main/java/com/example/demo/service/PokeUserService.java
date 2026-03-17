@@ -66,11 +66,16 @@ public class PokeUserService{
     }
 
     // Login con verificacion de hash bcrypt
-    public PokeUser login(String email, String password) {
-        // Para encontrar el usuario debemos de poner el email y contraseña, en caso de no encontrarlo
-        // lanzamos una excepcion
-        PokeUser user = pokeUserRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Email not found"));
+    public PokeUser login(String emailNombre, String password) {
+
+        // Probamos primero por email y si no existe, por nombre.
+        Optional<PokeUser> userOptional = pokeUserRepository.findByEmail(emailNombre);
+        if (userOptional.isEmpty()) {
+            userOptional = pokeUserRepository.findByName(emailNombre);
+        }
+
+        PokeUser user = userOptional
+            .orElseThrow(() -> new RuntimeException("Email or name not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("El usuario o la contraseña es incorrecta");
