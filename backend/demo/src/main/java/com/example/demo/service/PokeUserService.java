@@ -3,6 +3,7 @@ package com.example.demo.service;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.demo.dto.PokeUserRequest;
 import com.example.demo.model.PokeUser;
@@ -11,9 +12,11 @@ import com.example.demo.repository.PokeUserRepository;
 @Service
 public class PokeUserService{
     private final PokeUserRepository pokeUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public PokeUserService(PokeUserRepository pokeUserRepository) {
+    public PokeUserService(PokeUserRepository pokeUserRepository, PasswordEncoder passwordEncoder) {
         this.pokeUserRepository = pokeUserRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Creación de usuario, con excepción si el email ya existe y si el nombre también
@@ -29,7 +32,7 @@ public class PokeUserService{
         PokeUser user = new PokeUser();
         user.setEmail(request.getEmail());
         user.setName(request.getName());
-        user.setPassword(request.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setProfilePictureUrl(request.getProfilePictureUrl());
         user.setScore(0);
 
@@ -51,19 +54,29 @@ public class PokeUserService{
         return pokeUserRepository.save(user);
     }
 
-    // Logeo simple, sin cifrado aun es un esquema sencillo
-    public PokeUser login(String email, String password) {
-
-    // Para encontrar el usuario debemos de poner el email y contraseña, en caso de no encontrarlo
-    // lanzamos una excepcion
-    PokeUser user = pokeUserRepository.findByEmail(email)
-        .orElseThrow(() -> new RuntimeException("Email not found"));
-
-    if (!user.getPassword().equals(password)) {
-        throw new RuntimeException("El usuario o la contraseña es incorrecta");
+    // Suma o resta puntos al score actual (usado al terminar una partida)
+    // El score nunca baja de 0
+    public PokeUser addScore(Long id, int puntos) {
+        PokeUser user = pokeUserRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        // Math max es para que nmo baje de 0, mas a delante se podrán poner rangos competitivos
+        int nuevoScore = Math.max(0, user.getScore() + puntos);
+        user.setScore(nuevoScore);
+        return pokeUserRepository.save(user);
     }
 
-    // Si lo encontramos (que no salte al excepción) devolvemos el usuario
-    return user;
+    // Login con verificacion de hash bcrypt
+    public PokeUser login(String email, String password) {
+        // Para encontrar el usuario debemos de poner el email y contraseña, en caso de no encontrarlo
+        // lanzamos una excepcion
+        PokeUser user = pokeUserRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Email not found"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("El usuario o la contraseña es incorrecta");
+        }
+
+        // Si lo encontramos (que no salte al excepción) devolvemos el usuario
+        return user;
     }
 }

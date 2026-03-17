@@ -10,12 +10,14 @@ function App() {
   const [view, setView] = useState("login");
   const [user, setUser] = useState(null);
 
+  let content;
+
   if (view === "register") {
-    return <Register onRegistered={() => setView("login")} />;
+    content = <Register onRegistered={() => setView("login")} />;
   }
 
-  if (view === "login" && !user) {
-    return (
+  if (view === "login" && !user && !content) {
+    content = (
       <Login
         onLogin={(loggedUser) => {
           setUser(loggedUser);
@@ -26,7 +28,11 @@ function App() {
     );
   }
 
-  return <ModeSelector user={user} />;
+  if (!content) {
+    content = <ModeSelector user={user} />;
+  }
+
+  return <section className="app-shell">{content}</section>;
 }
 
 export default App;

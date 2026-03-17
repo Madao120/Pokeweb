@@ -27,7 +27,7 @@ function Login({ onLogin, onGoRegister }) {
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2 className="titulo1">Login</h2>
 
       <form onSubmit={handleSubmit}>
         <input

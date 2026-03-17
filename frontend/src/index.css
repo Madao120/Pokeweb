@@ -1,0 +1,65 @@
+:root {
+  --app-width: 80%;
+  --banner-height: 56px;
+  --banner-offset: 12px;
+  --content-gap: -1px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-image: url("../public/latiasBack.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* Opcional */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.app-content {
+  background-color: rgba(151, 212, 212, 0.37);
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 14px 30px rgba(30, 12, 0, 0.28);
+}
+
+.app-banner {
+  position: fixed;
+  overflow: hidden;
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--app-width);
+  height: var(--banner-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(102, 38, 0, 0.75);
+  font-weight: 700;
+  color: #2b1300;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 241, 204, 0.55),
+    inset 0 -2px 0 rgba(91, 37, 0, 0.4);
+  z-index: 1000;
+}
+
+.app-banner-top {
+  border-top-left-radius: 10%;
+  border-top-right-radius: 10%;
+  top: var(--banner-offset);
+  background: linear-gradient(180deg, #cf5e00 100%, #ff8a00 45%, #ffbb4a 100%);
+}
+
+.app-banner-bottom {
+  bottom: var(--banner-offset);
+  border-bottom-left-radius: 20%;
+  border-bottom-right-radius: 20%;
+  background: linear-gradient(180deg, #cf5e00 100%, #ff8a00 45%, #ffbb4a 100%);
+}

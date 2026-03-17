@@ -8,6 +8,11 @@ function GuessPokemon({ user }) {
   const [error, setError] = useState(null);
 
   const handleStart = async () => {
+    if (!user?.id) {
+      setError("No hay usuario activo. Vuelve a iniciar sesión.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -15,7 +20,7 @@ function GuessPokemon({ user }) {
       setSession(data);
       setLetra("");
     } catch (err) {
-      setError("Error al iniciar la partida. ¿Está el backend corriendo?");
+      setError(err?.message || "Error al iniciar la partida.");
     } finally {
       setLoading(false);
     }
@@ -30,7 +35,7 @@ function GuessPokemon({ user }) {
       setSession(data);
       setLetra("");
     } catch (err) {
-      setError("Error al enviar la letra.");
+      setError(err?.message || "Error al enviar la letra.");
     } finally {
       setLoading(false);
     }
@@ -41,55 +46,117 @@ function GuessPokemon({ user }) {
     if (e.key === "Enter") handleGuess();
   };
 
+  // Cuántos puntos obtendría si adivinara ahora
+  const puntosActuales =
+    session && !session.gameOver
+      ? ([100, 70, 60, 50, 40, 30, 20, 10][session.intentos] ?? 10)
+      : null;
+
+  // Fallback por intentos para no depender solo de flags del backend
+  const intentos = session?.intentos ?? 0;
+  const mostrarTipo1 = session?.mostrarTipo1 ?? intentos >= 2;
+  const mostrarGeneracion = session?.mostrarGeneracion ?? intentos >= 4;
+  const mostrarTipo2 = session?.mostrarTipo2 ?? intentos >= 6;
+
+  const scoreGanado = (() => {
+    if (!session?.gameOver) return null;
+    if (Number.isFinite(session.puntosGanados)) return session.puntosGanados;
+    if (session.ganado)
+      return [100, 70, 60, 50, 40, 30, 20, 10][intentos] ?? 10;
+    return -25;
+  })();
+
   return (
     <div>
-      <h2>Adivina el Pokémon</h2>
+      <h2 className="titulo1">Adivina el Pokémon</h2>
 
       <button onClick={handleStart} disabled={loading}>
         {session ? "Nueva partida" : "Empezar partida"}
       </button>
 
-      {loading && <p>Cargando...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {loading && <p className="titulo2">Cargando...</p>}
+      {error && <p className="titulo2" style={{ color: "red" }}>{error}</p>}
 
       {session && (
         <div>
-          {/* Pistas */}
-          <p>
-            Tipo: {session.pokemon.type1}
-            {session.pokemon.type2 ? ` / ${session.pokemon.type2}` : ""}
-          </p>
-          <p>Generación: {session.pokemon.generation}</p>
+          {/* Pistas progresivas */}
+          <div>
+            <h3>Pistas</h3>
+            {mostrarTipo1 ? (
+              <p>Tipo 1: {session.pokemon.type1}</p>
+            ) : (
+              <p style={{ color: "gray" }}>Tipo 1: se revela en el fallo 2</p>
+            )}
+
+            {mostrarGeneracion ? (
+              <p>Generación: {session.pokemon.generation}</p>
+            ) : (
+              <p style={{ color: "gray" }}>
+                Generación: se revela en el fallo 4
+              </p>
+            )}
+
+            {mostrarTipo2 ? (
+              <p>
+                Tipo 2:{" "}
+                {session.pokemon.type2
+                  ? session.pokemon.type2
+                  : "este Pokémon no tiene tipo secundario"}
+              </p>
+            ) : (
+              <p style={{ color: "gray" }}>Tipo 2: se revela en el fallo 6</p>
+            )}
+          </div>
 
           {/* Palabra enmascarada */}
           <p style={{ fontSize: "2rem", letterSpacing: "0.5rem" }}>
             {session.maskedWord.split("").join(" ")}
           </p>
 
-          {/* Intentos restantes */}
-          <p>Intentos fallados: {session.intentos} / 6</p>
+          {/* Intentos y puntos en juego */}
+          <p>Intentos fallados: {session.intentos} / 7</p>
+          {puntosActuales !== null && (
+            <p>
+              Puntos si adivinas ahora: <strong>{puntosActuales}</strong>
+            </p>
+          )}
 
           {/* Letras ya usadas */}
           <p>
             Letras usadas:{" "}
-            {session.guessedLetters.length > 0
+            {session.guessedLetters && session.guessedLetters.length > 0
               ? [...session.guessedLetters].join(", ")
               : "ninguna"}
           </p>
 
           {/* Estado final */}
           {session.gameOver && session.ganado && (
-            <p style={{ color: "green" }}>
-              ¡Correcto! El Pokémon era {session.pokemon.name}.
-            </p>
-          )}
-          {session.gameOver && !session.ganado && (
-            <p style={{ color: "red" }}>
-              ¡Has perdido! El Pokémon era {session.pokemon.name}.
-            </p>
+            <div>
+              <p style={{ color: "green" }}>
+                ¡Correcto! El Pokémon era{" "}
+                <strong>{session.pokemon.name}</strong>.
+              </p>
+              {scoreGanado !== null && (
+                <p style={{ color: "green" }}>
+                  {scoreGanado === 100
+                    ? `¡Golpe crítico! +${scoreGanado} pts`
+                    : `+${scoreGanado} pts`}
+                </p>
+              )}
+            </div>
           )}
 
-          {/* Input de letra — solo visible si la partida sigue */}
+          {session.gameOver && !session.ganado && (
+            <div>
+              <p style={{ color: "red" }}>
+                ¡Has perdido! El Pokémon era{" "}
+                <strong>{session.pokemon.name}</strong>.
+              </p>
+              <p style={{ color: "red" }}>-25 pts</p>
+            </div>
+          )}
+
+          {/* Input — solo si la partida sigue */}
           {!session.gameOver && (
             <div>
               <input
