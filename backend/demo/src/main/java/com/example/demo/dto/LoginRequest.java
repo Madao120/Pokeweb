@@ -8,8 +8,7 @@ import lombok.Data;
 public class LoginRequest {
 
     @NotBlank
-    @Email
-    private String email;
+    private String emailOrName;
 
     @NotBlank
     private String password;

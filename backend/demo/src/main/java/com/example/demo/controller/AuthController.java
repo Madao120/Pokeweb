@@ -12,26 +12,20 @@ import com.example.demo.service.PokeUserService;
 
 import jakarta.validation.Valid;
 
-// Controlador para el logeo del usuario, donde recibimos el email y la contraseña
-// Y así tendremos acceso al usuario
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    //Servicio de usuario
     private final PokeUserService userService;
 
     public AuthController(PokeUserService userService) {
         this.userService = userService;
     }
 
-    // Solo necesitamos un Post por ahora para el logeo
     @PostMapping("/login")
     public PokeUserResponse login(@Valid @RequestBody LoginRequest request) {
-
-        PokeUser user = userService.login(request.getEmail(), request.getPassword());
-
+        // Pasamos emailOrName para permitir login por email o por nombre de usuario
+        PokeUser user = userService.login(request.getEmailOrName(), request.getPassword());
         return mapToResponse(user);
     }
 

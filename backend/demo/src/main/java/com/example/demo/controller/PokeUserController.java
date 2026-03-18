@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.PokeUserRequest;
 import com.example.demo.dto.PokeUserResponse;
+import com.example.demo.dto.UpdateProfileRequest;
 import com.example.demo.model.PokeUser;
 import com.example.demo.service.PokeUserService;
 
@@ -71,6 +72,27 @@ public class PokeUserController {
     public PokeUserResponse updateScore(@PathVariable Long id, @RequestParam int score) {
         PokeUser user = userService.updateScore(id, score);
         return mapToResponse(user);
+    }
+
+    // Actualizar perfil de usuario (nombre y foto)
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<?> updateProfile(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        try {
+            PokeUser user = userService.updateProfile(id, request);
+            return ResponseEntity.ok(mapToResponse(user));
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("NAME_ALREADY_EXISTS")) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body("El nombre de usuario ya está registrado");
+            }
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
     }
 
     // Mapper para pasar de PokeUser (Enttidad) a UserResponse (DTOs)

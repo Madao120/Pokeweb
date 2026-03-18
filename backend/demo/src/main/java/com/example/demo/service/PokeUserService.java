@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.demo.dto.PokeUserRequest;
+import com.example.demo.dto.UpdateProfileRequest;
 import com.example.demo.model.PokeUser;
 import com.example.demo.repository.PokeUserRepository;
 
@@ -62,6 +63,26 @@ public class PokeUserService{
         // Math max es para que nmo baje de 0, mas a delante se podrán poner rangos competitivos
         int nuevoScore = Math.max(0, user.getScore() + puntos);
         user.setScore(nuevoScore);
+        return pokeUserRepository.save(user);
+    }
+
+    // Actualiza los datos de perfil editables (nombre y avatar)
+    public PokeUser updateProfile(Long id, UpdateProfileRequest request) {
+        PokeUser user = pokeUserRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            String nuevoNombre = request.getName().trim();
+            Optional<PokeUser> existingByName = pokeUserRepository.findByName(nuevoNombre);
+            if (existingByName.isPresent() && !existingByName.get().getId().equals(id)) {
+                throw new RuntimeException("NAME_ALREADY_EXISTS");
+            }
+            user.setName(nuevoNombre);
+        }
+
+        // Permite limpiar la url o actualizarla
+        user.setProfilePictureUrl(request.getProfilePictureUrl());
+
         return pokeUserRepository.save(user);
     }
 
