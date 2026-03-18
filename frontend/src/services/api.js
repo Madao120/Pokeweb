@@ -32,6 +32,29 @@ export async function login(credentials) {
   return await response.json();
 }
 
+// Para obtener los datos del usuario
+export async function getUser(userId) {
+  const response = await fetch(`${API_URL}/users/${userId}`);
+  if (!response.ok) {
+    throw new Error("Error al obtener el usuario");
+  }
+  return await response.json();
+}
+
+// Editar nombre y foto de perfil
+export async function updateProfile(userId, data) {
+  const response = await fetch(`${API_URL}/users/${userId}/profile`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message);
+  }
+  return await response.json();
+}
+
 // Iniciar partida de ahorcado para un usuario
 export async function startGame(userId) {
   const response = await fetch(`${API_URL}/game/start?userId=${userId}`, {
@@ -68,17 +91,6 @@ export async function updateScore(userId, score) {
 
   if (!response.ok) {
     throw new Error("Error al actualizar la puntuación");
-  }
-
-  return await response.json();
-}
-
-// Obtener datos actualizados de un usuario por id
-export async function getUser(userId) {
-  const response = await fetch(`${API_URL}/users/${userId}`);
-
-  if (!response.ok) {
-    throw new Error("Error al obtener el usuario");
   }
 
   return await response.json();

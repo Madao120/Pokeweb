@@ -1,3 +1,4 @@
+import "./Register.css";
 import { useState } from "react"; //UseState, sirve para manejar estados en componentes funcionales
 import { createUser } from "../services/api"; //Es la funcion proveniente del backend (backend -> services(react(api.js)) -> Register.jsx)
 
@@ -31,10 +32,10 @@ function Register({ onRegistered }) {
   };
 
   return (
-    <div>
+    <div className="register-container">
       <h2>Registro</h2>
 
-      <form onSubmit={handleSubmit}>
+      <form className="register-form" onSubmit={handleSubmit}>
         <input
           type="email"
           name="email"
@@ -64,7 +65,7 @@ function Register({ onRegistered }) {
         </button>
       </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="register-error">{error}</p>}
     </div>
   );
 }

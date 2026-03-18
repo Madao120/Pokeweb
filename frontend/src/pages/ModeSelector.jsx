@@ -1,7 +1,9 @@
+import "./ModeSelector.css";
+
 import { useState } from "react";
 import GuessPokemon from "./GuessPokemon";
 
-function ModeSelector({ user }) {
+function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
   const [mode, setMode] = useState(null);
 
   const handleVolver = async () => {
@@ -14,7 +16,11 @@ function ModeSelector({ user }) {
     return (
       <div>
         <button onClick={handleVolver}>← Volver</button>
-        <GuessPokemon user={user} />
+        <GuessPokemon
+          user={user}
+          onGameStart={onGameStart}
+          onGameEnd={onGameEnd}
+        />
       </div>
     );
   }
@@ -29,14 +35,20 @@ function ModeSelector({ user }) {
   }
 
   return (
-    <div>
+    <div className="mode-selector-container">
       <h2>Bienvenido, {user.name}</h2>
       <p>Puntuación: {user.score}</p>
 
       <h3>Elige modo de juego</h3>
 
-      <button onClick={() => setMode("single")}>Individual</button>
-      <button onClick={() => setMode("multi")}>Multijugador</button>
+      <div className="mode-buttons">
+        <button className="mode-button" onClick={() => setMode("single")}>
+          Individual
+        </button>
+        <button className="mode-button" onClick={() => setMode("multi")}>
+          Multijugador
+        </button>
+      </div>
     </div>
   );
 }

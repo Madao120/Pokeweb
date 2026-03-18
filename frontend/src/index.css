@@ -3,12 +3,13 @@
   --banner-height: 56px;
   --banner-offset: 12px;
   --content-gap: -1px;
+  --panel-blue: rgba(151, 212, 212, 0.37);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-image: url("../public/latiasBack.jpg");
+  background-image: url("/latiasBack.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -22,10 +23,43 @@ body,
 }
 
 .app-content {
-  background-color: rgba(151, 212, 212, 0.37);
+  background-color: var(--panel-blue);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0.15) 8px
+  );
+  background-size: 100% 8px;
+  background-position: 0 0;
+  animation: scanlines 3s linear infinite;
   margin: 0;
   padding: 0;
   box-shadow: 0 14px 30px rgba(30, 12, 0, 0.28);
+}
+
+.app-content :is(h1, h2, h3, p, label) {
+  background-color: var(--panel-blue);
+  background-image: none;
+  animation: none;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+.app-content .navbar :is(h1, h2, h3, p, label) {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+@keyframes scanlines {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 8px;
+  }
 }
 
 .app-banner {

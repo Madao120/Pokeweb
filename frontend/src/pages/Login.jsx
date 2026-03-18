@@ -1,8 +1,10 @@
+import "./Login.css";
+
 import { useState } from "react";
 import { login } from "../services/api";
 
 function Login({ onLogin, onGoRegister }) {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ emaiemailOrNamel: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,14 +28,14 @@ function Login({ onLogin, onGoRegister }) {
   };
 
   return (
-    <div>
-      <h2 className="titulo1">Login</h2>
+    <div className="login-container">
+      <h2>Login</h2>
 
-      <form onSubmit={handleSubmit}>
+      <form className="login-form" onSubmit={handleSubmit}>
         <input
-          type="email"
-          name="email"
-          placeholder="Email"
+          type="text"
+          name="emailOrName"
+          placeholder="Email o Nombre de usuario"
           onChange={handleChange}
         />
         <input
@@ -47,11 +49,13 @@ function Login({ onLogin, onGoRegister }) {
         </button>
       </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="login-error">{error}</p>}
 
-      <p>
-        ¿No tienes cuenta? <button onClick={onGoRegister}>Registrarse</button>
-      </p>
+      <div className="login-links">
+        <p>
+          ¿No tienes cuenta? <button onClick={onGoRegister}>Registrarse</button>
+        </p>
+      </div>
     </div>
   );
 }

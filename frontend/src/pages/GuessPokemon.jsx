@@ -1,11 +1,20 @@
-import { useState } from "react";
+import "./GuessPokemon.css";
+
+import { useEffect, useRef, useState } from "react";
 import { startGame, guessLetter } from "../services/api";
 
-function GuessPokemon({ user }) {
+function GuessPokemon({ user, onGameStart, onGameEnd }) {
   const [session, setSession] = useState(null);
   const [letra, setLetra] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (session && !session.gameOver && !loading) {
+      inputRef.current?.focus();
+    }
+  }, [session, loading]);
 
   const handleStart = async () => {
     if (!user?.id) {
@@ -19,6 +28,7 @@ function GuessPokemon({ user }) {
       const data = await startGame(user.id);
       setSession(data);
       setLetra("");
+      onGameStart(); // avisa al NavBar que hay partida activa
     } catch (err) {
       setError(err?.message || "Error al iniciar la partida.");
     } finally {
@@ -34,6 +44,10 @@ function GuessPokemon({ user }) {
       const data = await guessLetter(user.id, letra);
       setSession(data);
       setLetra("");
+      // Si la partida terminó, desactiva el aviso de penalización
+      if (data.gameOver) {
+        onGameEnd();
+      }
     } catch (err) {
       setError(err?.message || "Error al enviar la letra.");
     } finally {
@@ -67,33 +81,35 @@ function GuessPokemon({ user }) {
   })();
 
   return (
-    <div>
-      <h2 className="titulo1">Adivina el Pokémon</h2>
+    <div className="game-container">
+      <h2>Adivina el Pokémon</h2>
 
-      <button onClick={handleStart} disabled={loading}>
+      <button
+        className="game-start-button"
+        onClick={handleStart}
+        disabled={loading}
+      >
         {session ? "Nueva partida" : "Empezar partida"}
       </button>
 
-      {loading && <p className="titulo2">Cargando...</p>}
-      {error && <p className="titulo2" style={{ color: "red" }}>{error}</p>}
+      {loading && <p>Cargando...</p>}
+      {error && <p className="game-error">{error}</p>}
 
       {session && (
-        <div>
+        <div className="game-display">
           {/* Pistas progresivas */}
           <div>
             <h3>Pistas</h3>
             {mostrarTipo1 ? (
               <p>Tipo 1: {session.pokemon.type1}</p>
             ) : (
-              <p style={{ color: "gray" }}>Tipo 1: se revela en el fallo 2</p>
+              <p style={{ color: "gray" }}>Tipo 1: No Disponible</p>
             )}
 
             {mostrarGeneracion ? (
               <p>Generación: {session.pokemon.generation}</p>
             ) : (
-              <p style={{ color: "gray" }}>
-                Generación: se revela en el fallo 4
-              </p>
+              <p style={{ color: "gray" }}>Generación: No Disponible</p>
             )}
 
             {mostrarTipo2 ? (
@@ -104,12 +120,12 @@ function GuessPokemon({ user }) {
                   : "este Pokémon no tiene tipo secundario"}
               </p>
             ) : (
-              <p style={{ color: "gray" }}>Tipo 2: se revela en el fallo 6</p>
+              <p style={{ color: "gray" }}>Tipo 2: No Disponible</p>
             )}
           </div>
 
           {/* Palabra enmascarada */}
-          <p style={{ fontSize: "2rem", letterSpacing: "0.5rem" }}>
+          <p className="pokemon-hint">
             {session.maskedWord.split("").join(" ")}
           </p>
 
@@ -122,12 +138,17 @@ function GuessPokemon({ user }) {
           )}
 
           {/* Letras ya usadas */}
-          <p>
-            Letras usadas:{" "}
-            {session.guessedLetters && session.guessedLetters.length > 0
-              ? [...session.guessedLetters].join(", ")
-              : "ninguna"}
-          </p>
+          <div className="game-guessed-letters">
+            {session.guessedLetters && session.guessedLetters.length > 0 ? (
+              [...session.guessedLetters].map((letra) => (
+                <span key={letra} className="game-guessed-letter">
+                  {letra}
+                </span>
+              ))
+            ) : (
+              <span>Ninguna letra usada</span>
+            )}
+          </div>
 
           {/* Estado final */}
           {session.gameOver && session.ganado && (
@@ -158,8 +179,9 @@ function GuessPokemon({ user }) {
 
           {/* Input — solo si la partida sigue */}
           {!session.gameOver && (
-            <div>
+            <div className="game-input-group">
               <input
+                ref={inputRef}
                 type="text"
                 maxLength={1}
                 value={letra}
@@ -168,7 +190,11 @@ function GuessPokemon({ user }) {
                 onKeyDown={handleKeyDown}
                 disabled={loading}
               />
-              <button onClick={handleGuess} disabled={loading || !letra}>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleGuess}
+                disabled={loading || !letra}
+              >
                 Adivinar
               </button>
             </div>

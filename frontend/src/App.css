@@ -35,26 +35,3 @@
   align-items: center;
   justify-content: center;
 }
-
-.titulo1 {
-  font-size: 2.5rem;
-  color: #0f4869;
-  text-shadow: 2px 2px 4px rgba(255, 241, 204, 0.55);
-  margin-bottom: 20px;
-}
-
-.titulo2 {
-  font-size: 1.5rem;
-  color: #0f4869;
-  text-shadow: 1px 1px 3px rgba(255, 241, 204, 0.55);
-  margin-bottom: 15px;
-}
-
-.campo {
-  width: 100%;
-  max-width: 400px;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
