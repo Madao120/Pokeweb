@@ -1,52 +1,115 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;500;600&display=swap");
+
 :root {
-  --app-width: 80%;
-  --banner-height: 56px;
-  --banner-offset: 12px;
-  --content-gap: -1px;
-  --panel-blue: rgba(151, 212, 212, 0.37);
+  /*Variables globales*/
+  /*Ancho*/
+  --app-width: 82%;
+  /*Alto del banner superior*/
+  --banner-top-h: 80px;
+  /*Alto del banner inferior*/
+  --banner-bot-h: 48px;
+  /*Margen del banner*/
+  --banner-offset: 10px;
+  /*Esto es para generar un espacio adicional artificial para añadir el triángulo superior de la figura */
+  --bump-h: 20px;
+
+  /*Variables de Colores*/
+  --rotom-color: #e07800;
+  --rotom-mid: #c96400;
+  --rotom-dark: #8a3e00;
+  --rotom-light: #ffaa30;
+  --rotom-shine: #ffd070;
+
+  --rotom-blue: #7dd8e8;
+  --rotom-blue-dim: rgba(91, 190, 210, 0.4);
+  --panel-bg: rgba(140, 205, 215, 0.3);
+  --blue-dark: #1a3a5f;
+
+  /*Variables para calcular la posicion donde irá el main content dejando un espacio automático tanto arriba como abajo a partir de las medidas de los banners 
+    Muy útil en caso de que quiera cambiar el tamaño de los banner (gracias Claude, recordatorio de usar la IA entendiendo lo que se está realizando y no solo para generar código sin responsabilidad)
+  */
+  --top-clearance: calc(
+    var(--banner-offset) + var(--banner-top-h) + var(--bump-h)
+  );
+  --bot-clearance: calc(var(--banner-offset) + var(--banner-bot-h));
 }
 
-body {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
   margin: 0;
-  min-height: 100vh;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family: "Poppins", "Segoe UI", sans-serif;
   background-image: url("/latiasBack.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* Opcional */
+  background-attachment: fixed;
 }
 
-html,
-body,
+/* ── Root: contenedor centrado, altura completa ─────────
+   Los banners son position:fixed así que salen del flujo.
+   app-content usa margin-top/bottom para quedar entre ellos. */
 #root {
+  width: var(--app-width);
+  margin: 0 auto;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: "Poppins", "Segoe UI", sans-serif;
 }
 
+/* ── Panel con scanlines ────────────────────────────────
+   margin-top/bottom = espacio que ocupan los banners fijos  */
 .app-content {
-  background-color: var(--panel-blue);
+  margin-top: var(--top-clearance);
+  margin-bottom: var(--bot-clearance);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--panel-bg);
   background-image: repeating-linear-gradient(
     0deg,
     transparent 0px,
     transparent 3px,
-    rgba(0, 0, 0, 0.15) 3px,
-    rgba(0, 0, 0, 0.15) 8px
+    rgba(0, 0, 0, 0.11) 3px,
+    rgba(0, 0, 0, 0.11) 8px
   );
   background-size: 100% 8px;
-  background-position: 0 0;
   animation: scanlines 3s linear infinite;
-  margin: 0;
-  padding: 0;
-  box-shadow: 0 14px 30px rgba(30, 12, 0, 0.28);
+}
+
+.app-shell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Única zona scrolleable */
+.app-routes {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-content :is(h1, h2, h3, p, label) {
-  background-color: var(--panel-blue);
+  background-color: var(--panel-bg);
   background-image: none;
   animation: none;
   padding: 3px 7px;
   border-radius: 6px;
+  border: 2px solid var(--blue-dark);
 }
-
 .app-content .navbar :is(h1, h2, h3, p, label) {
   background: transparent;
   padding: 0;
@@ -54,46 +117,183 @@ body,
 }
 
 @keyframes scanlines {
-  0% {
+  from {
     background-position: 0 0;
   }
-  100% {
+  to {
     background-position: 0 8px;
   }
 }
 
+/* ═══════════════════════════════════════════════════════
+   BANNERS
+   ═══════════════════════════════════════════════════════ */
 .app-banner {
   position: fixed;
-  overflow: hidden;
   left: 50%;
   transform: translateX(-50%);
   width: var(--app-width);
-  height: var(--banner-height);
+  z-index: 1000;
+  overflow: visible;
   display: flex;
   align-items: center;
-  justify-content: center;
-
-  border: 1px solid rgba(102, 38, 0, 0.75);
-  font-weight: 700;
-  color: #2b1300;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow:
-    inset 0 2px 0 rgba(255, 241, 204, 0.55),
-    inset 0 -2px 0 rgba(91, 37, 0, 0.4);
-  z-index: 1000;
+  justify-content: space-between;
 }
 
+/*El banner de arriba*/
 .app-banner-top {
-  border-top-left-radius: 10%;
-  border-top-right-radius: 10%;
+  margin-top: 50px;
   top: var(--banner-offset);
-  background: linear-gradient(180deg, #cf5e00 100%, #ff8a00 45%, #ffbb4a 100%);
+  height: var(--banner-top-h);
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(
+    180deg,
+    var(--rotom-shine) 0%,
+    var(--rotom-light) 8%,
+    var(--rotom-color) 35%,
+    var(--rotom-mid) 70%,
+    var(--rotom-dark) 100%
+  );
+  border: 2px solid var(--rotom-dark);
+  border-bottom: none;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 230, 140, 0.55),
+    inset 2px 0 0 rgba(255, 200, 80, 0.15),
+    inset -2px 0 0 rgba(255, 200, 80, 0.15),
+    0 -2px 8px rgba(0, 0, 0, 0.25);
 }
 
+/*Triángulo superior*/
+.app-banner-top::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(-1 * var(--bump-h));
+  transform: translateX(-50%);
+  width: 92px;
+  height: var(--bump-h);
+  background: linear-gradient(
+    180deg,
+    var(--rotom-shine) 0%,
+    var(--rotom-light) 20%,
+    var(--rotom-color) 62%,
+    var(--rotom-mid) 100%
+  );
+  /*Posiciones del polígono:
+  El 50% 0% es el vértice superior del triángulo, 
+  el 0% 100% es el vértice inferior izquierdo y el 100% 100% es el vértice inferior derecho
+  ;*/
+  clip-path: polygon(100% 0%, 0% 100%, 100% 100%);
+  border: 2px solid var(--rotom-dark);
+  border-bottom: none;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/*El banner de abajo*/
 .app-banner-bottom {
   bottom: var(--banner-offset);
-  border-bottom-left-radius: 20%;
-  border-bottom-right-radius: 20%;
-  background: linear-gradient(180deg, #cf5e00 100%, #ff8a00 45%, #ffbb4a 100%);
+  height: var(--banner-bot-h);
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(
+    0deg,
+    var(--rotom-shine) 0%,
+    var(--rotom-light) 8%,
+    var(--rotom-color) 35%,
+    var(--rotom-mid) 70%,
+    var(--rotom-dark) 100%
+  );
+  border: 2px solid var(--rotom-dark);
+  border-top: none;
+  box-shadow:
+    inset 0 -2px 0 rgba(255, 230, 140, 0.55),
+    inset 2px 0 0 rgba(255, 200, 80, 0.15),
+    inset -2px 0 0 rgba(255, 200, 80, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.25);
+  justify-content: center;
+  gap: 28px;
+}
+
+/*
+----------------------------------------
+Tornillos y rejillas PANEL SUPERIOR*/
+/* Contenedor lateral — tornillo + rejilla juntos */
+.banner-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Grupo de líneas de rejilla */
+.banner-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.banner-grid span {
+  display: block;
+  width: 42px;
+  height: 5px;
+  border-radius: 3px;
+  /* mismo efecto sólido que el banner: luz arriba, sombra abajo */
+  background: rgba(60, 20, 0, 0.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 200, 80, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Centro del banner — zona reservada para los ojos */
+.banner-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  pointer-events: none;
+  transform: translateY(30px);
+}
+
+.banner-eye {
+  width: clamp(52px, 5vw, 72px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+  transform-origin: 50% 50%;
+  transition: transform 220ms ease;
+}
+
+.banner-mouth {
+  width: clamp(230px, 5vw, 100px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+  transform-origin: 50% 50%;
+  transition: transform 220ms ease;
+  transform: translateY(80px);
+}
+
+.banner-eye-left {
+  transform: rotate(-8deg);
+}
+
+.banner-eye-right {
+  transform: rotate(8deg);
+}
+
+/* Estados opcionales para mover los ojos por acciones de juego */
+.app-banner-top.look-left .banner-eye-left {
+  transform: translateX(-5px) rotate(-11deg);
+}
+
+.app-banner-top.look-left .banner-eye-right {
+  transform: translateX(-3px) rotate(5deg);
+}
+
+.app-banner-top.look-right .banner-eye-left {
+  transform: translateX(3px) rotate(-5deg);
+}
+
+.app-banner-top.look-right .banner-eye-right {
+  transform: translateX(5px) rotate(11deg);
 }

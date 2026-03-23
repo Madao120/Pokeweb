@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import "./NavBar.css";
+//import "./NavBar.css";
 
 function NavBar({ user, inGame, onLogout }) {
   const navigate = useNavigate();

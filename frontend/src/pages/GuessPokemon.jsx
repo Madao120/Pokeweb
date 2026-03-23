@@ -1,4 +1,4 @@
-import "./GuessPokemon.css";
+//import "./GuessPokemon.css";
 
 import { useEffect, useRef, useState } from "react";
 import { startGame, guessLetter } from "../services/api";
@@ -11,20 +11,28 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
   const inputRef = useRef(null);
 
   useEffect(() => {
+    // Si hay sesion activa y el juego no está GameOver, enfocará al input para no tener que clicar de nuevo continuamente en el
     if (session && !session.gameOver && !loading) {
+      // El ? es para evitar errores si el inputRef no está asignado por alguna razón
       inputRef.current?.focus();
     }
+    // Esto cada vez que cambie la sesion o se tenga que cargar, llendo siempre la input, que es realmente lo unico que se puede hacer por ahora, escribir
   }, [session, loading]);
 
+  // Iniciar nueva partida desde el inicio.
   const handleStart = async () => {
+
+    // Si por alguna razon se ha ido a este componente sin iniciar sesion no dejará jugar
     if (!user?.id) {
       setError("No hay usuario activo. Vuelve a iniciar sesión.");
       return;
     }
 
+    // Pondremos un loading mientras carga la partida en caso de que tarde y por si acaso limpiaremos los errores desde 0
     setLoading(true);
     setError(null);
     try {
+      // Iniciaremos startGame desde la api, con el usuario, para posteriormente asignarle los puntos
       const data = await startGame(user.id);
       setSession(data);
       setLetra("");

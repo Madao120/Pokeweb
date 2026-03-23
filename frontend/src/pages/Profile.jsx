@@ -1,4 +1,4 @@
-import "./Profile.css";
+//import "./Profile.css";
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";

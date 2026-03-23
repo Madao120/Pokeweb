@@ -1,4 +1,4 @@
-import "./Register.css";
+//import "./Register.css";
 import { useState } from "react"; //UseState, sirve para manejar estados en componentes funcionales
 import { createUser } from "../services/api"; //Es la funcion proveniente del backend (backend -> services(react(api.js)) -> Register.jsx)
 

@@ -1,4 +1,4 @@
-import "./ModeSelector.css";
+//import "./ModeSelector.css";
 
 import { useState } from "react";
 import GuessPokemon from "./GuessPokemon";
