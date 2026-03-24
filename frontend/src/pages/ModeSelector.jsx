@@ -1,4 +1,4 @@
-//import "./ModeSelector.css";
+import styles from "./ModeSelector.module.css";
 
 import { useState } from "react";
 import GuessPokemon from "./GuessPokemon";
@@ -12,41 +12,60 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
     setMode(null);
   };
 
+  const renderBottomBack = () => (
+    <div className={styles.bottomBack}>
+      <button className={styles.btnBack} onClick={handleVolver}>
+        VOLVER
+      </button>
+    </div>
+  );
+
   if (mode === "single") {
     return (
-      <div>
-        <button onClick={handleVolver}>← Volver</button>
+      <div className={styles.gameWrapper}>
         <GuessPokemon
           user={user}
           onGameStart={onGameStart}
           onGameEnd={onGameEnd}
         />
+        {renderBottomBack()}
       </div>
     );
   }
 
   if (mode === "multi") {
     return (
-      <div>
-        <button onClick={handleVolver}>← Volver</button>
-        <p>Modo multijugador — próximamente.</p>
+      <div className={styles.gameWrapper}>
+        <div className={styles.multiContent}>
+          <p className={styles.multiModeText}>
+            Modo multijugador - proximamente.
+          </p>
+        </div>
+        {renderBottomBack()}
       </div>
     );
   }
 
   return (
-    <div className="mode-selector-container">
-      <h2>Bienvenido, {user.name}</h2>
-      <p>Puntuación: {user.score}</p>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <p className={styles.welcome}>BIENVENIDO/A</p>
+        <p className={styles.username}>{user.name}</p>
+        <p className={styles.score}>{user.score} PTS</p>
+      </div>
 
-      <h3>Elige modo de juego</h3>
+      <h3 className={styles.subtitle}>Elige modo de juego</h3>
 
-      <div className="mode-buttons">
-        <button className="mode-button" onClick={() => setMode("single")}>
+      <div className={styles.modeGrid}>
+        <button className={styles.modeCard} onClick={() => setMode("single")}>
           Individual
         </button>
-        <button className="mode-button" onClick={() => setMode("multi")}>
+        <button
+          className={`${styles.modeCard} ${styles.disabled}`}
+          onClick={() => setMode("multi")}
+        >
           Multijugador
+          <span className={styles.comingSoon}>PRÓXIMAMENTE</span>
         </button>
       </div>
     </div>

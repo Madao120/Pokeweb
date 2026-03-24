@@ -1,37 +1,37 @@
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap");
 
 :root {
-  /*Variables globales*/
-  /*Ancho*/
-  --app-width: 82%;
-  /*Alto del banner superior*/
-  --banner-top-h: 80px;
-  /*Alto del banner inferior*/
-  --banner-bot-h: 48px;
-  /*Margen del banner*/
-  --banner-offset: 10px;
-  /*Esto es para generar un espacio adicional artificial para añadir el triángulo superior de la figura */
-  --bump-h: 20px;
+  --bg-deep: #0a0a0a;
+  --bg-panel: #111411;
+  --bg-card: #161c16;
+  --bg-inner: #0d120d;
 
-  /*Variables de Colores*/
-  --rotom-color: #e07800;
-  --rotom-mid: #c96400;
-  --rotom-dark: #8a3e00;
-  --rotom-light: #ffaa30;
-  --rotom-shine: #ffd070;
+  --green-primary: #39ff14;
+  --green-dim: #1a7a00;
+  --green-glow: rgba(57, 255, 20, 0.18);
+  --green-subtle: rgba(57, 255, 20, 0.06);
 
-  --rotom-blue: #7dd8e8;
-  --rotom-blue-dim: rgba(91, 190, 210, 0.4);
-  --panel-bg: rgba(140, 205, 215, 0.3);
-  --blue-dark: #1a3a5f;
+  --grey-border: #2a2f2a;
+  --grey-mid: #3d453d;
+  --grey-light: #6b736b;
+  --text-main: #d4e8d4;
+  --text-dim: #5a6b5a;
+  --text-bright: #eafcea;
 
-  /*Variables para calcular la posicion donde irá el main content dejando un espacio automático tanto arriba como abajo a partir de las medidas de los banners 
-    Muy útil en caso de que quiera cambiar el tamaño de los banner (gracias Claude, recordatorio de usar la IA entendiendo lo que se está realizando y no solo para generar código sin responsabilidad)
-  */
-  --top-clearance: calc(
-    var(--banner-offset) + var(--banner-top-h) + var(--bump-h)
-  );
-  --bot-clearance: calc(var(--banner-offset) + var(--banner-bot-h));
+  --red-alert: #ff4444;
+  --red-dim: #7a1515;
+  --yellow-pts: #f0c040;
+
+  --font-pixel: "Press Start 2P", monospace;
+  --font-mono: "Share Tech Mono", monospace;
+
+  --border-glow: 1px solid var(--green-dim);
+  --border-active: 1px solid var(--green-primary);
+  --radius-panel: 4px;
+  --radius-btn: 2px;
+
+  --shadow-glow: 0 0 12px var(--green-glow), 0 0 2px var(--green-dim);
+  --shadow-inset: inset 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 *,
@@ -43,257 +43,47 @@
 }
 
 html,
-body {
-  height: 100%;
-  overflow: hidden;
-  font-family: "Poppins", "Segoe UI", sans-serif;
-  background-image: url("/latiasBack.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
-
-/* ── Root: contenedor centrado, altura completa ─────────
-   Los banners son position:fixed así que salen del flujo.
-   app-content usa margin-top/bottom para quedar entre ellos. */
+body,
 #root {
-  width: var(--app-width);
-  margin: 0 auto;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  font-family: "Poppins", "Segoe UI", sans-serif;
-}
-
-/* ── Panel con scanlines ────────────────────────────────
-   margin-top/bottom = espacio que ocupan los banners fijos  */
-.app-content {
-  margin-top: var(--top-clearance);
-  margin-bottom: var(--bot-clearance);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background-color: var(--panel-bg);
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 3px,
-    rgba(0, 0, 0, 0.11) 3px,
-    rgba(0, 0, 0, 0.11) 8px
-  );
-  background-size: 100% 8px;
-  animation: scanlines 3s linear infinite;
-}
-
-.app-shell {
   width: 100%;
+}
+
+.app-content {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  width: 100%;
 }
 
-/* Única zona scrolleable */
-.app-routes {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.app-content :is(h1, h2, h3, p, label) {
-  background-color: var(--panel-bg);
-  background-image: none;
-  animation: none;
-  padding: 3px 7px;
-  border-radius: 6px;
-  border: 2px solid var(--blue-dark);
-}
-.app-content .navbar :is(h1, h2, h3, p, label) {
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-}
-
-@keyframes scanlines {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 0 8px;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   BANNERS
-   ═══════════════════════════════════════════════════════ */
-.app-banner {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  width: var(--app-width);
-  z-index: 1000;
-  overflow: visible;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/*El banner de arriba*/
-.app-banner-top {
-  margin-top: 50px;
-  top: var(--banner-offset);
-  height: var(--banner-top-h);
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(
-    180deg,
-    var(--rotom-shine) 0%,
-    var(--rotom-light) 8%,
-    var(--rotom-color) 35%,
-    var(--rotom-mid) 70%,
-    var(--rotom-dark) 100%
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(
+    circle,
+    var(--grey-border) 1px,
+    transparent 1px
   );
-  border: 2px solid var(--rotom-dark);
-  border-bottom: none;
-  box-shadow:
-    inset 0 2px 0 rgba(255, 230, 140, 0.55),
-    inset 2px 0 0 rgba(255, 200, 80, 0.15),
-    inset -2px 0 0 rgba(255, 200, 80, 0.15),
-    0 -2px 8px rgba(0, 0, 0, 0.25);
+  background-size: 24px 24px;
 }
 
-/*Triángulo superior*/
-.app-banner-top::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: calc(-1 * var(--bump-h));
-  transform: translateX(-50%);
-  width: 92px;
-  height: var(--bump-h);
-  background: linear-gradient(
-    180deg,
-    var(--rotom-shine) 0%,
-    var(--rotom-light) 20%,
-    var(--rotom-color) 62%,
-    var(--rotom-mid) 100%
-  );
-  /*Posiciones del polígono:
-  El 50% 0% es el vértice superior del triángulo, 
-  el 0% 100% es el vértice inferior izquierdo y el 100% 100% es el vértice inferior derecho
-  ;*/
-  clip-path: polygon(100% 0%, 0% 100%, 100% 100%);
-  border: 2px solid var(--rotom-dark);
-  border-bottom: none;
-  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+::-webkit-scrollbar {
+  width: 6px;
 }
-
-/*El banner de abajo*/
-.app-banner-bottom {
-  bottom: var(--banner-offset);
-  height: var(--banner-bot-h);
-  border-radius: 0 0 14px 14px;
-  background: linear-gradient(
-    0deg,
-    var(--rotom-shine) 0%,
-    var(--rotom-light) 8%,
-    var(--rotom-color) 35%,
-    var(--rotom-mid) 70%,
-    var(--rotom-dark) 100%
-  );
-  border: 2px solid var(--rotom-dark);
-  border-top: none;
-  box-shadow:
-    inset 0 -2px 0 rgba(255, 230, 140, 0.55),
-    inset 2px 0 0 rgba(255, 200, 80, 0.15),
-    inset -2px 0 0 rgba(255, 200, 80, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.25);
-  justify-content: center;
-  gap: 28px;
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
 }
-
-/*
-----------------------------------------
-Tornillos y rejillas PANEL SUPERIOR*/
-/* Contenedor lateral — tornillo + rejilla juntos */
-.banner-side {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* Grupo de líneas de rejilla */
-.banner-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.banner-grid span {
-  display: block;
-  width: 42px;
-  height: 5px;
+::-webkit-scrollbar-thumb {
+  background: var(--green-dim);
   border-radius: 3px;
-  /* mismo efecto sólido que el banner: luz arriba, sombra abajo */
-  background: rgba(60, 20, 0, 0.38);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 200, 80, 0.22),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--green-primary);
 }
 
-/* Centro del banner — zona reservada para los ojos */
-.banner-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 50px;
-  pointer-events: none;
-  transform: translateY(30px);
-}
-
-.banner-eye {
-  width: clamp(52px, 5vw, 72px);
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
-  transform-origin: 50% 50%;
-  transition: transform 220ms ease;
-}
-
-.banner-mouth {
-  width: clamp(230px, 5vw, 100px);
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
-  transform-origin: 50% 50%;
-  transition: transform 220ms ease;
-  transform: translateY(80px);
-}
-
-.banner-eye-left {
-  transform: rotate(-8deg);
-}
-
-.banner-eye-right {
-  transform: rotate(8deg);
-}
-
-/* Estados opcionales para mover los ojos por acciones de juego */
-.app-banner-top.look-left .banner-eye-left {
-  transform: translateX(-5px) rotate(-11deg);
-}
-
-.app-banner-top.look-left .banner-eye-right {
-  transform: translateX(-3px) rotate(5deg);
-}
-
-.app-banner-top.look-right .banner-eye-left {
-  transform: translateX(3px) rotate(-5deg);
-}
-
-.app-banner-top.look-right .banner-eye-right {
-  transform: translateX(5px) rotate(11deg);
+::selection {
+  background: var(--green-dim);
+  color: var(--text-bright);
 }

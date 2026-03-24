@@ -1,7 +1,9 @@
-//import "./GuessPokemon.css";
+import styles from "./GuessPokemon.module.css";
 
 import { useEffect, useRef, useState } from "react";
 import { startGame, guessLetter } from "../services/api";
+
+const MAX_INTENTOS = 7;
 
 function GuessPokemon({ user, onGameStart, onGameEnd }) {
   const [session, setSession] = useState(null);
@@ -21,7 +23,6 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
 
   // Iniciar nueva partida desde el inicio.
   const handleStart = async () => {
-
     // Si por alguna razon se ha ido a este componente sin iniciar sesion no dejará jugar
     if (!user?.id) {
       setError("No hay usuario activo. Vuelve a iniciar sesión.");
@@ -88,127 +89,175 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     return -25;
   })();
 
+  // Añadido por si acaso si no hay sesión activa
+  if (!session) {
+    return (
+      <div className={styles.startScreen}>
+        <p className={styles.startTitle}>ADIVINA EL POKÉMON</p>
+        {error && <p className={styles.error}>{error}</p>}
+        <button
+          className={styles.btnStart}
+          onClick={handleStart}
+          disabled={loading}
+        >
+          {loading ? "CARGANDO..." : "EMPEZAR PARTIDA"}
+        </button>
+      </div>
+    );
+  }
+
+  // RETURN PRINCIPAL (modificado para que se parezca al nuevo diseño)
   return (
-    <div className="game-container">
-      <h2>Adivina el Pokémon</h2>
-
-      <button
-        className="game-start-button"
-        onClick={handleStart}
-        disabled={loading}
-      >
-        {session ? "Nueva partida" : "Empezar partida"}
-      </button>
-
-      {loading && <p>Cargando...</p>}
-      {error && <p className="game-error">{error}</p>}
-
-      {session && (
-        <div className="game-display">
-          {/* Pistas progresivas */}
-          <div>
-            <h3>Pistas</h3>
-            {mostrarTipo1 ? (
-              <p>Tipo 1: {session.pokemon.type1}</p>
-            ) : (
-              <p style={{ color: "gray" }}>Tipo 1: No Disponible</p>
-            )}
-
-            {mostrarGeneracion ? (
-              <p>Generación: {session.pokemon.generation}</p>
-            ) : (
-              <p style={{ color: "gray" }}>Generación: No Disponible</p>
-            )}
-
-            {mostrarTipo2 ? (
-              <p>
-                Tipo 2:{" "}
-                {session.pokemon.type2
-                  ? session.pokemon.type2
-                  : "este Pokémon no tiene tipo secundario"}
-              </p>
-            ) : (
-              <p style={{ color: "gray" }}>Tipo 2: No Disponible</p>
-            )}
-          </div>
-
-          {/* Palabra enmascarada */}
-          <p className="pokemon-hint">
+    <div className={styles.container}>
+      {/*Fila Superior decorativa */}
+      <div className={styles.topRow}>
+        {/*Panel izquierdo: Palabra a adivinar + vidas */}
+        <div className={`${styles.panel} ${styles.wordPanel}`}>
+          {/*Palabra enmascarada */}
+          <p className={styles.panelLabel}>PALABRA</p>
+          <p className={styles.maskedWord}>
             {session.maskedWord.split("").join(" ")}
           </p>
 
-          {/* Intentos y puntos en juego */}
-          <p>Intentos fallados: {session.intentos} / 7</p>
-          {puntosActuales !== null && (
-            <p>
-              Puntos si adivinas ahora: <strong>{puntosActuales}</strong>
-            </p>
-          )}
-
-          {/* Letras ya usadas */}
-          <div className="game-guessed-letters">
-            {session.guessedLetters && session.guessedLetters.length > 0 ? (
-              [...session.guessedLetters].map((letra) => (
-                <span key={letra} className="game-guessed-letter">
-                  {letra}
-                </span>
-              ))
-            ) : (
-              <span>Ninguna letra usada</span>
-            )}
+          {/*Barra de vidas */}
+          <div className={styles.livesBar}>
+            {Array.from({ length: MAX_INTENTOS }, (_, i) => (
+              <span
+                key={i}
+                className={`${styles.lifeIcon} ${i < intentos ? styles.used : ""}`}
+              >
+                {i < intentos ? "💀" : "❤️"}
+              </span>
+            ))}
           </div>
 
-          {/* Estado final */}
-          {session.gameOver && session.ganado && (
-            <div>
-              <p style={{ color: "green" }}>
-                ¡Correcto! El Pokémon era{" "}
-                <strong>{session.pokemon.name}</strong>.
-              </p>
-              {scoreGanado !== null && (
-                <p style={{ color: "green" }}>
-                  {scoreGanado === 100
-                    ? `¡Golpe crítico! +${scoreGanado} pts`
-                    : `+${scoreGanado} pts`}
-                </p>
+          {/*Puntos actuales*/}
+          {puntosActuales !== null && (
+            <p className={styles.ptsPreview}>
+              +{puntosActuales} PTS SI ADIVINAS
+            </p>
+          )}
+        </div>
+
+        {/*Panel derecho: Pistas */}
+        <div className={`${styles.panel} ${styles.hintsPanel}`}>
+          <p className={styles.panelLabel}>PISTAS</p>
+
+          {/*Lista con las pistas */}
+          <div className={styles.hintList}>
+            <div className={styles.hintRow}>
+              <span className={styles.hintKey}>Tipo 1:</span>
+              {mostrarTipo1 ? (
+                <span className={styles.typeBadge}>
+                  {session.pokemon.type1}
+                </span>
+              ) : (
+                <span className={styles.hintLocked}>??? (2 fallos)</span>
               )}
             </div>
-          )}
-
-          {session.gameOver && !session.ganado && (
-            <div>
-              <p style={{ color: "red" }}>
-                ¡Has perdido! El Pokémon era{" "}
-                <strong>{session.pokemon.name}</strong>.
-              </p>
-              <p style={{ color: "red" }}>-25 pts</p>
+            <div className={styles.hintRow}>
+              <span className={styles.hintKey}>Generación:</span>
+              {mostrarGeneracion ? (
+                <span className={styles.hintVal}>
+                  GEN {session.pokemon.generation}
+                </span>
+              ) : (
+                <span className={styles.hintLocked}>??? (4 fallos)</span>
+              )}
             </div>
-          )}
-
-          {/* Input — solo si la partida sigue */}
-          {!session.gameOver && (
-            <div className="game-input-group">
-              <input
-                ref={inputRef}
-                type="text"
-                maxLength={1}
-                value={letra}
-                placeholder="Introduce una letra"
-                onChange={(e) => setLetra(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={loading}
-              />
-              <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={handleGuess}
-                disabled={loading || !letra}
-              >
-                Adivinar
-              </button>
+            <div className={styles.hintRow}>
+              <span className={styles.hintKey}>Tipo 2:</span>
+              {mostrarTipo2 ? (
+                <span className={styles.typeBadge}>
+                  {session.pokemon.type2 || "ninguno"}
+                </span>
+              ) : (
+                <span className={styles.hintLocked}>??? (6 fallos)</span>
+              )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mensaje final; Cuando acaba la partida */}
+      {session.gameOver && session.ganado && (
+        <div className={styles.resultWin}>
+          ¡CORRECTO! ERA {session.pokemon.name.toUpperCase()}
+          {scoreGanado !== null && (
+            <>
+              <br />
+              {scoreGanado === 100
+                ? `¡GOLPE CRÍTICO! +${scoreGanado} PTS`
+                : `+${scoreGanado} PTS`}
+            </>
           )}
         </div>
       )}
+      {session.gameOver && !session.ganado && (
+        <div className={styles.resultLose}>
+          DERROTA — ERA {session.pokemon.name.toUpperCase()}
+          <br />
+          -25 PTS
+        </div>
+      )}
+
+      {/*Panel inferior: Input para adivinar letra + letras usadas + nueva Partida*/}
+      <div className={`${styles.panel} ${styles.bottomPanel}`}>
+        <p className={styles.panelLabel}>ADIVINAR</p>
+
+        {!session.gameOver ? (
+          <div className={styles.inputRow}>
+            <input
+              ref={inputRef}
+              className={styles.letterInput}
+              type="text"
+              maxLength={1}
+              value={letra}
+              onChange={(e) => setLetra(e.target.value.toUpperCase())}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              placeholder="_"
+            />
+            <button
+              className={styles.btnGuess}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleGuess}
+              disabled={loading || !letra}
+            >
+              {loading ? "..." : "ADIVINAR"}
+            </button>
+          </div>
+        ) : (
+          <button
+            className={styles.btnStart}
+            onClick={handleStart}
+            disabled={loading}
+          >
+            {loading ? "CARGANDO..." : "NUEVA PARTIDA"}
+          </button>
+        )}
+
+        {error && <p className={styles.error}>{error}</p>}
+        {loading && !session.gameOver && (
+          <p className={styles.loading}>CARGANDO...</p>
+        )}
+
+        {/*Letras usadas */}
+        <div className={styles.usedLetters}>
+          <span className={styles.usedLabel}>USADAS:</span>
+          {session.guessedLetters && session.guessedLetters.length > 0 ? (
+            [...session.guessedLetters].map((l) => (
+              <span key={l} className={styles.letterChip}>
+                {l}
+              </span>
+            ))
+          ) : (
+            <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
+              —
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

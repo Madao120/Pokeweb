@@ -1,0 +1,387 @@
+/* Contenedor principal: dos columnas arriba + input abajo */
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 14px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Fila superior: [palabra oculta] | [imagen + pistas] */
+.topRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Panel genérico reutilizable */
+.panel {
+  background: var(--bg-card);
+  border: 2px solid var(--green-dim);
+  border-radius: var(--radius-panel);
+  padding: 14px;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 2px solid var(--green-primary);
+  border-left: 2px solid var(--green-primary);
+}
+.panel::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 14px;
+  height: 14px;
+  border-bottom: 2px solid var(--green-primary);
+  border-right: 2px solid var(--green-primary);
+}
+
+/* Etiqueta de sección dentro de un panel */
+.panelLabel {
+  font-family: var(--font-pixel);
+  font-size: 0.45rem;
+  color: var(--green-primary);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* ─── Panel izquierdo: Palabra oculta ─── */
+.wordPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  gap: 16px;
+}
+
+.maskedWord {
+  font-family: var(--font-pixel);
+  font-size: 1.4rem;
+  color: var(--green-primary);
+  text-shadow: 0 0 10px var(--green-primary);
+  letter-spacing: 6px;
+  text-align: center;
+  word-break: break-all;
+  line-height: 2;
+}
+
+.attempts {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* Barra de vidas: corazones / X */
+.livesBar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.lifeIcon {
+  font-size: 1rem;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+.lifeIcon.used {
+  opacity: 0.2;
+  filter: grayscale(1);
+}
+
+.ptsPreview {
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  color: var(--yellow-pts);
+  letter-spacing: 1px;
+}
+
+/* ─── Panel derecho: imagen + pistas ─── */
+.hintsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 160px;
+}
+
+/* Zona imagen (pokémon censurado) */
+.spriteZone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-inner);
+  border: var(--border-glow);
+  border-radius: var(--radius-btn);
+  min-height: 80px;
+  overflow: hidden;
+}
+.sprite {
+  image-rendering: pixelated;
+  max-height: 80px;
+  max-width: 80px;
+  /* Oculta la imagen hasta que se resuelva */
+  filter: brightness(0);
+  transition: filter 0.6s;
+}
+.sprite.revealed {
+  filter: brightness(1);
+}
+
+/* Lista de pistas */
+.hintList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hintRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.hintKey {
+  color: var(--text-dim);
+  min-width: 90px;
+  font-size: 0.75rem;
+}
+.hintVal {
+  color: var(--text-bright);
+  font-family: var(--font-pixel);
+  font-size: 0.45rem;
+  letter-spacing: 1px;
+}
+.hintLocked {
+  color: var(--text-dim);
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+/* Tipos (badge coloreado) */
+.typeBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-family: var(--font-pixel);
+  font-size: 0.4rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--green-dim);
+  border: 1px solid var(--green-primary);
+}
+
+/* ─── Panel inferior: input + letras usadas ─── */
+.bottomPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.letterInput {
+  width: 56px;
+  height: 48px;
+  background: var(--bg-inner);
+  border: 2px solid var(--green-dim);
+  border-radius: var(--radius-btn);
+  color: var(--green-primary);
+  font-family: var(--font-pixel);
+  font-size: 1.2rem;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+  box-shadow: var(--shadow-inset);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.letterInput:focus {
+  border-color: var(--green-primary);
+  box-shadow:
+    var(--shadow-inset),
+    0 0 10px var(--green-glow);
+}
+
+.btnGuess {
+  flex: 1;
+  height: 48px;
+  background: var(--green-dim);
+  border: var(--border-active);
+  border-radius: var(--radius-btn);
+  color: var(--text-bright);
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.btnGuess:hover:not(:disabled) {
+  background: #216b00;
+  box-shadow: var(--shadow-glow);
+}
+.btnGuess:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Letras usadas */
+.usedLetters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.usedLabel {
+  font-family: var(--font-pixel);
+  font-size: 0.4rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-right: 4px;
+}
+
+.letterChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: var(--bg-inner);
+  border: 1px solid var(--grey-mid);
+  border-radius: 2px;
+  font-family: var(--font-pixel);
+  font-size: 0.45rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* ─── Estado sin partida ─── */
+.startScreen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.startTitle {
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  color: var(--green-primary);
+  text-shadow: 0 0 10px var(--green-primary);
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* ─── Botón start / nueva partida ─── */
+.btnStart {
+  background: var(--green-dim);
+  border: var(--border-active);
+  border-radius: var(--radius-btn);
+  color: var(--text-bright);
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  padding: 12px 24px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.btnStart:hover:not(:disabled) {
+  background: #216b00;
+  box-shadow: var(--shadow-glow);
+}
+.btnStart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Resultado final ─── */
+.resultWin {
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  color: var(--green-primary);
+  text-shadow: 0 0 6px var(--green-primary);
+  letter-spacing: 1px;
+  line-height: 1.8;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid var(--green-dim);
+  border-radius: var(--radius-btn);
+  background: var(--green-subtle);
+}
+.resultLose {
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  color: var(--red-alert);
+  letter-spacing: 1px;
+  line-height: 1.8;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid var(--red-dim);
+  border-radius: var(--radius-btn);
+  background: rgba(255, 68, 68, 0.06);
+}
+
+.error {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--red-alert);
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid var(--red-dim);
+  border-radius: var(--radius-btn);
+  padding: 8px 10px;
+}
+
+.loading {
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* Responsive: en pantallas pequeñas apila las columnas */
+@media (max-width: 600px) {
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+  .maskedWord {
+    font-size: 1rem;
+    letter-spacing: 4px;
+  }
+}

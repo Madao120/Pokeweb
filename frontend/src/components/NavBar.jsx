@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-//import "./NavBar.css";
+import styles from "./NavBar.module.css";
 
 function NavBar({ user, inGame, onLogout }) {
   const navigate = useNavigate();
@@ -16,58 +16,36 @@ function NavBar({ user, inGame, onLogout }) {
   };
 
   return (
-    <nav className="navbar">
+    <nav className={styles.navbar}>
       {/* Logo — vuelve al menú principal */}
-      <span
-        className="navbar-logo"
-        onClick={() => handleNavigate("/")}
-        style={{ cursor: "pointer" }}
-      >
+      <span className={styles.logo} onClick={() => handleNavigate("/")}>
         PokeWeb
       </span>
 
       {/* Perfil de usuario a la derecha */}
       {user && (
-        <div className="navbar-user">
+        <div className={styles.userZone}>
           <div
-            className="navbar-user-info"
+            className={styles.userInfo}
             onClick={() => handleNavigate("/profile")}
-            style={{ cursor: "pointer" }}
           >
             {user.profilePictureUrl ? (
               <img
                 src={user.profilePictureUrl}
                 alt={user.name}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                }}
+                className={styles.avatar}
               />
             ) : (
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  background: "#ffbb4a",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: "bold",
-                  fontSize: "0.9rem",
-                }}
-              >
+              <div className={styles.avatarInicial}>
                 {user.name.charAt(0).toUpperCase()}
               </div>
             )}
-            <div>
-              <p className="navbar-username">{user.name}</p>
-              <p className="navbar-points">{user.score} pts</p>
+            <div className={styles.userPersonal}>
+              <p className={styles.username}>{user.name}</p>
+              <p className={styles.points}>{user.score} pts</p>
             </div>
           </div>
-          <button className="navbar-button" onClick={onLogout}>
+          <button className={styles.btnLogout} onClick={onLogout}>
             Logout
           </button>
         </div>

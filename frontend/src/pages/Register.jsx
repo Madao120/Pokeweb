@@ -1,4 +1,4 @@
-//import "./Register.css";
+import styles from "./Register.module.css";
 import { useState } from "react"; //UseState, sirve para manejar estados en componentes funcionales
 import { createUser } from "../services/api"; //Es la funcion proveniente del backend (backend -> services(react(api.js)) -> Register.jsx)
 
@@ -32,40 +32,45 @@ function Register({ onRegistered }) {
   };
 
   return (
-    <div className="register-container">
-      <h2>Registro</h2>
+    <div className={styles.page}>
+      <div className={styles.panel}>
+        <h2 className={styles.title}>REGISTRO</h2>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <input
+            className={styles.input}
+            type="email"
+            name="email"
+            placeholder="ejemplo@correo.com"
+            onChange={handleChange}
+          />
+          <input
+            className={styles.input}
+            type="text"
+            name="name"
+            placeholder="Nombre"
+            onChange={handleChange}
+          />
+          <input
+            className={styles.input}
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            onChange={handleChange}
+          />
+          <input
+            className={styles.input}
+            name="profilePictureUrl"
+            placeholder="Foto (URL)"
+            onChange={handleChange}
+          />
 
-      <form className="register-form" onSubmit={handleSubmit}>
-        <input
-          type="email"
-          name="email"
-          placeholder="ejemplo@correo.com"
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          name="name"
-          placeholder="Nombre"
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Contraseña"
-          onChange={handleChange}
-        />
-        <input
-          name="profilePictureUrl"
-          placeholder="Foto (URL)"
-          onChange={handleChange}
-        />
+          <button className={styles.btnSubmit} type="submit" disabled={loading}>
+            {loading ? "Registrando..." : "Registrarse"}
+          </button>
+        </form>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Registrando..." : "Registrarse"}
-        </button>
-      </form>
-
-      {error && <p className="register-error">{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
+      </div>
     </div>
   );
 }
