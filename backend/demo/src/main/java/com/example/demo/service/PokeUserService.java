@@ -35,7 +35,8 @@ public class PokeUserService{
         user.setName(request.getName());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setProfilePictureUrl(request.getProfilePictureUrl());
-        user.setScore(0);
+        user.setGlobalScore(0);
+        user.setScoreM1(0);
 
         return pokeUserRepository.save(user);
     }
@@ -45,24 +46,23 @@ public class PokeUserService{
         return pokeUserRepository.findById(id);
     }
 
-    // Atualiza la puntuación, provisional (posteriormente hacer prev + puntos ganados)
-    // Cuando inicies un minijuego prev - puntos directamente, luego si ganas te suman puntos
+     // Actualiza la puntuación global de un usuario (mantenido para compatibilidad)
     public PokeUser updateScore(Long id, int newScore) {
         PokeUser user = pokeUserRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setScore(newScore);
+        user.setGlobalScore(Math.max(0, newScore));
         return pokeUserRepository.save(user);
     }
 
-    // Suma o resta puntos al score actual (usado al terminar una partida)
-    // El score nunca baja de 0
-    public PokeUser addScore(Long id, int puntos) {
+    // Suma o resta puntos del minijuego 1 y recalcula score global.
+    // Por ahora globalScore = scoreM1, luego se ampliará con más minijuegos.
+    public PokeUser addScoreM1(Long id, int puntos) {
         PokeUser user = pokeUserRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        // Math max es para que nmo baje de 0, mas a delante se podrán poner rangos competitivos
-        int nuevoScore = Math.max(0, user.getScore() + puntos);
-        user.setScore(nuevoScore);
+        int nuevoScoreM1 = Math.max(0, user.getScoreM1() + puntos);
+        user.setScoreM1(nuevoScoreM1);
+        user.setGlobalScore(nuevoScoreM1);
         return pokeUserRepository.save(user);
     }
 

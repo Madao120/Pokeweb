@@ -33,8 +33,11 @@ public class PokeUser {
     // Imagen de perfil, que será escogida entre varias opciones predeterminadas
     private String profilePictureUrl;
 
-    // Puintucaión que se actualizará cada partida, al empezarla perderá puntos directamente con un mínimo de 0, si gana ahi se le añadirán los puntos
-    private int score;
+    // Puntuación global individual (suma de minijuegos individuales)
+    private int globalScore;
+
+    // Puntuación del minijuego 1 (ahorcado individual)
+    private int scoreM1;
 
 } 
 

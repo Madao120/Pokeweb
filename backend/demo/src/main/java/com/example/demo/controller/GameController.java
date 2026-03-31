@@ -36,8 +36,6 @@ public class GameController {
     // Inicia una nueva partida para el usuario
     @PostMapping("/start")
     public GameSession startGame(@RequestParam Long userId) {
-        //Penalización en caso de abandonar la partida o perder
-        pokeUserService.addScore(userId, -25);
 
         GameSession session = new GameSession(pokemonApiService.getRandomPokemon());
         sessions.put(userId, session);
@@ -62,10 +60,21 @@ public class GameController {
         // scoreAplicado evita que se sume más de una vez si llegan peticiones duplicadas (en esto me ayudó la IA, no sabia que era algo que podía pasar)
         if (session.isGameOver() && !session.isScoreAplicado()) {
             session.setScoreAplicado(true);
-            pokeUserService.addScore(userId, session.getPuntosGanados());
+            pokeUserService.addScoreM1(userId, session.getPuntosGanados());
+            sessions.remove(userId);
         }
 
         return session;
+    }
+
+     // Si el usuario abandona la partida activa (navegar fuera, cerrar, recargar), pierde 25 puntos
+    @PostMapping("/abandon")
+    public void abandon(@RequestParam Long userId) {
+        GameSession session = sessions.get(userId);
+        if (session != null && !session.isGameOver()) {
+            pokeUserService.addScoreM1(userId, -25);
+        }
+        sessions.remove(userId);
     }
  
     // Endpoint que usaba el frontend antes — ahora redirige a startGame

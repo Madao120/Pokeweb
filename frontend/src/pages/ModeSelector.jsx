@@ -51,7 +51,7 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
       <div className={styles.header}>
         <p className={styles.welcome}>BIENVENIDO/A</p>
         <p className={styles.username}>{user.name}</p>
-        <p className={styles.score}>{user.score} PTS</p>
+        <p className={styles.globalScore}>{user.score} PTS</p>
       </div>
 
       <h3 className={styles.subtitle}>Elige modo de juego</h3>

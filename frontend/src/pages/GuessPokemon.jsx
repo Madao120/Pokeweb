@@ -1,7 +1,7 @@
 import styles from "./GuessPokemon.module.css";
 
 import { useEffect, useRef, useState } from "react";
-import { startGame, guessLetter } from "../services/api";
+import { startGame, guessLetter, abandonGame } from "../services/api";
 
 const MAX_INTENTOS = 7;
 
@@ -11,6 +11,11 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
+  const sessionRef = useRef(null);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   useEffect(() => {
     // Si hay sesion activa y el juego no está GameOver, enfocará al input para no tener que clicar de nuevo continuamente en el
@@ -20,6 +25,31 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     }
     // Esto cada vez que cambie la sesion o se tenga que cargar, llendo siempre la input, que es realmente lo unico que se puede hacer por ahora, escribir
   }, [session, loading]);
+
+  // En caso de no terminar la partida se penalizará
+  useEffect(() => {
+    const penalizeOnClose = () => {
+      if (user?.id && session && !session.gameOver) {
+        navigator.sendBeacon(
+          `http://localhost:8080/game/abandon?userId=${user.id}`,
+        );
+      }
+    };
+
+    window.addEventListener("beforeunload", penalizeOnClose);
+    return () => {
+      window.removeEventListener("beforeunload", penalizeOnClose);
+    };
+  }, [session, user?.id]);
+
+  useEffect(() => {
+    return () => {
+      const currentSession = sessionRef.current;
+      if (user?.id && currentSession && !currentSession.gameOver) {
+        abandonGame(user.id).catch(() => {});
+      }
+    };
+  }, [user?.id]);
 
   // Iniciar nueva partida desde el inicio.
   const handleStart = async () => {
@@ -55,7 +85,7 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
       setLetra("");
       // Si la partida terminó, desactiva el aviso de penalización
       if (data.gameOver) {
-        onGameEnd();
+        await onGameEnd?.();
       }
     } catch (err) {
       setError(err?.message || "Error al enviar la letra.");

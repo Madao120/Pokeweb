@@ -17,6 +17,6 @@ public class PokeUserResponse {
     private String profilePictureUrl;
     private String password;
     
-    // 0 al crear el usuario
-    private int score;
+    private int globalScore;
+    private int scoreM1;
 }

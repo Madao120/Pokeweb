@@ -42,7 +42,7 @@ function NavBar({ user, inGame, onLogout }) {
             )}
             <div className={styles.userPersonal}>
               <p className={styles.username}>{user.name}</p>
-              <p className={styles.points}>{user.score} pts</p>
+              <p className={styles.points}>{user.globalScore} pts</p>
             </div>
           </div>
           <button className={styles.btnLogout} onClick={onLogout}>

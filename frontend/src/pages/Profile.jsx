@@ -53,8 +53,12 @@ function Profile({ user, onProfileUpdated }) {
           <span className={styles.infoVal}>{user.email}</span>
         </div>
         <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Puntuación</span>
-          <span className={styles.infoVal}>{user.score} pts</span>
+          <span className={styles.infoLabel}>Puntuación Global</span>
+          <span className={styles.infoVal}>{user.globalScore} pts</span>
+        </div>
+        <div className={styles.infoRow}>
+          <span className={styles.infoLabel}>Ahorcado (M1)</span>
+          <span className={styles.infoVal}>{user.scoreM1} pts</span>
         </div>
 
         {/* Avatar */}
