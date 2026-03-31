@@ -1,4 +1,6 @@
 import styles from "./Register.module.css";
+import AvatarPicker from "../components/AvatarPicker";
+
 import { useState } from "react"; //UseState, sirve para manejar estados en componentes funcionales
 import { createUser } from "../services/api"; //Es la funcion proveniente del backend (backend -> services(react(api.js)) -> Register.jsx)
 
@@ -11,6 +13,8 @@ function Register({ onRegistered }) {
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const [showPicker, setShowPicker] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -57,20 +61,40 @@ function Register({ onRegistered }) {
             placeholder="Contraseña"
             onChange={handleChange}
           />
-          <input
-            className={styles.input}
-            name="profilePictureUrl"
-            placeholder="Foto (URL)"
-            onChange={handleChange}
-          />
+          {/* Selector de avatar */}
+          <div className={styles.avatarRow}>
+            {form.profilePictureUrl ? (
+              <img
+                src={form.profilePictureUrl}
+                alt="avatar"
+                className={styles.avatarPreview}
+              />
+            ) : (
+              <div className={styles.avatarEmpty}>?</div>
+            )}
+            <button
+              type="button"
+              className={styles.btnPicker}
+              onClick={() => setShowPicker(true)}
+            >
+              {form.profilePictureUrl ? "Cambiar avatar" : "Elegir avatar"}
+            </button>
+          </div>
 
           <button className={styles.btnSubmit} type="submit" disabled={loading}>
-            {loading ? "Registrando..." : "Registrarse"}
+            {loading ? "REGISTRANDO..." : "REGISTRARSE"}
           </button>
         </form>
-
         {error && <p className={styles.error}>{error}</p>}
       </div>
+
+      {showPicker && (
+        <AvatarPicker
+          currentUrl={form.profilePictureUrl}
+          onSelect={(url) => setForm({ ...form, profilePictureUrl: url })}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
     </div>
   );
 }

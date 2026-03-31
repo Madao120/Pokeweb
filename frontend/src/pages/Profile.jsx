@@ -1,4 +1,5 @@
-//import "./Profile.css";
+import styles from "./Profile.module.css";
+import AvatarPicker from "../components/AvatarPicker";
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,7 @@ function Profile({ user, onProfileUpdated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,93 +39,74 @@ function Profile({ user, onProfileUpdated }) {
   };
 
   return (
-    <div className="profile-container">
-      <button className="profile-button" onClick={() => navigate("/")}>
+    <div className={styles.page}>
+      <button className={styles.btnBack} onClick={() => navigate("/")}>
         ← Volver
       </button>
 
-      <h2>Mi perfil</h2>
+      <div className={styles.panel}>
+        <h2 className={styles.title}>MI PERFIL</h2>
 
-      <div className="profile-card">
-        {/* Datos de solo lectura */}
-        <div className="profile-section">
-          <h3>Información</h3>
-          <div className="profile-item">
-            <span className="profile-label">Email:</span>
-            <span className="profile-value">{user.email}</span>
-          </div>
-          <div className="profile-item">
-            <span className="profile-label">Puntuación:</span>
-            <span className="profile-value">{user.score} pts</span>
-          </div>
+        {/* Info de solo lectura */}
+        <div className={styles.infoRow}>
+          <span className={styles.infoLabel}>Email</span>
+          <span className={styles.infoVal}>{user.email}</span>
+        </div>
+        <div className={styles.infoRow}>
+          <span className={styles.infoLabel}>Puntuación</span>
+          <span className={styles.infoVal}>{user.score} pts</span>
         </div>
 
-        {/* Vista previa del avatar */}
-        <div className="profile-section">
-          <h3>Avatar</h3>
+        {/* Avatar */}
+        <div className={styles.avatarSection}>
           {form.profilePictureUrl ? (
             <img
               src={form.profilePictureUrl}
-              alt="Vista previa"
-              style={{
-                width: 80,
-                height: 80,
-                objectFit: "cover",
-                borderRadius: "50%",
-              }}
+              alt="avatar"
+              className={styles.avatarPreview}
             />
           ) : (
-            <div
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: "#ccc",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "2rem",
-              }}
-            >
+            <div className={styles.avatarEmpty}>
               {user.name.charAt(0).toUpperCase()}
             </div>
           )}
+          <button
+            type="button"
+            className={styles.btnPicker}
+            onClick={() => setShowPicker(true)}
+          >
+            {form.profilePictureUrl ? "Cambiar avatar" : "Elegir avatar"}
+          </button>
         </div>
 
-        {/* Formulario de edición */}
-        <form className="profile-section" onSubmit={handleSubmit}>
-          <h3>Editar perfil</h3>
-          <div>
-            <label>Nombre de usuario</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label>URL de foto de perfil</label>
-            <input
-              type="text"
-              name="profilePictureUrl"
-              value={form.profilePictureUrl}
-              placeholder="https://..."
-              onChange={handleChange}
-            />
-          </div>
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Guardando..." : "Guardar cambios"}
+        {/* Formulario edición */}
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <label className={styles.label}>Nombre de usuario</label>
+          <input
+            className={styles.input}
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+          />
+          <button className={styles.btnSubmit} type="submit" disabled={loading}>
+            {loading ? "GUARDANDO..." : "GUARDAR CAMBIOS"}
           </button>
         </form>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
         {success && (
-          <p style={{ color: "green" }}>Perfil actualizado correctamente.</p>
+          <p className={styles.success}>Perfil actualizado correctamente.</p>
         )}
       </div>
+
+      {showPicker && (
+        <AvatarPicker
+          currentUrl={form.profilePictureUrl}
+          onSelect={(url) => setForm({ ...form, profilePictureUrl: url })}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
     </div>
   );
 }

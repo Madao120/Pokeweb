@@ -1,15 +1,41 @@
+/* Layout principal: banner arriba, contenido en medio, navbar abajo */
 .app-shell {
-  width: 100%;
-  height: 100%;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  height: 100vh;
   overflow: hidden;
+  background: #5f829e;
 }
 
-/* Solo esta zona scrollea — el NavBar queda fijo arriba */
+/* Fondo cuadriculado animado — se mueve hacia la izquierda */
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(28, 36, 37, 0.07) 3px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 16, 24, 0.07) 3px, transparent 1px);
+  background-size: 32px 32px;
+  animation: gridScroll 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes gridScroll {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -32px 0;
+  }
+}
+
 .app-routes {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
 }
