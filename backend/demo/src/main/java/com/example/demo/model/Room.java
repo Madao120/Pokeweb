@@ -25,7 +25,7 @@ public class Room {
 
     private final String roomCode;
     private final String password;       // null = sala abierta
-    private final Long leaderId;         // quién creó la sala
+    private Long leaderId;         // líder actual de la sala (puede transferirse)
 
     private State state = State.WAITING;
     private GameMode currentMode;
@@ -42,12 +42,20 @@ public class Room {
     // roundScores acumula los puntos de TODAS las rondas jugadas
     private final Map<Long, Integer> roundScores = new ConcurrentHashMap<>();
 
+     // Voto de modo (en lobby): cada jugador vota 1 modo
+    private final Map<Long, GameMode> modeVotes = new ConcurrentHashMap<>();
+
+
     // Orden en que los jugadores terminaron la ronda actual (para calcular posiciones)
     // Se rellena conforme van terminando; los que no terminan no aparecen
     private final List<Long> finishOrder = new ArrayList<>();
 
     // Puntos ganados en la última ronda (para mostrar en ROUND_FINISHED)
     private final Map<Long, Integer> lastRoundPoints = new ConcurrentHashMap<>();
+
+     // Voto de acción al terminar ronda
+    public enum PostRoundAction { REPEAT_MODE, CHANGE_MODE, FINISH_MATCH }
+    private final Map<Long, PostRoundAction> postRoundVotes = new ConcurrentHashMap<>();
 
     // ── Timer ─────────────────────────────────────────────────────────────────
     private static final long ROUND_DURATION_MS = 3 * 60 * 1000L; // 3 minutos
@@ -114,6 +122,7 @@ public class Room {
         finishOrder.clear();
         lastRoundPoints.clear();
         roundStartTime = null;
+        postRoundVotes.clear();
         state = State.WAITING;
     }
 }

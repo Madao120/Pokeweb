@@ -66,6 +66,37 @@ public class RoomService {
 
         room.getPlayerIds().remove(targetId);
         room.getRoundScores().remove(targetId);
+        room.getModeVotes().remove(targetId);
+        room.getPostRoundVotes().remove(targetId);
+        return room;
+    }
+
+    // ── Transferir liderazgo (solo líder en WAITING) ─────────────────────────
+
+    public Room transferLeader(String code, Long currentLeaderId, Long newLeaderId) {
+        Room room = getRoom(code);
+
+        if (!room.getLeaderId().equals(currentLeaderId))
+            throw new RuntimeException("NOT_LEADER");
+        if (room.getState() != State.WAITING)
+            throw new RuntimeException("ROOM_NOT_WAITING");
+        if (!room.getPlayerIds().contains(newLeaderId))
+            throw new RuntimeException("NEW_LEADER_NOT_IN_ROOM");
+
+        room.setLeaderId(newLeaderId);
+        return room;
+    }
+
+    // ── Voto de modo (en lobby WAITING) ───────────────────────────────────────
+
+    public Room voteMode(String code, Long userId, Room.GameMode mode) {
+        Room room = getRoom(code);
+        if (room.getState() != State.WAITING)
+            throw new RuntimeException("ROOM_NOT_WAITING");
+        if (!room.getPlayerIds().contains(userId))
+            throw new RuntimeException("NOT_IN_ROOM");
+
+        room.getModeVotes().put(userId, mode);
         return room;
     }
 
@@ -91,6 +122,7 @@ public class RoomService {
         room.setState(State.PLAYING);
         room.setRoundStartTime(Instant.now());
         room.getFinishOrder().clear();
+        room.getPostRoundVotes().clear();
 
         return room;
     }
@@ -167,6 +199,19 @@ public class RoomService {
         return room;
     }
 
+    // ── Voto de acción tras ronda (ROUND_FINISHED) ───────────────────────────
+
+    public Room votePostRoundAction(String code, Long userId, Room.PostRoundAction action) {
+        Room room = getRoom(code);
+        if (room.getState() != State.ROUND_FINISHED)
+            throw new RuntimeException("ROUND_NOT_FINISHED");
+        if (!room.getPlayerIds().contains(userId))
+            throw new RuntimeException("NOT_IN_ROOM");
+
+        room.getPostRoundVotes().put(userId, action);
+        return room;
+    }
+
     // ── Terminar partida completa (solo líder) ────────────────────────────────
 
     public RoomStateDTO finishGame(String code, Long leaderId) {
@@ -202,6 +247,8 @@ public class RoomService {
         dto.setRoundScores(new HashMap<>(room.getRoundScores()));
         dto.setRemainingMs(room.getRemainingMs());
         dto.setMessage(message);
+        dto.setModeVotes(countModeVotes(room));
+        dto.setPostRoundVotes(countPostRoundVotes(room));
 
         if (room.getCurrentMode() != null)
             dto.setGameMode(room.getCurrentMode().name());
@@ -239,6 +286,20 @@ public class RoomService {
             dto.setFinalRanking(buildFinalRanking(room));
 
         return dto;
+    }
+
+    private Map<String, Integer> countModeVotes(Room room) {
+        Map<String, Integer> out = new HashMap<>();
+        room.getModeVotes().values().forEach(mode ->
+                out.merge(mode.name(), 1, Integer::sum));
+        return out;
+    }
+
+    private Map<String, Integer> countPostRoundVotes(Room room) {
+        Map<String, Integer> out = new HashMap<>();
+        room.getPostRoundVotes().values().forEach(action ->
+                out.merge(action.name(), 1, Integer::sum));
+        return out;
     }
 
     private PlayerSessionDTO toSessionDTO(GameSession s) {

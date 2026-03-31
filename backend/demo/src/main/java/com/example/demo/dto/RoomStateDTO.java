@@ -44,6 +44,10 @@ public class RoomStateDTO {
     // Orden de llegada (para mostrar posiciones en tiempo real)
     private List<Long> finishOrder;
 
+    // Votaciones en sala
+    private Map<String, Integer> modeVotes;
+    private Map<String, Integer> postRoundVotes;
+
     // ── Fin de ronda ─────────────────────────────────────────────────────────
     private Map<Long, Integer> lastRoundPoints;   // puntos ganados en esta ronda
     private Map<Long, Integer> roundScores;       // puntuación total acumulada

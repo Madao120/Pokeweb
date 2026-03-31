@@ -78,6 +78,37 @@ public class RoomController {
         return ResponseEntity.ok(dto);
     }
 
+     // ── Transferir liderazgo ──────────────────────────────────────────────────
+
+    @PostMapping("/{code}/leader")
+    public ResponseEntity<RoomStateDTO> transferLeader(
+            @PathVariable String code,
+            @RequestBody TransferLeaderRequest req) {
+
+        Room room = roomService.transferLeader(code, req.getCurrentLeaderId(), req.getNewLeaderId());
+        RoomStateDTO dto = roomService.toDTO(room, req.getCurrentLeaderId(),
+                "Nuevo líder: " + req.getNewLeaderId());
+
+        broadcast(code, dto);
+        return ResponseEntity.ok(dto);
+    }
+
+    // ── Votar modo ────────────────────────────────────────────────────────────
+
+    @PostMapping("/{code}/vote-mode")
+    public ResponseEntity<RoomStateDTO> voteMode(
+            @PathVariable String code,
+            @RequestBody VoteModeRequest req) {
+
+        Room.GameMode mode = Room.GameMode.valueOf(req.getMode().toUpperCase());
+        Room room = roomService.voteMode(code, req.getUserId(), mode);
+        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(),
+                "Voto de modo registrado");
+        broadcast(code, dto);
+        return ResponseEntity.ok(dto);
+    }
+
+
     // ── Iniciar ronda ──────────────────────────────────────────────────────────
 
     @PostMapping("/{code}/start")
@@ -112,6 +143,21 @@ public class RoomController {
         Room room = roomService.newRound(code, leaderId);
         RoomStateDTO dto = roomService.toDTO(room, leaderId,
                 "Nueva ronda. El líder escogerá el modo de juego.");
+        broadcast(code, dto);
+        return ResponseEntity.ok(dto);
+    }
+
+    // ── Votar acción tras ronda ───────────────────────────────────────────────
+
+    @PostMapping("/{code}/vote-post-round")
+    public ResponseEntity<RoomStateDTO> votePostRound(
+            @PathVariable String code,
+            @RequestBody VotePostRoundRequest req) {
+
+        Room.PostRoundAction action = Room.PostRoundAction.valueOf(req.getAction().toUpperCase());
+        Room room = roomService.votePostRoundAction(code, req.getUserId(), action);
+        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(),
+                "Voto post-ronda registrado");
         broadcast(code, dto);
         return ResponseEntity.ok(dto);
     }
