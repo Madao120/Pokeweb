@@ -95,8 +95,7 @@ public class GameSession {
         if (intentos >= MAX_INTENTOS) {
             gameOver = true;
             ganado = false;
-            puntosGanados = 0;
-            //La penalización se hace en el controller ya que es lo primero que quiero ejecutar
+            puntosGanados = -25;
         }
     }
     private void actualizarPistas() {
@@ -107,14 +106,14 @@ public class GameSession {
  
     private int calcularPuntos() {
         return switch (intentos) {
-            case 0 -> 125; // neto +100 (golpe crítico)
-            case 1 -> 95;  // neto +70
-            case 2 -> 85;  // neto +60
-            case 3 -> 75;  // neto +50
-            case 4 -> 65;  // neto +40
-            case 5 -> 55;  // neto +30
-            case 6 -> 45;  // neto +20
-            default -> 35; // neto +10
+            case 0 -> 100;
+            case 1 -> 70;
+            case 2 -> 60;
+            case 3 -> 50;
+            case 4 -> 40;
+            case 5 -> 30;
+            case 6 -> 20;
+            default -> 10;
         };
     }
 }

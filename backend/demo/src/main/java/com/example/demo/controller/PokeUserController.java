@@ -102,7 +102,8 @@ public class PokeUserController {
         res.setEmail(user.getEmail());
         res.setName(user.getName());
         res.setProfilePictureUrl(user.getProfilePictureUrl());
-        res.setScore(user.getScore());
+        res.setGlobalScore(user.getGlobalScore());
+        res.setScoreM1(user.getScoreM1());
         return res;
     }
 }

@@ -4,7 +4,33 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: #5f829e;
+  background: linear-gradient(180deg, #0f2740, #091c31);
+}
+
+.top-global-banner {
+  height: 54px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: linear-gradient(180deg, #0d2740, #0b1f34);
+  border-bottom: 2px solid #52c6ff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.top-global-title {
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  color: #f2f9ff;
+}
+
+.top-global-slash {
+  font-family: var(--font-pixel);
+  color: #63d3ff;
+  text-shadow: 0 0 8px rgba(99, 211, 255, 0.8);
 }
 
 /* Fondo cuadriculado animado — se mueve hacia la izquierda */
@@ -13,10 +39,10 @@
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(28, 36, 37, 0.07) 3px, transparent 1px),
-    linear-gradient(90deg, rgba(14, 16, 24, 0.07) 3px, transparent 1px);
-  background-size: 32px 32px;
-  animation: gridScroll 6s linear infinite;
+    linear-gradient(rgba(89, 169, 228, 0.14) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(89, 169, 228, 0.14) 2px, transparent 2px);
+  background-size: 30px 30px;
+  animation: gridScroll 7s linear infinite;
   pointer-events: none;
   z-index: 0;
 }
@@ -26,7 +52,7 @@
     background-position: 0 0;
   }
   to {
-    background-position: -32px 0;
+    background-position: -30px 0;
   }
 }
 

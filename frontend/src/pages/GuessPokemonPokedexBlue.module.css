@@ -1,0 +1,340 @@
+/* Contenedor principal: look Pokédex 5ª gen en azul */
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(940px, 100%);
+  margin: 0 auto;
+  padding: 14px;
+  border: 2px solid rgba(80, 193, 250, 0.45);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(15, 34, 57, 0.94), rgba(12, 23, 38, 0.94));
+  box-shadow:
+    inset 0 0 0 1px rgba(130, 212, 255, 0.2),
+    inset 0 -10px 24px rgba(0, 0, 0, 0.45),
+    0 10px 30px rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 10px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(96, 211, 255, 0.55) 0 16px,
+      rgba(26, 91, 132, 0.8) 16px 32px
+    );
+  border-radius: 6px 6px 0 0;
+}
+
+.topRow {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.panel {
+  background:
+    linear-gradient(180deg, rgba(214, 227, 238, 0.95), rgba(192, 211, 227, 0.95));
+  border: 2px solid #29445e;
+  border-radius: 6px;
+  padding: 12px;
+  position: relative;
+  color: #17283a;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px dashed rgba(47, 78, 104, 0.25);
+  pointer-events: none;
+}
+
+.panelLabel {
+  display: inline-block;
+  font-family: var(--font-pixel);
+  font-size: 0.46rem;
+  letter-spacing: 1px;
+  color: #0f2d44;
+  background: rgba(242, 248, 255, 0.95);
+  border: 1px solid rgba(49, 86, 116, 0.3);
+  padding: 6px 8px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.wordPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 178px;
+  gap: 14px;
+}
+
+.maskedWord {
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+  color: #0b2235;
+  letter-spacing: 6px;
+  text-align: center;
+  line-height: 1.9;
+  word-break: break-all;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.attempts {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: #46617b;
+}
+
+.livesBar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lifeIcon {
+  font-size: 1rem;
+  transition: opacity 0.3s;
+}
+
+.lifeIcon.used {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.ptsPreview {
+  font-family: var(--font-pixel);
+  font-size: 0.46rem;
+  color: #1a537a;
+  letter-spacing: 1px;
+}
+
+.hintsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 178px;
+}
+
+.hintList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hintRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.hintKey {
+  min-width: 100px;
+  color: #2c4a63;
+}
+
+.hintVal {
+  color: #0f2e46;
+  font-family: var(--font-pixel);
+  font-size: 0.44rem;
+}
+
+.hintLocked {
+  color: #557690;
+  font-style: italic;
+  font-size: 0.78rem;
+}
+
+.typeBadge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: var(--font-pixel);
+  font-size: 0.39rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #f6fbff;
+  background: #1d6f9f;
+  border: 1px solid #4ea6d9;
+}
+
+.bottomPanel {
+  background: linear-gradient(180deg, rgba(12, 19, 28, 0.95), rgba(14, 23, 35, 0.98));
+  border: 2px solid #29445e;
+  border-radius: 6px;
+  color: var(--text-bright);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  margin-top: 2px;
+}
+
+.bottomPanel .panelLabel {
+  color: #b7e6ff;
+  background: rgba(19, 49, 73, 0.95);
+  border-color: rgba(104, 184, 236, 0.48);
+}
+
+.inputRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.letterInput {
+  width: 58px;
+  height: 48px;
+  background: #dbe8f3;
+  border: 2px solid #2d4d6b;
+  border-radius: 4px;
+  color: #0f2b43;
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.letterInput:focus {
+  border-color: #58bcf2;
+  box-shadow: 0 0 0 2px rgba(88, 188, 242, 0.35);
+}
+
+.btnGuess,
+.btnStart {
+  height: 48px;
+  border-radius: 4px;
+  border: 1px solid #57b8eb;
+  background: linear-gradient(180deg, #1e6f9f, #15557a);
+  color: #eef9ff;
+  font-family: var(--font-pixel);
+  font-size: 0.48rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.08s;
+}
+
+.btnGuess {
+  flex: 1;
+}
+
+.btnStart {
+  padding: 0 24px;
+}
+
+.btnGuess:hover:not(:disabled),
+.btnStart:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.btnGuess:active:not(:disabled),
+.btnStart:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btnGuess:disabled,
+.btnStart:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.usedLetters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.usedLabel {
+  font-family: var(--font-pixel);
+  font-size: 0.4rem;
+  color: #9cc3df;
+  letter-spacing: 1px;
+  margin-right: 4px;
+}
+
+.letterChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: #e2edf7;
+  border: 1px solid #4a6a86;
+  border-radius: 3px;
+  font-family: var(--font-pixel);
+  font-size: 0.45rem;
+  color: #203a52;
+  text-transform: uppercase;
+}
+
+.startScreen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.startTitle {
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  color: #b8e9ff;
+  text-shadow: 0 0 8px rgba(88, 196, 255, 0.55);
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.resultWin,
+.resultLose {
+  font-family: var(--font-pixel);
+  font-size: 0.54rem;
+  letter-spacing: 1px;
+  line-height: 1.8;
+  text-align: center;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.resultWin {
+  color: #cbf0ff;
+  border: 1px solid rgba(99, 196, 245, 0.55);
+  background: rgba(41, 109, 150, 0.26);
+}
+
+.resultLose {
+  color: var(--red-alert);
+  border: 1px solid var(--red-dim);
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.error {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--red-alert);
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid var(--red-dim);
+  border-radius: 4px;
+  padding: 8px 10px;
+}

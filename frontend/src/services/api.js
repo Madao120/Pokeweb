@@ -82,6 +82,18 @@ export async function guessLetter(userId, letra) {
   return await response.json();
 }
 
+// Abandonar partida activa (penalización -25 en backend)
+export async function abandonGame(userId) {
+  const response = await fetch(`${API_URL}/game/abandon?userId=${userId}`, {
+    method: "POST",
+    keepalive: true,
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al abandonar la partida");
+  }
+}
+
 // Actualizar puntuación de un usuario
 export async function updateScore(userId, score) {
   const response = await fetch(

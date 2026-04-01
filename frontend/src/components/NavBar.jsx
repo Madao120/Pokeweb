@@ -4,51 +4,59 @@ import styles from "./NavBar.module.css";
 function NavBar({ user, inGame, onLogout }) {
   const navigate = useNavigate();
 
-  const handleNavigate = (path) => {
-    // Realizaré un handleNavigate para que cuando se está en partida salte un aviso de que en caso de abandonarla se tendrá una penalización
+  const handleGoMenu = () => {
     if (inGame) {
       const confirmar = window.confirm(
         "Tienes una partida en curso. Si sales ahora perderás 25 puntos por abandono. ¿Quieres continuar?",
       );
       if (!confirmar) return;
     }
-    navigate(path);
+    navigate("/");
+  };
+
+  const handleForceLose = () => {
+    if (!inGame) return;
+    window.dispatchEvent(new CustomEvent("forceLoseGuessPokemon"));
   };
 
   return (
     <nav className={styles.navbar}>
-      {/* Logo — vuelve al menú principal */}
-      <span className={styles.logo} onClick={() => handleNavigate("/")}>
-        PokeWeb
-      </span>
-
-      {/* Perfil de usuario a la derecha */}
       {user && (
-        <div className={styles.userZone}>
-          <div
-            className={styles.userInfo}
-            onClick={() => handleNavigate("/profile")}
-          >
-            {user.profilePictureUrl ? (
-              <img
-                src={user.profilePictureUrl}
-                alt={user.name}
-                className={styles.avatar}
-              />
-            ) : (
-              <div className={styles.avatarInicial}>
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className={styles.userPersonal}>
-              <p className={styles.username}>{user.name}</p>
-              <p className={styles.points}>{user.score} pts</p>
-            </div>
+        <>
+          <div className={styles.leftCapsules} onClick={() => navigate("/profile")}>
+            <span className={styles.photoBox}>
+              {user.profilePictureUrl ? (
+                <img src={user.profilePictureUrl} alt={user.name} className={styles.photo} />
+              ) : (
+                <span className={styles.photoFallback}>{user.name?.charAt(0)}</span>
+              )}
+            </span>
+            <span className={styles.capsule}>Score {user.globalScore}</span>
+            <span className={styles.capsule}>{user.name}</span>
+            <button className={styles.capsuleBtn} onClick={onLogout}>
+              Logout
+            </button>
           </div>
-          <button className={styles.btnLogout} onClick={onLogout}>
-            Logout
-          </button>
-        </div>
+
+          <div className={styles.rightControls}>
+            <button
+              className={`${styles.ctrlBtn} ${styles.btnDanger}`}
+              onClick={handleForceLose}
+              title="Forzar fin de ronda (mostrar Pokémon)"
+              disabled={!inGame}
+            >
+              ✕
+            </button>
+            <button
+              className={`${styles.ctrlBtn} ${styles.btnReturn}`}
+              onClick={handleGoMenu}
+              title="Volver al menú"
+              disabled={!inGame}
+            >
+              ⮌
+            </button>
+          </div>
+        </>
       )}
     </nav>
   );
