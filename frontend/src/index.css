@@ -1,22 +1,22 @@
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap");
 
 :root {
-  --bg-deep: #0a0a0a;
-  --bg-panel: #111411;
-  --bg-card: #161c16;
-  --bg-inner: #0d120d;
+  --bg-deep: #071321;
+  --bg-panel: #10253d;
+  --bg-card: #17324f;
+  --bg-inner: #0a1d33;
 
-  --green-primary: #39ff14;
-  --green-dim: #1a7a00;
-  --green-glow: rgba(57, 255, 20, 0.18);
-  --green-subtle: rgba(57, 255, 20, 0.06);
+  --green-primary: #59c8ff;
+  --green-dim: #2d77aa;
+  --green-glow: rgba(89, 200, 255, 0.22);
+  --green-subtle: rgba(89, 200, 255, 0.1);
 
-  --grey-border: #2a2f2a;
-  --grey-mid: #3d453d;
-  --grey-light: #6b736b;
-  --text-main: #d4e8d4;
-  --text-dim: #5a6b5a;
-  --text-bright: #eafcea;
+  --grey-border: #29435f;
+  --grey-mid: #55789b;
+  --grey-light: #8db1d2;
+  --text-main: #d7ecff;
+  --text-dim: #9ec0dd;
+  --text-bright: #eef8ff;
 
   --red-alert: #ff4444;
   --red-dim: #7a1515;

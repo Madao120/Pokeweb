@@ -2,123 +2,68 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  padding: 0 16px;
-  background: var(--bg-panel);
-  border-bottom: 2px solid var(--green-dim);
-  box-shadow: var(--shadow-glow);
+  height: 84px;
+  padding: 0 14px;
+  background: linear-gradient(180deg, #3a3f4a 0%, #2a2f3a 55%, #22252d 100%);
+  border-top: 2px solid #4dc4ff;
+  border-bottom: 2px solid #28394d;
+  box-shadow:
+    inset 0 8px 18px rgba(255, 255, 255, 0.08),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.35);
   position: sticky;
-  top: 0;
-  z-index: 100;
-  /* franja de píxeles decorativa en la parte superior */
-  border-top: 3px solid var(--green-primary);
+  bottom: 0;
+  z-index: 90;
 }
 
-/* Logo / título */
-.logo {
-  font-family: var(--font-pixel);
-  font-size: 0.75rem;
-  color: var(--green-primary);
-  text-shadow: 0 0 8px var(--green-primary);
-  letter-spacing: 2px;
-  cursor: pointer;
-  user-select: none;
-  transition: text-shadow 0.2s;
-}
-.logo:hover {
-  text-shadow:
-    0 0 16px var(--green-primary),
-    0 0 4px #fff;
-}
-
-/* Zona derecha: avatar + nombre + pts + logout */
-.userZone {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: space-between;
-}
-
-.userInfo {
+.leftCapsules {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 200px;
   cursor: pointer;
-  padding: 4px 8px;
-  border: var(--border-glow);
-  border-radius: var(--radius-panel);
-  background: var(--bg-card);
-  transition:
-    border-color 0.2s,
-    background 0.2s;
-  justify-content: space-evenly;
-}
-.userInfo:hover {
-  border-color: var(--green-primary);
-  background: var(--green-subtle);
 }
 
-.userPersonal {
+.capsule {
+  font-family: var(--font-pixel);
+  font-size: 0.46rem;
+  color: #eff8ff;
+  background: #0a0e15;
+  border: 2px solid #8ea2bc;
+  clip-path: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%);
+  padding: 10px 16px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rightControls {
   display: flex;
-  flex-direction: row;
+  align-items: center;
   gap: 10px;
-  align-items: center;
 }
 
-.avatar {
-  width: 28px;
-  height: 28px;
+.ctrlBtn {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--green-dim);
-}
-
-.avatarInitial {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--green-dim);
-  color: var(--text-bright);
-  font-family: var(--font-pixel);
-  font-size: 0.55rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--green-primary);
-}
-
-.username {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--text-bright);
-  line-height: 1.2;
-}
-
-.points {
-  font-family: var(--font-pixel);
-  font-size: 0.6rem;
-  color: var(--yellow-pts);
-  line-height: 1.2;
-}
-
-/* Botón logout */
-.btnLogout {
-  font-family: var(--font-pixel);
-  font-size: 0.45rem;
-  padding: 11px 14px;
-  background: transparent;
-  border: 1px solid var(--red-dim);
-  color: var(--red-alert);
-  border-radius: var(--radius-btn);
+  border: none;
+  font-size: 1.35rem;
+  font-weight: 700;
+  background: #10141d;
   cursor: pointer;
-  letter-spacing: 1px;
-  transition:
-    background 0.2s,
-    border-color 0.2s;
+  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.08);
 }
-.btnLogout:hover {
-  background: var(--red-dim);
-  border-color: var(--red-alert);
-  color: #fff;
+
+.btnDanger {
+  color: #ff4949;
+}
+
+.btnReturn {
+  color: #45a2ff;
+}
+
+.hiddenLogout {
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  position: absolute;
 }

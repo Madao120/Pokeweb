@@ -38,10 +38,6 @@ function App() {
 
   return (
     <section className="app-shell">
-      {/* NavBar fijo en la parte superior del panel — no scrollea */}
-      {user && <NavBar user={user} inGame={inGame} onLogout={handleLogout} />}
-
-      {/* app-routes es la única zona scrolleable */}
       <div className="app-routes">
         <Routes>
           <Route
@@ -101,6 +97,8 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
+      {/* Banner inferior */}
+      {user && <NavBar user={user} inGame={inGame} onLogout={handleLogout} />}
     </section>
   );
 }

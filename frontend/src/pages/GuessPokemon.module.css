@@ -1,195 +1,236 @@
-/* Contenedor principal: dos columnas arriba + input abajo */
 .container {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px;
   gap: 14px;
-  max-width: 900px;
-  width: 100%;
+  width: min(1020px, 100%);
   margin: 0 auto;
-}
-
-/* Fila superior: [palabra oculta] | [imagen + pistas] */
-.topRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-/* Panel genérico reutilizable */
-.panel {
-  background: var(--bg-card);
-  border: 2px solid var(--green-dim);
-  border-radius: var(--radius-panel);
-  padding: 14px;
+  padding: 10px 12px 6px;
   position: relative;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
-}
-.panel::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 14px;
-  height: 14px;
-  border-top: 2px solid var(--green-primary);
-  border-left: 2px solid var(--green-primary);
-}
-.panel::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;
-  right: -1px;
-  width: 14px;
-  height: 14px;
-  border-bottom: 2px solid var(--green-primary);
-  border-right: 2px solid var(--green-primary);
 }
 
-/* Etiqueta de sección dentro de un panel */
-.panelLabel {
-  font-family: var(--font-pixel);
-  font-size: 0.45rem;
-  color: var(--green-primary);
-  letter-spacing: 2px;
-  margin-bottom: 12px;
-  text-transform: uppercase;
+/* Fondo cuadriculado general */
+.container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgba(77, 145, 199, 0.15) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(77, 145, 199, 0.15) 2px, transparent 2px),
+    linear-gradient(180deg, #113052, #0a1e35);
+  background-size:
+    28px 28px,
+    28px 28px,
+    cover;
+  border: 2px solid #2f8fd0;
 }
 
-/* ─── Panel izquierdo: Palabra oculta ─── */
-.wordPanel {
+.topBanner {
+  height: 48px;
+  background: linear-gradient(180deg, #0f2f4d, #0a2238);
+  border: 2px solid #49b8ff;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 160px;
-  gap: 16px;
+  gap: 22px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.title {
+  font-family: var(--font-pixel);
+  font-size: 0.9rem;
+  color: #eef8ff;
+  letter-spacing: 1px;
+}
+
+.slashLeft,
+.slashRight {
+  font-family: var(--font-pixel);
+  color: #58c5ff;
+  text-shadow: 0 0 8px rgba(88, 197, 255, 0.6);
+}
+
+.topRow {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.panel {
+  position: relative;
+  min-height: 250px;
+}
+
+/* Polígono gris largo con cortes diagonales */
+.wordPanel {
+  background: linear-gradient(180deg, #a7b0ba, #9ba4ae);
+  border: 4px solid #0f171f;
+  clip-path: polygon(
+    0 10%,
+    52% 10%,
+    55% 0,
+    100% 0,
+    100% 88%,
+    58% 88%,
+    55% 100%,
+    0 100%
+  );
+  box-shadow: inset 0 0 0 2px #d8dde3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 28px 22px;
+}
+
+.wordPanel::before,
+.wordPanel::after {
+  content: "";
+  position: absolute;
+  width: 46px;
+  height: 10px;
+  background: repeating-linear-gradient(
+    125deg,
+    #6ed1ff 0 6px,
+    #1a5f8a 6px 12px
+  );
+}
+
+.wordPanel::before {
+  top: 6px;
+  right: 95px;
+}
+
+.wordPanel::after {
+  bottom: 8px;
+  left: 40px;
+}
+
+.panelLabel {
+  display: inline-block;
+  width: fit-content;
+  background: #dfe6ed;
+  color: #102941;
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  padding: 10px 12px;
+  margin-bottom: 16px;
 }
 
 .maskedWord {
   font-family: var(--font-pixel);
-  font-size: 1.4rem;
-  color: var(--green-primary);
-  text-shadow: 0 0 10px var(--green-primary);
+  font-size: 1.3rem;
+  color: #0b1f31;
   letter-spacing: 6px;
-  text-align: center;
-  word-break: break-all;
-  line-height: 2;
+  line-height: 1.8;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-.attempts {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--text-dim);
-}
-
-/* Barra de vidas: corazones / X */
 .livesBar {
+  margin-top: 16px;
   display: flex;
   gap: 6px;
-  align-items: center;
 }
+
 .lifeIcon {
-  font-size: 1rem;
-  opacity: 1;
-  transition: opacity 0.3s;
+  font-size: 0.95rem;
 }
+
 .lifeIcon.used {
-  opacity: 0.2;
+  opacity: 0.25;
   filter: grayscale(1);
 }
 
 .ptsPreview {
+  margin-top: 10px;
   font-family: var(--font-pixel);
-  font-size: 0.5rem;
-  color: var(--yellow-pts);
-  letter-spacing: 1px;
+  font-size: 0.45rem;
+  color: #234d6f;
 }
 
-/* ─── Panel derecho: imagen + pistas ─── */
+/* Caja de pistas: cuadrado blanco cuadriculado */
 .hintsPanel {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 160px;
+  background:
+    linear-gradient(rgba(178, 186, 194, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(178, 186, 194, 0.22) 1px, transparent 1px),
+    #f1f4f7;
+  background-size:
+    16px 16px,
+    16px 16px,
+    auto;
+  border: 4px solid #0f171f;
+  box-shadow: inset 0 0 0 2px #ffffff;
+  padding: 16px;
 }
 
-/* Zona imagen (pokémon censurado) */
-.spriteZone {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-inner);
-  border: var(--border-glow);
-  border-radius: var(--radius-btn);
-  min-height: 80px;
-  overflow: hidden;
-}
-.sprite {
-  image-rendering: pixelated;
-  max-height: 80px;
-  max-width: 80px;
-  /* Oculta la imagen hasta que se resuelva */
-  filter: brightness(0);
-  transition: filter 0.6s;
-}
-.sprite.revealed {
-  filter: brightness(1);
-}
-
-/* Lista de pistas */
 .hintList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
 .hintRow {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
+}
+
+.hintKey,
+.hintVal,
+.hintLocked,
+.typeBadge {
+  clip-path: polygon(7% 0, 93% 0, 100% 50%, 93% 100%, 7% 100%, 0 50%);
+  padding: 7px 12px;
+  background: #d9e7f5;
+  color: #14314e;
+  border: 1px solid #6c8fb3;
+  font-family: var(--font-pixel);
+  font-size: 0.44rem;
 }
 
 .hintKey {
-  color: var(--text-dim);
-  min-width: 90px;
-  font-size: 0.75rem;
+  min-width: 110px;
+  background: #cbe2f7;
 }
-.hintVal {
-  color: var(--text-bright);
-  font-family: var(--font-pixel);
-  font-size: 0.45rem;
-  letter-spacing: 1px;
-}
+
 .hintLocked {
-  color: var(--text-dim);
-  font-style: italic;
-  font-size: 0.75rem;
+  color: #567799;
 }
 
-/* Tipos (badge coloreado) */
 .typeBadge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 2px;
-  font-family: var(--font-pixel);
-  font-size: 0.4rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #fff;
-  background: var(--green-dim);
-  border: 1px solid var(--green-primary);
+  background: #317db4;
+  color: #f3fbff;
 }
 
-/* ─── Panel inferior: input + letras usadas ─── */
 .bottomPanel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  min-height: 176px;
+  background: linear-gradient(180deg, #373d47, #272c35);
+  border: 3px solid #131920;
+  position: relative;
+  padding: 18px 16px;
+}
+
+.bottomPanel::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 22px;
+  width: 72px;
+  height: 10px;
+  background: repeating-linear-gradient(
+    135deg,
+    #6ed1ff 0 6px,
+    #18496b 6px 12px
+  );
+  clip-path: polygon(0 100%, 10% 0, 100% 0, 90% 100%);
+}
+
+.bottomPanel .panelLabel {
+  background: #111923;
+  color: #c9e9ff;
+  border: 1px solid #3d6e96;
+  margin-bottom: 12px;
 }
 
 .inputRow {
@@ -199,55 +240,35 @@
 }
 
 .letterInput {
-  width: 56px;
+  width: 62px;
   height: 48px;
-  background: var(--bg-inner);
-  border: 2px solid var(--green-dim);
-  border-radius: var(--radius-btn);
-  color: var(--green-primary);
+  border: 2px solid #2e5d84;
+  background: #d6e6f3;
+  color: #122d45;
   font-family: var(--font-pixel);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   text-align: center;
-  text-transform: uppercase;
-  outline: none;
-  box-shadow: var(--shadow-inset);
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
-}
-.letterInput:focus {
-  border-color: var(--green-primary);
-  box-shadow:
-    var(--shadow-inset),
-    0 0 10px var(--green-glow);
 }
 
-.btnGuess {
+.btnGuess,
+.btnStart {
   flex: 1;
   height: 48px;
-  background: var(--green-dim);
-  border: var(--border-active);
-  border-radius: var(--radius-btn);
-  color: var(--text-bright);
+  border: 1px solid #5ebeff;
+  background: linear-gradient(180deg, #246d9f, #184e73);
+  color: #eff9ff;
   font-family: var(--font-pixel);
   font-size: 0.5rem;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    box-shadow 0.2s;
-}
-.btnGuess:hover:not(:disabled) {
-  background: #216b00;
-  box-shadow: var(--shadow-glow);
-}
-.btnGuess:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  letter-spacing: 1px;
 }
 
-/* Letras usadas */
+.btnGuess:hover:not(:disabled),
+.btnStart:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
 .usedLetters {
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -257,131 +278,60 @@
 .usedLabel {
   font-family: var(--font-pixel);
   font-size: 0.4rem;
-  color: var(--text-dim);
-  letter-spacing: 1px;
-  margin-right: 4px;
+  color: #b9daef;
 }
 
 .letterChip {
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  background: var(--bg-inner);
-  border: 1px solid var(--grey-mid);
-  border-radius: 2px;
+  border: 1px solid #7095b9;
+  background: #dfebf7;
+  color: #1f3f5c;
   font-family: var(--font-pixel);
-  font-size: 0.45rem;
-  color: var(--text-dim);
-  text-transform: uppercase;
+  font-size: 0.42rem;
 }
 
-/* ─── Estado sin partida ─── */
 .startScreen {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  padding: 40px;
+  gap: 16px;
+  min-height: 420px;
 }
 
 .startTitle {
   font-family: var(--font-pixel);
+  color: #d4efff;
   font-size: 0.75rem;
-  color: var(--green-primary);
-  text-shadow: 0 0 10px var(--green-primary);
-  letter-spacing: 2px;
-  text-align: center;
 }
 
-/* ─── Botón start / nueva partida ─── */
-.btnStart {
-  background: var(--green-dim);
-  border: var(--border-active);
-  border-radius: var(--radius-btn);
-  color: var(--text-bright);
-  font-family: var(--font-pixel);
-  font-size: 0.5rem;
-  padding: 12px 24px;
-  cursor: pointer;
-  letter-spacing: 2px;
-  transition:
-    background 0.2s,
-    box-shadow 0.2s;
-}
-.btnStart:hover:not(:disabled) {
-  background: #216b00;
-  box-shadow: var(--shadow-glow);
-}
-.btnStart:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ─── Resultado final ─── */
-.resultWin {
-  font-family: var(--font-pixel);
-  font-size: 0.55rem;
-  color: var(--green-primary);
-  text-shadow: 0 0 6px var(--green-primary);
-  letter-spacing: 1px;
-  line-height: 1.8;
-  text-align: center;
-  padding: 10px;
-  border: 1px solid var(--green-dim);
-  border-radius: var(--radius-btn);
-  background: var(--green-subtle);
-}
+.resultWin,
 .resultLose {
   font-family: var(--font-pixel);
   font-size: 0.55rem;
-  color: var(--red-alert);
-  letter-spacing: 1px;
-  line-height: 1.8;
   text-align: center;
   padding: 10px;
-  border: 1px solid var(--red-dim);
-  border-radius: var(--radius-btn);
-  background: rgba(255, 68, 68, 0.06);
+}
+
+.resultWin {
+  color: #d5efff;
+  border: 1px solid #4b9bd0;
+  background: rgba(40, 112, 164, 0.24);
+}
+
+.resultLose {
+  color: #ff7f7f;
+  border: 1px solid #a23d3d;
+  background: rgba(129, 41, 41, 0.24);
 }
 
 .error {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--red-alert);
-  background: rgba(255, 68, 68, 0.08);
-  border: 1px solid var(--red-dim);
-  border-radius: var(--radius-btn);
-  padding: 8px 10px;
-}
-
-.loading {
-  font-family: var(--font-pixel);
-  font-size: 0.5rem;
-  color: var(--text-dim);
-  letter-spacing: 2px;
-  animation: blink 1s step-end infinite;
-}
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.2;
-  }
-}
-
-/* Responsive: en pantallas pequeñas apila las columnas */
-@media (max-width: 600px) {
-  .topRow {
-    grid-template-columns: 1fr;
-  }
-  .maskedWord {
-    font-size: 1rem;
-    letter-spacing: 4px;
-  }
+  color: #ff8383;
+  background: rgba(255, 92, 92, 0.14);
+  border: 1px solid #8c2a2a;
+  padding: 8px;
 }

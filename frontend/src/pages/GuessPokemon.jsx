@@ -94,6 +94,30 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     }
   };
 
+  const handleForceLose = async () => {
+    if (!session || session.gameOver || !user?.id) return;
+    const pokemonName = (session.pokemon?.name || "").toLowerCase();
+    const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
+    const wrongLetters = alphabet.filter((c) => !pokemonName.includes(c));
+
+    let current = session;
+    for (const c of wrongLetters) {
+      if (current.gameOver) break;
+      current = await guessLetter(user.id, c);
+      setSession(current);
+    }
+    if (current.gameOver) onGameEnd();
+  };
+
+  useEffect(() => {
+    const onForceLose = () => {
+      handleForceLose().catch(() => {});
+    };
+    window.addEventListener("forceLoseGuessPokemon", onForceLose);
+    return () =>
+      window.removeEventListener("forceLoseGuessPokemon", onForceLose);
+  }, [session, user?.id]);
+
   // Permite enviar con Enter además del botón
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleGuess();
@@ -139,6 +163,11 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
   // RETURN PRINCIPAL (modificado para que se parezca al nuevo diseño)
   return (
     <div className={styles.container}>
+      <div className={styles.topBanner}>
+        <span className={styles.slashLeft}>///</span>
+        <span className={styles.title}>PokeWeb</span>
+        <span className={styles.slashRight}>///</span>
+      </div>
       {/*Fila Superior decorativa */}
       <div className={styles.topRow}>
         {/*Panel izquierdo: Palabra a adivinar + vidas */}
