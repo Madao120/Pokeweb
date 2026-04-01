@@ -10,25 +10,40 @@ import {
 
 const MAX_INTENTOS = 7;
 
-function GuessPokemon({
-  user,
-  onGameStart,
-  onGameEnd,
-  onBackToGames,
-  autoStart = false,
-}) {
+function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
   const [session, setSession] = useState(null);
   const [letra, setLetra] = useState("");
   const [palabra, setPalabra] = useState("");
+  const [spriteUrl, setSpriteUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
   const sessionRef = useRef(null);
-  const isUnloadingRef = useRef(false);
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  useEffect(() => {
+    const loadSprite = async () => {
+      if (!session?.gameOver || !session?.pokemon?.name) return;
+      try {
+        const r = await fetch(
+          `https://pokeapi.co/api/v2/pokemon/${session.pokemon.name.toLowerCase()}`,
+        );
+        if (!r.ok) return;
+        const data = await r.json();
+        setSpriteUrl(
+          data?.sprites?.other?.["official-artwork"]?.front_default ||
+            data?.sprites?.front_default ||
+            null,
+        );
+      } catch {
+        setSpriteUrl(null);
+      }
+    };
+    loadSprite();
+  }, [session?.gameOver, session?.pokemon?.name]);
 
   useEffect(() => {
     if (session && !session.gameOver && !loading) {
@@ -38,7 +53,6 @@ function GuessPokemon({
 
   useEffect(() => {
     const penalizeOnClose = () => {
-      isUnloadingRef.current = true;
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
         navigator.sendBeacon(
@@ -54,12 +68,7 @@ function GuessPokemon({
   useEffect(() => {
     return () => {
       const currentSession = sessionRef.current;
-      if (
-        isUnloadingRef.current &&
-        user?.id &&
-        currentSession &&
-        !currentSession.gameOver
-      ) {
+      if (user?.id && currentSession && !currentSession.gameOver) {
         abandonGame(user.id).catch(() => {});
       }
     };
@@ -78,6 +87,7 @@ function GuessPokemon({
       setSession(data);
       setLetra("");
       setPalabra("");
+      setSpriteUrl(null);
       onGameStart();
     } catch (err) {
       setError(err?.message || "Error al iniciar la partida.");
@@ -94,19 +104,11 @@ function GuessPokemon({
   }, [autoStart, user?.id]);
 
   const handleGuess = async () => {
-    const letraNormalizada = letra.trim().toLowerCase();
-    if (
-      !user?.id ||
-      !session ||
-      session.gameOver ||
-      letraNormalizada.length !== 1
-    )
-      return;
-
+    if (!letra || letra.length !== 1) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await guessLetter(user.id, letraNormalizada);
+      const data = await guessLetter(user.id, letra);
       setSession(data);
       setLetra("");
       if (data.gameOver) onGameEnd();
@@ -166,7 +168,6 @@ function GuessPokemon({
     const onForceLose = () => {
       handleForceLose().catch(() => {});
     };
-
     window.addEventListener("forceLoseGuessPokemon", onForceLose);
     return () =>
       window.removeEventListener("forceLoseGuessPokemon", onForceLose);
@@ -214,7 +215,7 @@ function GuessPokemon({
     <div className={styles.container}>
       <div className={styles.topRow}>
         <div className={`${styles.panel} ${styles.wordPanel}`}>
-          <p className={styles.panelLabel}>Pokemon a Adivinar:</p>
+          <p className={styles.panelLabel}>Pokemon a adivinar:</p>
           <p className={styles.maskedWord}>
             {session.maskedWord.split("").join(" ")}
           </p>
@@ -237,42 +238,60 @@ function GuessPokemon({
           )}
         </div>
 
+        {session.gameOver && (
+          <div className={styles.spriteReveal}>
+            <div className={styles.spriteRevealInner}>
+              {spriteUrl ? (
+                <img
+                  src={spriteUrl}
+                  alt={session.pokemon.name}
+                  className={styles.spriteImg}
+                />
+              ) : (
+                <span className={styles.spriteFallback}>SPRITE</span>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className={`${styles.panel} ${styles.hintsPanel}`}>
           <p className={styles.panelLabel}>PISTAS</p>
 
-          <div className={styles.hintGrid}>
-            <span className={styles.hintTitle}>Pista 1</span>
-            {mostrarTipo1 ? (
-              <span
-                className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
-              >
-                Tipo 1: {session.pokemon.type1}
-              </span>
-            ) : (
-              <span className={styles.hintLocked}>Tipo 1: ??? (2 fallos)</span>
-            )}
-
-            <span className={styles.hintTitle}>Pista 2</span>
-            {mostrarGeneracion ? (
-              <span className={styles.hintVal}>
-                Generación: GEN {session.pokemon.generation}
-              </span>
-            ) : (
-              <span className={styles.hintLocked}>
-                Generación: ??? (4 fallos)
-              </span>
-            )}
-
-            <span className={styles.hintTitle}>Pista 3</span>
-            {mostrarTipo2 ? (
-              <span
-                className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
-              >
-                Tipo 2: {session.pokemon.type2 || "ninguno"}
-              </span>
-            ) : (
-              <span className={styles.hintLocked}>Tipo 2: ??? (6 fallos)</span>
-            )}
+          <div className={styles.hintList}>
+            <div className={styles.hintRow}>
+              <span className={styles.hintKey}>Tipo 1:</span>
+              {mostrarTipo1 ? (
+                <span
+                  className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
+                >
+                  {session.pokemon.type1}
+                </span>
+              ) : (
+                <span className={styles.hintLocked}>??? (2 fallos)</span>
+              )}
+            </div>
+            <div className={styles.hintRow}>
+              <span className={styles.hintKey}>Generación:</span>
+              {mostrarGeneracion ? (
+                <span className={styles.hintVal}>
+                  GEN {session.pokemon.generation}
+                </span>
+              ) : (
+                <span className={styles.hintLocked}>??? (4 fallos)</span>
+              )}
+            </div>
+            <div className={styles.hintRow}>
+              <span className={styles.hintKey}>Tipo 2:</span>
+              {mostrarTipo2 ? (
+                <span
+                  className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
+                >
+                  {session.pokemon.type2 || "ninguno"}
+                </span>
+              ) : (
+                <span className={styles.hintLocked}>??? (6 fallos)</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -310,13 +329,7 @@ function GuessPokemon({
                 type="text"
                 maxLength={1}
                 value={letra}
-                onChange={(e) => {
-                  const sanitized = e.target.value
-                    .replace(/[^a-zA-Z]/g, "")
-                    .slice(-1)
-                    .toUpperCase();
-                  setLetra(sanitized);
-                }}
+                onChange={(e) => setLetra(e.target.value.toUpperCase())}
                 onKeyDown={handleKeyDown}
                 disabled={loading}
                 placeholder="_"
@@ -360,10 +373,12 @@ function GuessPokemon({
             </button>
             <button
               className={styles.btnStart}
-              onClick={onBackToGames}
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent("returnToModeMenu"))
+              }
               disabled={loading}
             >
-              VOLVER A MODOS
+              CAMBIAR MODO DE JUEGO
             </button>
           </div>
         )}

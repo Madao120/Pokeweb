@@ -18,6 +18,7 @@
   position: relative;
 }
 
+/* Bloque gris largo horizontal */
 .wordPanel {
   min-height: 255px;
   width: 100%;
@@ -53,25 +54,28 @@
   );
 }
 
+/* primera arriba */
 .wordPanel::before {
   top: 4px;
   left: 20px;
 }
 
+/* segunda abajo */
 .wordPanel::after {
   bottom: 6px;
   right: 8px;
 }
 
+/* Caja de pistas encima del bloque gris */
 .hintsPanel {
   position: absolute;
   top: 8px;
   right: 6px;
-  width: 33%;
+  width: 36%;
   min-height: 320px;
   background:
-    linear-gradient(rgba(171, 178, 186, 0.5) 1px, transparent 2px),
-    linear-gradient(90deg, rgba(171, 178, 186, 0.5) 1px, transparent 2px),
+    linear-gradient(rgba(171, 178, 186, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(171, 178, 186, 0.2) 1px, transparent 1px),
     #f4f6f9;
   background-size:
     16px 16px,
@@ -80,6 +84,47 @@
   border: 4px solid #0f171f;
   box-shadow: inset 0 0 0 2px #fff;
   padding: 14px;
+}
+
+.spriteReveal {
+  position: absolute;
+  top: 118px;
+  right: 43%;
+  transform: translateX(50%);
+  width: 120px;
+  height: 120px;
+  z-index: 5;
+  background:
+    linear-gradient(rgba(171, 178, 186, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(171, 178, 186, 0.2) 1px, transparent 1px),
+    #f4f6f9;
+  background-size:
+    16px 16px,
+    16px 16px,
+    auto;
+  border: 3px solid #0f171f;
+  box-shadow: inset 0 0 0 2px #fff;
+  padding: 8px;
+}
+
+.spriteRevealInner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spriteImg {
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+}
+
+.spriteFallback {
+  font-family: var(--font-pixel);
+  font-size: 0.4rem;
+  color: #2f4e67;
 }
 
 .panelLabel {
@@ -91,7 +136,6 @@
   font-size: 0.52rem;
   padding: 9px 12px;
   margin-bottom: 14px;
-  width: auto;
 }
 
 .maskedWord {
@@ -122,31 +166,36 @@
 .ptsPreview {
   margin-top: 10px;
   font-family: var(--font-pixel);
-  font-size: 0.8rem;
+  font-size: 0.45rem;
   color: #214a6b;
 }
 
-.hintGrid {
-  display: grid;
-  grid-template-columns: minmax(80px, 120px) 1fr;
-  gap: 10px 12px;
-  align-items: center;
+.hintList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.hintTitle,
+.hintRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hintKey,
 .hintVal,
 .hintLocked,
 .typeBadge {
-  padding: 8px 12px;
+  padding: 11px 12px;
   border: 2px solid #000;
   background: #d5e5f3;
   color: #14314e;
   font-family: var(--font-pixel);
-  font-size: 0.8rem;
+  font-size: 0.58rem;
 }
 
-.hintTitle {
-  text-align: center;
+.hintKey {
+  min-width: 96px;
   background: #c8ddf2;
 }
 
@@ -232,7 +281,7 @@
   content: "";
   position: absolute;
   top: -11px;
-  left: 0px;
+  left: 0;
   width: 110px;
   height: 18px;
   background: #121920;
@@ -245,7 +294,7 @@
   content: "///";
   position: absolute;
   top: -7px;
-  left: 10px;
+  left: 12px;
   font-family: var(--font-pixel);
   font-size: 0.55rem;
   color: #62d7ff;
@@ -253,6 +302,9 @@
 }
 
 .bottomPanel .panelLabel {
+  background: #121b25;
+  color: #c9e9ff;
+  border: 1px solid #3f6f97;
   margin-bottom: 12px;
 }
 
@@ -334,7 +386,7 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  min-height: 100px;
+  min-height: 420px;
 }
 
 .startTitle {

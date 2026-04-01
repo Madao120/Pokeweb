@@ -10,13 +10,9 @@ function NavBar({ user, inGame, onLogout }) {
         "Tienes una partida en curso. Si sales ahora perderás 25 puntos por abandono. ¿Quieres continuar?",
       );
       if (!confirmar) return;
-
-      // Forzamos derrota para aplicar penalización y avisamos al selector que vuelva al menú de juegos.
-      window.dispatchEvent(new CustomEvent("forceLoseGuessPokemon"));
-      window.dispatchEvent(new CustomEvent("leaveGuessPokemonToModes"));
+      window.dispatchEvent(new CustomEvent("returnToModeMenu"));
       return;
     }
-
     navigate("/");
   };
 
