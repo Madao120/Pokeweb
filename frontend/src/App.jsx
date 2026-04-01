@@ -38,6 +38,12 @@ function App() {
 
   return (
     <section className="app-shell">
+      <header className="top-global-banner">
+        <span className="top-global-slash">///</span>
+        <span className="top-global-title">PokeWeb</span>
+        <span className="top-global-slash">///</span>
+      </header>
+
       <div className="app-routes">
         <Routes>
           <Route
@@ -71,10 +77,7 @@ function App() {
                   user={user}
                   onReturnToMenu={refreshUser}
                   onGameStart={() => setInGame(true)}
-                  onGameEnd={async () => {
-                    setInGame(false);
-                    await refreshUser();
-                  }}
+                  onGameEnd={() => setInGame(false)}
                 />
               ) : (
                 <Navigate to="/login" />
@@ -97,6 +100,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
+
       {/* Banner inferior */}
       {user && <NavBar user={user} inGame={inGame} onLogout={handleLogout} />}
     </section>

@@ -77,6 +77,26 @@ public class GameController {
         sessions.remove(userId);
     }
  
+    @PostMapping("/force-lose")
+    public GameSession forceLose(@RequestParam Long userId) {
+        GameSession session = sessions.get(userId);
+        if (session == null) {
+            throw new RuntimeException("No hay partida activa para este usuario");
+        }
+
+        if (!session.isGameOver()) {
+            session.setIntentos(7);
+            session.setGameOver(true);
+            session.setGanado(false);
+            session.setPuntosGanados(-25);
+            session.setScoreAplicado(true);
+            pokeUserService.addScoreM1(userId, -25);
+            sessions.remove(userId);
+        }
+
+        return session;
+    }
+
     // Endpoint que usaba el frontend antes — ahora redirige a startGame
     // Devuelve solo el nombre enmascarado para no exponer el pokemon
     @GetMapping("/random-pokemon")

@@ -1,34 +1,37 @@
 import styles from "./ModeSelector.module.css";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GuessPokemon from "./GuessPokemon";
 
 function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
   const [mode, setMode] = useState(null);
+  const [selectedGame, setSelectedGame] = useState(null);
 
-  const handleVolver = async () => {
-    // Refresca el score antes de volver al menú
-    await onReturnToMenu();
-    setMode(null);
-  };
+  useEffect(() => {
+    const onLeaveGuessPokemon = () => {
+      setMode("single");
+      setSelectedGame(null);
+      onReturnToMenu?.();
+    };
 
-  const renderBottomBack = () => (
-    <div className={styles.bottomBack}>
-      <button className={styles.btnBack} onClick={handleVolver}>
-        VOLVER
-      </button>
-    </div>
-  );
+    window.addEventListener("leaveGuessPokemonToModes", onLeaveGuessPokemon);
+    return () =>
+      window.removeEventListener(
+        "leaveGuessPokemonToModes",
+        onLeaveGuessPokemon,
+      );
+  }, [onReturnToMenu]);
 
-  if (mode === "single") {
+  if (mode === "single" && selectedGame === "hangman") {
     return (
       <div className={styles.gameWrapper}>
         <GuessPokemon
           user={user}
           onGameStart={onGameStart}
           onGameEnd={onGameEnd}
+          onBackToGames={() => setSelectedGame(null)}
+          autoStart
         />
-        {renderBottomBack()}
       </div>
     );
   }
@@ -41,7 +44,33 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
             Modo multijugador - proximamente.
           </p>
         </div>
-        {renderBottomBack()}
+      </div>
+    );
+  }
+
+  if (mode === "single") {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <p className={styles.welcome}>MINIJUEGOS INDIVIDUALES</p>
+          <p className={styles.username}>{user.name}</p>
+          <p className={styles.score}>{user.globalScore} PTS</p>
+        </div>
+
+        <div className={styles.cardsGrid}>
+          <article className={styles.gameCard}>
+            <h3 className={styles.cardTitle}>Ahorcado Pokémon</h3>
+            <p className={styles.cardScore}>Score M1: {user.scoreM1} pts</p>
+            <button
+              className={styles.cardBtn}
+              onClick={() => {
+                setSelectedGame("hangman");
+              }}
+            >
+              Empezar
+            </button>
+          </article>
+        </div>
       </div>
     );
   }
@@ -51,7 +80,7 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
       <div className={styles.header}>
         <p className={styles.welcome}>BIENVENIDO/A</p>
         <p className={styles.username}>{user.name}</p>
-        <p className={styles.globalScore}>{user.score} PTS</p>
+        <p className={styles.score}>{user.globalScore} PTS</p>
       </div>
 
       <h3 className={styles.subtitle}>Elige modo de juego</h3>

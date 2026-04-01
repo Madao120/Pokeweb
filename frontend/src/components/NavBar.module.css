@@ -7,9 +7,6 @@
   background: linear-gradient(180deg, #3a3f4a 0%, #2a2f3a 55%, #22252d 100%);
   border-top: 2px solid #4dc4ff;
   border-bottom: 2px solid #28394d;
-  box-shadow:
-    inset 0 8px 18px rgba(255, 255, 255, 0.08),
-    inset 0 -8px 18px rgba(0, 0, 0, 0.35);
   position: sticky;
   bottom: 0;
   z-index: 90;
@@ -22,16 +19,40 @@
   cursor: pointer;
 }
 
-.capsule {
+.photoBox {
+  width: 44px;
+  height: 44px;
+  border: 2px solid #fff;
+  background: #0b1119;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoFallback {
+  color: #dff2ff;
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+}
+
+.capsule,
+.capsuleBtn {
   font-family: var(--font-pixel);
   font-size: 0.46rem;
   color: #eff8ff;
   background: #0a0e15;
-  border: 2px solid #8ea2bc;
-  clip-path: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%);
+  border: 3px solid #fff;
   padding: 10px 16px;
   text-transform: uppercase;
   white-space: nowrap;
+  border-radius: 2px;
+  cursor: pointer;
 }
 
 .rightControls {
@@ -44,12 +65,16 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: none;
+  border: 2px solid #fff;
   font-size: 1.35rem;
   font-weight: 700;
   background: #10141d;
   cursor: pointer;
-  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.08);
+}
+
+.ctrlBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .btnDanger {
@@ -58,12 +83,4 @@
 
 .btnReturn {
   color: #45a2ff;
-}
-
-.hiddenLogout {
-  opacity: 0;
-  pointer-events: none;
-  width: 1px;
-  height: 1px;
-  position: absolute;
 }

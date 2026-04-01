@@ -10,7 +10,13 @@ function NavBar({ user, inGame, onLogout }) {
         "Tienes una partida en curso. Si sales ahora perderás 25 puntos por abandono. ¿Quieres continuar?",
       );
       if (!confirmar) return;
+
+      // Forzamos derrota para aplicar penalización y avisamos al selector que vuelva al menú de juegos.
+      window.dispatchEvent(new CustomEvent("forceLoseGuessPokemon"));
+      window.dispatchEvent(new CustomEvent("leaveGuessPokemonToModes"));
+      return;
     }
+
     navigate("/");
   };
 
@@ -23,10 +29,28 @@ function NavBar({ user, inGame, onLogout }) {
     <nav className={styles.navbar}>
       {user && (
         <>
-          <div className={styles.leftCapsules} onClick={() => navigate("/profile")}>
-            <span className={styles.capsule}>Foto</span>
+          <div
+            className={styles.leftCapsules}
+            onClick={() => navigate("/profile")}
+          >
+            <span className={styles.photoBox}>
+              {user.profilePictureUrl ? (
+                <img
+                  src={user.profilePictureUrl}
+                  alt={user.name}
+                  className={styles.photo}
+                />
+              ) : (
+                <span className={styles.photoFallback}>
+                  {user.name?.charAt(0)}
+                </span>
+              )}
+            </span>
             <span className={styles.capsule}>Score {user.globalScore}</span>
             <span className={styles.capsule}>{user.name}</span>
+            <button className={styles.capsuleBtn} onClick={onLogout}>
+              Logout
+            </button>
           </div>
 
           <div className={styles.rightControls}>
@@ -34,6 +58,7 @@ function NavBar({ user, inGame, onLogout }) {
               className={`${styles.ctrlBtn} ${styles.btnDanger}`}
               onClick={handleForceLose}
               title="Forzar fin de ronda (mostrar Pokémon)"
+              disabled={!inGame}
             >
               ✕
             </button>
@@ -41,14 +66,12 @@ function NavBar({ user, inGame, onLogout }) {
               className={`${styles.ctrlBtn} ${styles.btnReturn}`}
               onClick={handleGoMenu}
               title="Volver al menú"
+              disabled={!inGame}
             >
               ⮌
             </button>
-            <button className={styles.hiddenLogout} onClick={onLogout} title="Cerrar sesión">
-              Logout
-            </button>
-            </div>
-          </>
+          </div>
+        </>
       )}
     </nav>
   );

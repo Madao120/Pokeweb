@@ -1,35 +1,46 @@
 import styles from "./GuessPokemon.module.css";
 
 import { useEffect, useRef, useState } from "react";
-import { startGame, guessLetter, abandonGame } from "../services/api";
+import {
+  startGame,
+  guessLetter,
+  abandonGame,
+  forceLoseGame,
+} from "../services/api";
 
 const MAX_INTENTOS = 7;
 
-function GuessPokemon({ user, onGameStart, onGameEnd }) {
+function GuessPokemon({
+  user,
+  onGameStart,
+  onGameEnd,
+  onBackToGames,
+  autoStart = false,
+}) {
   const [session, setSession] = useState(null);
   const [letra, setLetra] = useState("");
+  const [palabra, setPalabra] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
   const sessionRef = useRef(null);
+  const isUnloadingRef = useRef(false);
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
 
   useEffect(() => {
-    // Si hay sesion activa y el juego no está GameOver, enfocará al input para no tener que clicar de nuevo continuamente en el
     if (session && !session.gameOver && !loading) {
-      // El ? es para evitar errores si el inputRef no está asignado por alguna razón
       inputRef.current?.focus();
     }
-    // Esto cada vez que cambie la sesion o se tenga que cargar, llendo siempre la input, que es realmente lo unico que se puede hacer por ahora, escribir
   }, [session, loading]);
 
-  // En caso de no terminar la partida se penalizará
   useEffect(() => {
     const penalizeOnClose = () => {
-      if (user?.id && session && !session.gameOver) {
+      isUnloadingRef.current = true;
+      const currentSession = sessionRef.current;
+      if (user?.id && currentSession && !currentSession.gameOver) {
         navigator.sendBeacon(
           `http://localhost:8080/game/abandon?userId=${user.id}`,
         );
@@ -37,37 +48,37 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     };
 
     window.addEventListener("beforeunload", penalizeOnClose);
-    return () => {
-      window.removeEventListener("beforeunload", penalizeOnClose);
-    };
-  }, [session, user?.id]);
+    return () => window.removeEventListener("beforeunload", penalizeOnClose);
+  }, [user?.id]);
 
   useEffect(() => {
     return () => {
       const currentSession = sessionRef.current;
-      if (user?.id && currentSession && !currentSession.gameOver) {
+      if (
+        isUnloadingRef.current &&
+        user?.id &&
+        currentSession &&
+        !currentSession.gameOver
+      ) {
         abandonGame(user.id).catch(() => {});
       }
     };
   }, [user?.id]);
 
-  // Iniciar nueva partida desde el inicio.
   const handleStart = async () => {
-    // Si por alguna razon se ha ido a este componente sin iniciar sesion no dejará jugar
     if (!user?.id) {
       setError("No hay usuario activo. Vuelve a iniciar sesión.");
       return;
     }
 
-    // Pondremos un loading mientras carga la partida en caso de que tarde y por si acaso limpiaremos los errores desde 0
     setLoading(true);
     setError(null);
     try {
-      // Iniciaremos startGame desde la api, con el usuario, para posteriormente asignarle los puntos
       const data = await startGame(user.id);
       setSession(data);
       setLetra("");
-      onGameStart(); // avisa al NavBar que hay partida activa
+      setPalabra("");
+      onGameStart();
     } catch (err) {
       setError(err?.message || "Error al iniciar la partida.");
     } finally {
@@ -75,18 +86,30 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     }
   };
 
+  useEffect(() => {
+    if (autoStart && !session && user?.id) {
+      handleStart();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, user?.id]);
+
   const handleGuess = async () => {
-    if (!letra || letra.length !== 1) return;
+    const letraNormalizada = letra.trim().toLowerCase();
+    if (
+      !user?.id ||
+      !session ||
+      session.gameOver ||
+      letraNormalizada.length !== 1
+    )
+      return;
+
     setLoading(true);
     setError(null);
     try {
-      const data = await guessLetter(user.id, letra);
+      const data = await guessLetter(user.id, letraNormalizada);
       setSession(data);
       setLetra("");
-      // Si la partida terminó, desactiva el aviso de penalización
-      if (data.gameOver) {
-        await onGameEnd?.();
-      }
+      if (data.gameOver) onGameEnd();
     } catch (err) {
       setError(err?.message || "Error al enviar la letra.");
     } finally {
@@ -94,42 +117,70 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     }
   };
 
+  const handleGuessWord = async () => {
+    if (!palabra || !session || session.gameOver) return;
+    const objetivo = (session.pokemon?.name || "").toLowerCase();
+    const intento = palabra.trim().toLowerCase();
+
+    setLoading(true);
+    setError(null);
+    try {
+      if (intento === objetivo) {
+        const letrasPendientes = [
+          ...new Set(objetivo.replace(/[^a-z]/g, "").split("")),
+        ].filter((l) => !session.guessedLetters?.includes(l));
+        let updated = session;
+        for (const l of letrasPendientes) {
+          updated = await guessLetter(user.id, l);
+          if (updated.gameOver) break;
+        }
+        setSession(updated);
+        if (updated.gameOver) onGameEnd();
+      } else {
+        const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
+        const wrongLetter = alphabet.find(
+          (c) => !objetivo.includes(c) && !session.guessedLetters?.includes(c),
+        );
+        if (wrongLetter) {
+          const data = await guessLetter(user.id, wrongLetter);
+          setSession(data);
+          if (data.gameOver) onGameEnd();
+        }
+      }
+      setPalabra("");
+    } catch (err) {
+      setError(err?.message || "Error al enviar la palabra.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleForceLose = async () => {
     if (!session || session.gameOver || !user?.id) return;
-    const pokemonName = (session.pokemon?.name || "").toLowerCase();
-    const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
-    const wrongLetters = alphabet.filter((c) => !pokemonName.includes(c));
-
-    let current = session;
-    for (const c of wrongLetters) {
-      if (current.gameOver) break;
-      current = await guessLetter(user.id, c);
-      setSession(current);
-    }
-    if (current.gameOver) onGameEnd();
+    const data = await forceLoseGame(user.id);
+    setSession(data);
+    if (data.gameOver) onGameEnd();
   };
 
   useEffect(() => {
     const onForceLose = () => {
       handleForceLose().catch(() => {});
     };
+
     window.addEventListener("forceLoseGuessPokemon", onForceLose);
     return () =>
       window.removeEventListener("forceLoseGuessPokemon", onForceLose);
   }, [session, user?.id]);
 
-  // Permite enviar con Enter además del botón
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleGuess();
   };
 
-  // Cuántos puntos obtendría si adivinara ahora
   const puntosActuales =
     session && !session.gameOver
       ? ([100, 70, 60, 50, 40, 30, 20, 10][session.intentos] ?? 10)
       : null;
 
-  // Fallback por intentos para no depender solo de flags del backend
   const intentos = session?.intentos ?? 0;
   const mostrarTipo1 = session?.mostrarTipo1 ?? intentos >= 2;
   const mostrarGeneracion = session?.mostrarGeneracion ?? intentos >= 4;
@@ -143,7 +194,6 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     return -25;
   })();
 
-  // Añadido por si acaso si no hay sesión activa
   if (!session) {
     return (
       <div className={styles.startScreen}>
@@ -160,25 +210,15 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
     );
   }
 
-  // RETURN PRINCIPAL (modificado para que se parezca al nuevo diseño)
   return (
     <div className={styles.container}>
-      <div className={styles.topBanner}>
-        <span className={styles.slashLeft}>///</span>
-        <span className={styles.title}>PokeWeb</span>
-        <span className={styles.slashRight}>///</span>
-      </div>
-      {/*Fila Superior decorativa */}
       <div className={styles.topRow}>
-        {/*Panel izquierdo: Palabra a adivinar + vidas */}
         <div className={`${styles.panel} ${styles.wordPanel}`}>
-          {/*Palabra enmascarada */}
-          <p className={styles.panelLabel}>PALABRA</p>
+          <p className={styles.panelLabel}>Pokemon a Adivinar:</p>
           <p className={styles.maskedWord}>
             {session.maskedWord.split("").join(" ")}
           </p>
 
-          {/*Barra de vidas */}
           <div className={styles.livesBar}>
             {Array.from({ length: MAX_INTENTOS }, (_, i) => (
               <span
@@ -190,7 +230,6 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
             ))}
           </div>
 
-          {/*Puntos actuales*/}
           {puntosActuales !== null && (
             <p className={styles.ptsPreview}>
               +{puntosActuales} PTS SI ADIVINAS
@@ -198,47 +237,46 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
           )}
         </div>
 
-        {/*Panel derecho: Pistas */}
         <div className={`${styles.panel} ${styles.hintsPanel}`}>
           <p className={styles.panelLabel}>PISTAS</p>
 
-          {/*Lista con las pistas */}
-          <div className={styles.hintList}>
-            <div className={styles.hintRow}>
-              <span className={styles.hintKey}>Tipo 1:</span>
-              {mostrarTipo1 ? (
-                <span className={styles.typeBadge}>
-                  {session.pokemon.type1}
-                </span>
-              ) : (
-                <span className={styles.hintLocked}>??? (2 fallos)</span>
-              )}
-            </div>
-            <div className={styles.hintRow}>
-              <span className={styles.hintKey}>Generación:</span>
-              {mostrarGeneracion ? (
-                <span className={styles.hintVal}>
-                  GEN {session.pokemon.generation}
-                </span>
-              ) : (
-                <span className={styles.hintLocked}>??? (4 fallos)</span>
-              )}
-            </div>
-            <div className={styles.hintRow}>
-              <span className={styles.hintKey}>Tipo 2:</span>
-              {mostrarTipo2 ? (
-                <span className={styles.typeBadge}>
-                  {session.pokemon.type2 || "ninguno"}
-                </span>
-              ) : (
-                <span className={styles.hintLocked}>??? (6 fallos)</span>
-              )}
-            </div>
+          <div className={styles.hintGrid}>
+            <span className={styles.hintTitle}>Pista 1</span>
+            {mostrarTipo1 ? (
+              <span
+                className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
+              >
+                Tipo 1: {session.pokemon.type1}
+              </span>
+            ) : (
+              <span className={styles.hintLocked}>Tipo 1: ??? (2 fallos)</span>
+            )}
+
+            <span className={styles.hintTitle}>Pista 2</span>
+            {mostrarGeneracion ? (
+              <span className={styles.hintVal}>
+                Generación: GEN {session.pokemon.generation}
+              </span>
+            ) : (
+              <span className={styles.hintLocked}>
+                Generación: ??? (4 fallos)
+              </span>
+            )}
+
+            <span className={styles.hintTitle}>Pista 3</span>
+            {mostrarTipo2 ? (
+              <span
+                className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
+              >
+                Tipo 2: {session.pokemon.type2 || "ninguno"}
+              </span>
+            ) : (
+              <span className={styles.hintLocked}>Tipo 2: ??? (6 fallos)</span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mensaje final; Cuando acaba la partida */}
       {session.gameOver && session.ganado && (
         <div className={styles.resultWin}>
           ¡CORRECTO! ERA {session.pokemon.name.toUpperCase()}
@@ -260,48 +298,78 @@ function GuessPokemon({ user, onGameStart, onGameEnd }) {
         </div>
       )}
 
-      {/*Panel inferior: Input para adivinar letra + letras usadas + nueva Partida*/}
       <div className={`${styles.panel} ${styles.bottomPanel}`}>
         <p className={styles.panelLabel}>ADIVINAR</p>
 
         {!session.gameOver ? (
-          <div className={styles.inputRow}>
-            <input
-              ref={inputRef}
-              className={styles.letterInput}
-              type="text"
-              maxLength={1}
-              value={letra}
-              onChange={(e) => setLetra(e.target.value.toUpperCase())}
-              onKeyDown={handleKeyDown}
-              disabled={loading}
-              placeholder="_"
-            />
+          <>
+            <div className={styles.inputRow}>
+              <input
+                ref={inputRef}
+                className={styles.letterInput}
+                type="text"
+                maxLength={1}
+                value={letra}
+                onChange={(e) => {
+                  const sanitized = e.target.value
+                    .replace(/[^a-zA-Z]/g, "")
+                    .slice(-1)
+                    .toUpperCase();
+                  setLetra(sanitized);
+                }}
+                onKeyDown={handleKeyDown}
+                disabled={loading}
+                placeholder="_"
+              />
+              <button
+                className={styles.btnGuess}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleGuess}
+                disabled={loading || !letra}
+              >
+                {loading ? "..." : "ADIVINAR LETRA"}
+              </button>
+            </div>
+
+            <div className={styles.inputRow}>
+              <input
+                className={styles.wordInput}
+                type="text"
+                value={palabra}
+                onChange={(e) => setPalabra(e.target.value)}
+                disabled={loading}
+                placeholder="Adivinar palabra completa"
+              />
+              <button
+                className={styles.btnGuess}
+                onClick={handleGuessWord}
+                disabled={loading || !palabra.trim()}
+              >
+                {loading ? "..." : "ADIVINAR PALABRA"}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className={styles.botonesFin}>
             <button
-              className={styles.btnGuess}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleGuess}
-              disabled={loading || !letra}
+              className={styles.btnStart}
+              onClick={handleStart}
+              disabled={loading}
             >
-              {loading ? "..." : "ADIVINAR"}
+              {loading ? "CARGANDO..." : "NUEVA PARTIDA"}
+            </button>
+            <button
+              className={styles.btnStart}
+              onClick={onBackToGames}
+              disabled={loading}
+            >
+              VOLVER A MODOS
             </button>
           </div>
-        ) : (
-          <button
-            className={styles.btnStart}
-            onClick={handleStart}
-            disabled={loading}
-          >
-            {loading ? "CARGANDO..." : "NUEVA PARTIDA"}
-          </button>
         )}
 
         {error && <p className={styles.error}>{error}</p>}
-        {loading && !session.gameOver && (
-          <p className={styles.loading}>CARGANDO...</p>
-        )}
 
-        {/*Letras usadas */}
         <div className={styles.usedLetters}>
           <span className={styles.usedLabel}>USADAS:</span>
           {session.guessedLetters && session.guessedLetters.length > 0 ? (

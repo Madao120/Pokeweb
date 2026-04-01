@@ -71,12 +71,13 @@ export async function startGame(userId) {
 // Enviar una letra al backend
 export async function guessLetter(userId, letra) {
   const response = await fetch(
-    `${API_URL}/game/guess?userId=${userId}&letra=${letra}`,
+    `${API_URL}/game/guess?userId=${userId}&letra=${encodeURIComponent(letra)}`,
     { method: "POST" },
   );
 
   if (!response.ok) {
-    throw new Error("Error al enviar la letra");
+    const message = await response.text();
+    throw new Error(message || "Error al enviar la letra");
   }
 
   return await response.json();
@@ -92,6 +93,16 @@ export async function abandonGame(userId) {
   if (!response.ok) {
     throw new Error("Error al abandonar la partida");
   }
+}
+
+export async function forceLoseGame(userId) {
+  const response = await fetch(`${API_URL}/game/force-lose?userId=${userId}`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Error al forzar derrota");
+  }
+  return await response.json();
 }
 
 // Actualizar puntuación de un usuario

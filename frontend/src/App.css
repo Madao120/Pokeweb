@@ -7,15 +7,42 @@
   background: linear-gradient(180deg, #0f2740, #091c31);
 }
 
-/* Fondo estilo interfaz Pokédex azul (animado) */
+.top-global-banner {
+  height: 54px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(180deg, #0d2740, #0b1f34);
+  border-bottom: 2px solid #52c6ff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.top-global-title {
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  color: #f2f9ff;
+}
+
+.top-global-slash {
+  font-family: var(--font-pixel);
+  color: #63d3ff;
+  text-shadow: 0 0 8px rgba(99, 211, 255, 0.8);
+}
+
 /* Fondo cuadriculado animado — se mueve hacia la izquierda */
 .app-shell::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: 
-  linear-gradient(rgba(89, 169, 228, 0.14) 2px, transparent 2px),
-  linear-gradient(90deg, rgba(89, 169, 228, 0.14) 2px, transparent 2px);
+  background-image:
+    linear-gradient(rgba(89, 169, 228, 0.14) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(89, 169, 228, 0.14) 2px, transparent 2px);
   background-size: 30px 30px;
   animation: gridScroll 7s linear infinite;
   pointer-events: none;
