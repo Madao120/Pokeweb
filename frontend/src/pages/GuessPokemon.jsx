@@ -1,6 +1,6 @@
 import styles from "./GuessPokemon.module.css";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   startGame,
   guessLetter,
@@ -15,6 +15,7 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
   const [letra, setLetra] = useState("");
   const [palabra, setPalabra] = useState("");
   const [spriteUrl, setSpriteUrl] = useState(null);
+  const [revealPhase, setRevealPhase] = useState("ball");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
@@ -43,7 +44,26 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
       }
     };
     loadSprite();
-  }, [session?.gameOver, session?.pokemon?.name]);
+  }, [session, session?.gameOver, session?.pokemon?.name]);
+
+  useEffect(() => {
+    if (!session) {
+      setRevealPhase("ball");
+      return undefined;
+    }
+
+    if (!session.gameOver) {
+      setRevealPhase("ball");
+      return undefined;
+    }
+
+    setRevealPhase("white");
+    const timer = window.setTimeout(() => {
+      setRevealPhase("pokemon");
+    }, 420);
+
+    return () => window.clearTimeout(timer);
+  }, [session, session?.gameOver, session?.pokemon?.name]);
 
   useEffect(() => {
     if (session && !session.gameOver && !loading) {
@@ -88,6 +108,7 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
       setLetra("");
       setPalabra("");
       setSpriteUrl(null);
+      setRevealPhase("ball");
       onGameStart();
     } catch (err) {
       setError(err?.message || "Error al iniciar la partida.");
@@ -157,12 +178,12 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
     }
   };
 
-  const handleForceLose = async () => {
+  const handleForceLose = useCallback(async () => {
     if (!session || session.gameOver || !user?.id) return;
     const data = await forceLoseGame(user.id);
     setSession(data);
     if (data.gameOver) onGameEnd();
-  };
+  }, [onGameEnd, session, user?.id]);
 
   useEffect(() => {
     const onForceLose = () => {
@@ -171,7 +192,7 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
     window.addEventListener("forceLoseGuessPokemon", onForceLose);
     return () =>
       window.removeEventListener("forceLoseGuessPokemon", onForceLose);
-  }, [session, user?.id]);
+  }, [handleForceLose]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleGuess();
@@ -196,6 +217,16 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
   })();
 
   if (!session) {
+    if (autoStart || loading) {
+      return (
+        <div className={styles.startScreen}>
+          <p className={styles.startTitle}>ADIVINA EL POKÉMON</p>
+          <p className={styles.startTitle}>PREPARANDO PARTIDA...</p>
+          {error && <p className={styles.error}>{error}</p>}
+        </div>
+      );
+    }
+
     return (
       <div className={styles.startScreen}>
         <p className={styles.startTitle}>ADIVINA EL POKÉMON</p>
@@ -237,14 +268,19 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
             </p>
           )}
         </div>
+        <div className={styles.pokeInfo}>
+          <div
+            className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""}`}
+          >
+            <img src="/ball1.png" alt="Poké Ball" className={styles.ballImg} />
 
-        {session.gameOver && (
-          <div className={styles.spriteReveal}>
+            <div className={styles.spriteWhiteLayer} />
+
             <div className={styles.spriteRevealInner}>
               {spriteUrl ? (
                 <img
                   src={spriteUrl}
-                  alt={session.pokemon.name}
+                  alt={session.gameOver ? session.pokemon.name : "Poké Ball"}
                   className={styles.spriteImg}
                 />
               ) : (
@@ -252,45 +288,45 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
               )}
             </div>
           </div>
-        )}
 
-        <div className={`${styles.panel} ${styles.hintsPanel}`}>
-          <p className={styles.panelLabel}>PISTAS</p>
+          <div className={`${styles.panel} ${styles.hintsPanel}`}>
+            <p className={styles.panelLabel}>PISTAS</p>
 
-          <div className={styles.hintList}>
-            <div className={styles.hintRow}>
-              <span className={styles.hintKey}>Tipo 1:</span>
-              {mostrarTipo1 ? (
-                <span
-                  className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
-                >
-                  {session.pokemon.type1}
-                </span>
-              ) : (
-                <span className={styles.hintLocked}>??? (2 fallos)</span>
-              )}
-            </div>
-            <div className={styles.hintRow}>
-              <span className={styles.hintKey}>Generación:</span>
-              {mostrarGeneracion ? (
-                <span className={styles.hintVal}>
-                  GEN {session.pokemon.generation}
-                </span>
-              ) : (
-                <span className={styles.hintLocked}>??? (4 fallos)</span>
-              )}
-            </div>
-            <div className={styles.hintRow}>
-              <span className={styles.hintKey}>Tipo 2:</span>
-              {mostrarTipo2 ? (
-                <span
-                  className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
-                >
-                  {session.pokemon.type2 || "ninguno"}
-                </span>
-              ) : (
-                <span className={styles.hintLocked}>??? (6 fallos)</span>
-              )}
+            <div className={styles.hintList}>
+              <div className={styles.hintRow}>
+                <span className={styles.hintKey}>Tipo 1:</span>
+                {mostrarTipo1 ? (
+                  <span
+                    className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
+                  >
+                    {session.pokemon.type1}
+                  </span>
+                ) : (
+                  <span className={styles.hintLocked}>??? (2 fallos)</span>
+                )}
+              </div>
+              <div className={styles.hintRow}>
+                <span className={styles.hintKey}>Generación:</span>
+                {mostrarGeneracion ? (
+                  <span className={styles.hintVal}>
+                    GEN {session.pokemon.generation}
+                  </span>
+                ) : (
+                  <span className={styles.hintLocked}>??? (4 fallos)</span>
+                )}
+              </div>
+              <div className={styles.hintRow}>
+                <span className={styles.hintKey}>Tipo 2:</span>
+                {mostrarTipo2 ? (
+                  <span
+                    className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
+                  >
+                    {session.pokemon.type2 || "ninguno"}
+                  </span>
+                ) : (
+                  <span className={styles.hintLocked}>??? (6 fallos)</span>
+                )}
+              </div>
             </div>
           </div>
         </div>

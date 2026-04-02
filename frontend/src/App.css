@@ -30,7 +30,7 @@
 }
 
 .top-global-slash {
-  font-family: var(--font-pixel);
+  font-size: 1.3rem;
   color: #63d3ff;
   text-shadow: 0 0 8px rgba(99, 211, 255, 0.8);
 }

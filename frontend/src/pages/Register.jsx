@@ -26,8 +26,8 @@ function Register({ onRegistered }) {
     setLoading(true);
 
     try {
-      await createUser(form);
-      onRegistered(); // vuelve a la pantalla de login
+      const createdUser = await createUser(form);
+      onRegistered(createdUser);
     } catch (err) {
       setError(err.message);
     } finally {

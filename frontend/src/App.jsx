@@ -10,18 +10,43 @@ import Profile from "./pages/Profile";
 import NavBar from "./components/NavBar";
 import { getUser } from "./services/api";
 
+const USER_STORAGE_KEY = "pokeweb_user";
+
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+    if (!savedUser) return null;
+
+    try {
+      const parsedUser = JSON.parse(savedUser);
+      if (parsedUser?.id) return parsedUser;
+      localStorage.removeItem(USER_STORAGE_KEY);
+      return null;
+    } catch {
+      localStorage.removeItem(USER_STORAGE_KEY);
+      return null;
+    }
+  });
   const [inGame, setInGame] = useState(false);
   const navigate = useNavigate();
 
+  const syncStoredUser = (nextUser) => {
+    if (nextUser) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
+      return;
+    }
+    localStorage.removeItem(USER_STORAGE_KEY);
+  };
+
   const handleLogin = (loggedUser) => {
     setUser(loggedUser);
+    syncStoredUser(loggedUser);
     navigate("/");
   };
 
   const handleLogout = () => {
     setUser(null);
+    syncStoredUser(null);
     setInGame(false);
     navigate("/login");
   };
@@ -31,6 +56,7 @@ function App() {
     try {
       const updated = await getUser(user.id);
       setUser(updated);
+      syncStoredUser(updated);
     } catch (err) {
       console.error("Error al refrescar usuario:", err);
     }
@@ -39,9 +65,9 @@ function App() {
   return (
     <section className="app-shell">
       <header className="top-global-banner">
-        <span className="top-global-slash">///</span>
+        <span className="top-global-slash"> / / / </span>
         <span className="top-global-title">PokeWeb</span>
-        <span className="top-global-slash">///</span>
+        <span className="top-global-slash"> / / / </span>
       </header>
 
       <div className="app-routes">
@@ -65,7 +91,7 @@ function App() {
               user ? (
                 <Navigate to="/" />
               ) : (
-                <Register onRegistered={() => navigate("/login")} />
+                <Register onRegistered={handleLogin} />
               )
             }
           />
@@ -90,7 +116,10 @@ function App() {
               user ? (
                 <Profile
                   user={user}
-                  onProfileUpdated={(updated) => setUser(updated)}
+                  onProfileUpdated={(updated) => {
+                    setUser(updated);
+                    syncStoredUser(updated);
+                  }}
                 />
               ) : (
                 <Navigate to="/login" />
