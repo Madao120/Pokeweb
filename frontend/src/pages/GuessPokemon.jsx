@@ -246,7 +246,7 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
     <div className={styles.container}>
       <div className={styles.topRow}>
         <div className={`${styles.panel} ${styles.wordPanel}`}>
-          <p className={styles.panelLabel}>Pokemon a adivinar:</p>
+          <p className={styles.panelLabel}>Pokemon a adivinar</p>
           <p className={styles.maskedWord}>
             {session.maskedWord.split("").join(" ")}
           </p>
