@@ -1,4 +1,42 @@
 .page {
+  --panel-shape: polygon(
+    0 14px,
+    2px 14px,
+    2px 10px,
+    4px 10px,
+    4px 6px,
+    8px 6px,
+    8px 4px,
+    14px 4px,
+    14px 2px,
+    calc(100% - 14px) 2px,
+    calc(100% - 14px) 4px,
+    calc(100% - 8px) 4px,
+    calc(100% - 8px) 6px,
+    calc(100% - 4px) 6px,
+    calc(100% - 4px) 10px,
+    calc(100% - 2px) 10px,
+    calc(100% - 2px) 14px,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 2px) calc(100% - 14px),
+    calc(100% - 2px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 6px),
+    calc(100% - 8px) calc(100% - 6px),
+    calc(100% - 8px) calc(100% - 4px),
+    calc(100% - 14px) calc(100% - 4px),
+    calc(100% - 14px) calc(100% - 2px),
+    14px calc(100% - 2px),
+    14px calc(100% - 4px),
+    8px calc(100% - 4px),
+    8px calc(100% - 6px),
+    4px calc(100% - 6px),
+    4px calc(100% - 10px),
+    2px calc(100% - 10px),
+    2px calc(100% - 14px),
+    0 calc(100% - 14px)
+  );
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -8,14 +46,44 @@
   gap: 28px;
 }
 
+.mainPanel {
+  width: min(980px, 100%);
+  position: relative;
+  isolation: isolate;
+  padding: 34px 74px 30px;
+  background: #d9dee2;
+  clip-path: var(--panel-shape);
+}
+
+.mainPanel::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background: #4a525a;
+  clip-path: var(--panel-shape);
+  z-index: -2;
+}
+
+.mainPanel::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  background:
+    linear-gradient(90deg, #646c74 0 2%, #a6afb7 2% 6%, transparent 6% 94%, #a6afb7 94% 98%, #646c74 98% 100%),
+    linear-gradient(180deg, #eceff1, #dde2e6);
+  clip-path: var(--panel-shape);
+  z-index: -1;
+}
+
 .header {
   text-align: center;
+  margin-bottom: 18px;
 }
 
 .welcome {
   font-family: var(--font-pixel);
   font-size: 0.62rem;
-  color: #c1e6ff;
+  color: #6b747d;
   letter-spacing: 2px;
   margin-bottom: 8px;
 }
@@ -23,25 +91,25 @@
 .username {
   font-family: var(--font-pixel);
   font-size: 1.05rem;
-  color: #ffffff;
-  text-shadow: 0 0 8px rgba(93, 198, 255, 0.65);
+  color: #30383f;
 }
 
 .score {
   font-family: var(--font-pixel);
   font-size: 0.64rem;
-  color: #ffd56b;
+  color: #7f6840;
   margin-top: 10px;
   letter-spacing: 1px;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.65);
 }
 
 .subtitle {
   font-family: var(--font-pixel);
   font-size: 0.58rem;
-  color: #b8dfff;
+  color: #5b646d;
   letter-spacing: 2px;
   text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 18px;
 }
 
 .modeGrid {
@@ -52,11 +120,10 @@
 }
 
 .modeCard {
-  width: 170px;
-  height: 120px;
-  background: rgba(20, 42, 66, 0.95);
-  border: 2px solid #67c9ff;
-  border-radius: 8px;
+  width: 190px;
+  height: 126px;
+  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
+  border: 2px solid #555e67;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -65,17 +132,22 @@
   gap: 12px;
   font-family: var(--font-pixel);
   font-size: 0.55rem;
-  color: #e9f7ff;
+  color: #313940;
+  clip-path: var(--panel-shape);
+}
+
+.modeCard:hover {
+  background: linear-gradient(180deg, #e2e6ea, #c8d0d7);
 }
 
 .modeCard.disabled {
-  opacity: 0.45;
+  opacity: 0.55;
 }
 
 .comingSoon {
   font-family: var(--font-pixel);
   font-size: 0.35rem;
-  color: #9dc2dd;
+  color: #727c86;
 }
 
 .cardsGrid {
@@ -86,34 +158,39 @@
 }
 
 .gameCard {
-  background: rgba(17, 34, 53, 0.95);
-  border: 2px solid #5bc6ff;
-  border-radius: 8px;
+  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
+  border: 2px solid #555e67;
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  clip-path: var(--panel-shape);
 }
 
 .cardTitle {
   font-family: var(--font-pixel);
   font-size: 0.58rem;
-  color: #eef8ff;
+  color: #313940;
 }
 
 .cardScore {
   font-family: var(--font-mono);
-  color: #ffe7a2;
+  color: #5f6871;
 }
 
 .cardBtn {
   margin-top: auto;
   height: 42px;
-  border: 1px solid #7cd4ff;
-  background: linear-gradient(180deg, #2d82b7, #1c597f);
-  color: #fff;
+  border: 2px solid #555e67;
+  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
+  color: #313940;
   font-family: var(--font-pixel);
   font-size: 0.48rem;
+  clip-path: var(--panel-shape);
+}
+
+.cardBtn:hover {
+  background: linear-gradient(180deg, #e2e6ea, #c8d0d7);
 }
 
 .gameWrapper {
@@ -135,7 +212,7 @@
 .multiModeText {
   font-family: var(--font-pixel);
   font-size: 0.55rem;
-  color: var(--text-dim);
+  color: #727c86;
   letter-spacing: 1px;
   text-align: center;
 }
