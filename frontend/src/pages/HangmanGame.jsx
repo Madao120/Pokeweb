@@ -318,6 +318,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
             <div className={styles.hintList}>
               <div className={styles.hintRow}>
                 <span className={styles.hintKey}>Tipo 1:</span>
+                <br></br>
                 {mostrarTipo1 ? (
                   <span
                     className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
@@ -330,6 +331,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
               </div>
               <div className={styles.hintRow}>
                 <span className={styles.hintKey}>Generación:</span>
+                <br></br>
                 {mostrarGeneracion ? (
                   <span className={styles.hintVal}>
                     GEN {session.pokemon.generation}
@@ -340,6 +342,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
               </div>
               <div className={styles.hintRow}>
                 <span className={styles.hintKey}>Tipo 2:</span>
+                <br></br>
                 {mostrarTipo2 ? (
                   <span
                     className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
@@ -408,8 +411,8 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
         <p className={styles.panelLabel}>ADIVINAR</p>
 
         {!session.gameOver ? (
-          <>
-            <div className={styles.inputRow}>
+          <div className={styles.guessActions}>
+            <div className={`${styles.inputRow} ${styles.inputRowLetter}`}>
               <input
                 ref={inputRef}
                 className={styles.letterInput}
@@ -431,7 +434,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
               </button>
             </div>
 
-            <div className={styles.inputRow}>
+            <div className={`${styles.inputRow} ${styles.inputRowWord}`}>
               <input
                 className={styles.wordInput}
                 type="text"
@@ -448,7 +451,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
                 {loading ? "..." : "ADIVINAR PALABRA"}
               </button>
             </div>
-          </>
+          </div>
         ) : (
           <div className={styles.botonesFin}>
             <button
