@@ -103,7 +103,7 @@ function App() {
                   user={user}
                   onReturnToMenu={refreshUser}
                   onGameStart={() => setInGame(true)}
-                  onGameEnd={() => setInGame(false)}
+                  onGameEnd={async () => { setInGame(false); await refreshUser(); }}
                 />
               ) : (
                 <Navigate to="/login" />

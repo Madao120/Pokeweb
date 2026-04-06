@@ -1,9 +1,10 @@
 package com.example.demo.service;
 
+import java.util.List;
 import java.util.Optional;
 
-import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.PokeUserRequest;
 import com.example.demo.dto.UpdateProfileRequest;
@@ -104,5 +105,10 @@ public class PokeUserService{
 
         // Si lo encontramos (que no salte al excepción) devolvemos el usuario
         return user;
+    }
+
+    // Top 10 jugadores por scoreM1 — para el ranking en pantalla
+    public List<PokeUser> getTop10() {
+        return pokeUserRepository.findTop10ByScoreM1();
     }
 }

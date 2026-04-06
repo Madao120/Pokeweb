@@ -1,7 +1,6 @@
 import styles from "./ModeSelector.module.css";
-
 import { useEffect, useState } from "react";
-import GuessPokemon from "./GuessPokemon";
+import HangmanGame from "./HangmanGame";
 
 function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
   const [mode, setMode] = useState(null);
@@ -18,10 +17,11 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
     return () => window.removeEventListener("returnToModeMenu", goBackToModes);
   }, [onReturnToMenu, onGameEnd]);
 
+  // Individual → Ahorcado
   if (mode === "single" && selectedGame === "hangman") {
     return (
       <div className={styles.gameWrapper}>
-        <GuessPokemon
+        <HangmanGame
           user={user}
           onGameStart={onGameStart}
           onGameEnd={onGameEnd}
@@ -31,18 +31,18 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
     );
   }
 
+  // Multijugador (pendiente)
   if (mode === "multi") {
     return (
       <div className={styles.gameWrapper}>
         <div className={styles.multiContent}>
-          <p className={styles.multiModeText}>
-            Modo multijugador - proximamente.
-          </p>
+          <p className={styles.multiModeText}>Modo multijugador — próximamente.</p>
         </div>
       </div>
     );
   }
 
+  // Selección de minijuego individual
   if (mode === "single") {
     return (
       <div className={styles.page}>
@@ -71,6 +71,7 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
     );
   }
 
+  // Pantalla principal: elegir modo
   return (
     <div className={styles.page}>
       <div className={styles.header}>

@@ -1,5 +1,8 @@
 package com.example.demo.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -93,6 +96,15 @@ public class PokeUserController {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(e.getMessage());
         }
+    }
+
+    // Top 10 ranking por scoreM1
+    @GetMapping("/ranking")
+    public List<PokeUserResponse> getRanking() {
+        return userService.getTop10()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     // Mapper para pasar de PokeUser (Enttidad) a UserResponse (DTOs)

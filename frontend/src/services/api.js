@@ -118,3 +118,10 @@ export async function updateScore(userId, score) {
 
   return await response.json();
 }
+
+// Top 10 jugadores por scoreM1
+export async function getRanking() {
+  const response = await fetch(`${API_URL}/users/ranking`);
+  if (!response.ok) throw new Error("Error al obtener el ranking");
+  return await response.json();
+}

@@ -1,4 +1,4 @@
-import styles from "./GuessPokemon.module.css";
+import styles from "./HangmanGame.module.css";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -6,11 +6,12 @@ import {
   guessLetter,
   abandonGame,
   forceLoseGame,
+  getRanking,
 } from "../services/api";
 
 const MAX_INTENTOS = 7;
 
-function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
+function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
   const [session, setSession] = useState(null);
   const [letra, setLetra] = useState("");
   const [palabra, setPalabra] = useState("");
@@ -18,12 +19,24 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
   const [revealPhase, setRevealPhase] = useState("ball");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [ranking, setRanking] = useState([]);
   const inputRef = useRef(null);
   const sessionRef = useRef(null);
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  // Cargar ranking al montar el componente y al terminar cada partida
+  useEffect(() => {
+    getRanking().then(setRanking).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (session?.gameOver) {
+      getRanking().then(setRanking).catch(() => {});
+    }
+  }, [session?.gameOver]);
 
   useEffect(() => {
     const loadSprite = async () => {
@@ -252,14 +265,19 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
           </p>
 
           <div className={styles.livesBar}>
-            {Array.from({ length: MAX_INTENTOS }, (_, i) => (
-              <span
-                key={i}
-                className={`${styles.lifeIcon} ${i < intentos ? styles.used : ""}`}
-              >
-                {i < intentos ? "💀" : "❤️"}
-              </span>
-            ))}
+            {Array.from({ length: MAX_INTENTOS }, (_, i) => {
+              const remaining = MAX_INTENTOS - intentos;
+              let colorClass = styles.lifeGreen;
+              if (remaining <= 2) colorClass = styles.lifeRed;
+              else if (remaining <= 4) colorClass = styles.lifeYellow;
+              const isUsed = i < intentos;
+              return (
+                <span
+                  key={i}
+                  className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
+                />
+              );
+            })}
           </div>
 
           {puntosActuales !== null && (
@@ -328,6 +346,27 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Ranking top 10 */}
+        <div className={`${styles.panel} ${styles.rankingPanel}`}>
+          <p className={styles.panelLabel}>TOP 10</p>
+          <div className={styles.rankingList}>
+            {ranking.map((player, i) => (
+              <div key={player.id} className={styles.rankingRow}>
+                <span className={styles.rankingPos}>#{i + 1}</span>
+                {player.profilePictureUrl
+                  ? <img src={player.profilePictureUrl} alt={player.name} className={styles.rankingAvatar} />
+                  : <div className={styles.rankingAvatarFallback}>{player.name.charAt(0).toUpperCase()}</div>
+                }
+                <span className={styles.rankingName}>{player.name}</span>
+                <span className={styles.rankingScore}>{player.scoreM1}</span>
+              </div>
+            ))}
+            {ranking.length === 0 && (
+              <p className={styles.rankingEmpty}>Sin datos aún</p>
+            )}
           </div>
         </div>
       </div>
@@ -440,4 +479,4 @@ function GuessPokemon({ user, onGameStart, onGameEnd, autoStart = false }) {
   );
 }
 
-export default GuessPokemon;
+export default HangmanGame;
