@@ -11,7 +11,7 @@
 
 .topRow {
   position: relative;
-  min-height: 360px;
+  min-height: 420px;
 }
 
 .panel {
@@ -20,79 +20,108 @@
 
 /* Bloque gris largo horizontal */
 .wordPanel {
-  --word-panel-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='white' d='M4 4Q4 0 8 0H27Q30 0 33 2.4L39 9.6Q42 12 46 12H96Q100 12 100 16V96Q100 100 96 100H46Q42 100 39 97.6L33 90.4Q30 88 27 88H8Q4 88 4 84V4Z'/%3E%3C/svg%3E");
+  --word-panel-shape: polygon(
+    0 14px,
+    2px 14px,
+    2px 10px,
+    4px 10px,
+    4px 6px,
+    8px 6px,
+    8px 4px,
+    14px 4px,
+    14px 2px,
+    calc(100% - 14px) 2px,
+    calc(100% - 14px) 4px,
+    calc(100% - 8px) 4px,
+    calc(100% - 8px) 6px,
+    calc(100% - 4px) 6px,
+    calc(100% - 4px) 10px,
+    calc(100% - 2px) 10px,
+    calc(100% - 2px) 14px,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 2px) calc(100% - 14px),
+    calc(100% - 2px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 10px),
+    calc(100% - 4px) calc(100% - 6px),
+    calc(100% - 8px) calc(100% - 6px),
+    calc(100% - 8px) calc(100% - 4px),
+    calc(100% - 14px) calc(100% - 4px),
+    calc(100% - 14px) calc(100% - 2px),
+    14px calc(100% - 2px),
+    14px calc(100% - 4px),
+    8px calc(100% - 4px),
+    8px calc(100% - 6px),
+    4px calc(100% - 6px),
+    4px calc(100% - 10px),
+    2px calc(100% - 10px),
+    2px calc(100% - 14px),
+    0 calc(100% - 14px)
+  );
   min-height: 20.5rem;
   width: 82%;
   position: relative;
   z-index: 1;
   isolation: isolate;
+  margin-top: 0.6rem;
+  margin-bottom: 2rem;
   padding: 28px 34px 28px 44px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
 
-/* Capa azul oscuro detrás del wordPanel simulando borde */
 .wordPanel::before {
   content: "";
   position: absolute;
   inset: -4px;
-  background: linear-gradient(180deg, #626a72, #414951);
-  -webkit-mask-image: var(--word-panel-mask);
-  mask-image: var(--word-panel-mask);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  z-index: -1;
-  margin-left: -50px;
+  height: 110%;
   margin-right: 20px;
+  background: linear-gradient(180deg, #6d757d, #475058);
+  clip-path: var(--word-panel-shape);
+  z-index: -1;
   box-shadow:
     0 0 0 1px #2e343a,
     0 10px 18px rgba(4, 11, 18, 0.22);
+  pointer-events: none;
 }
 
 .wordPanel::after {
   content: "";
   position: absolute;
-  inset: 1px;
+  inset: 4px;
+  height: 105%;
+  margin-right: 20px;
   background:
     linear-gradient(
       90deg,
-      rgba(133, 143, 153, 0.55) 0%,
-      rgba(223, 228, 233, 0.22) 7%,
-      rgba(238, 242, 245, 0) 15%,
-      rgba(238, 242, 245, 0) 85%,
-      rgba(215, 221, 226, 0.22) 93%,
-      rgba(126, 136, 146, 0.55) 100%
+      rgba(92, 102, 112, 0.88) 0%,
+      rgba(146, 156, 166, 0.34) 4%,
+      rgba(238, 242, 245, 0) 9%,
+      rgba(238, 242, 245, 0) 91%,
+      rgba(146, 156, 166, 0.34) 96%,
+      rgba(92, 102, 112, 0.88) 100%
     ),
     linear-gradient(180deg, #e6eaee, #d7dde3);
-  -webkit-mask-image: var(--word-panel-mask);
-  mask-image: var(--word-panel-mask);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  margin-left: -50px;
-  margin-right: 20px;
+  clip-path: var(--word-panel-shape);
   z-index: -1;
+  pointer-events: none;
 }
 
 .wordPanel > * {
   position: relative;
   z-index: 1;
 }
-
 /* Caja con las pistas e imagen del pokemon*/
 .pokeInfo {
   position: absolute;
-  top: 8px;
+  top: 55px;
   right: 6px;
   display: flex;
   align-items: flex-end;
   gap: 10px;
   z-index: 6;
-  margin-right: 22rem;
+  margin-right: 20rem;
 }
 
 /* Caja de pistas encima del bloque gris */
@@ -514,29 +543,32 @@
 .livesBar {
   display: flex;
   align-items: center;
-  gap: 0px;
-  background: #1a1a1a;
-  border: 2px solid #555;
-  border-radius: 4px;
-  padding: 3px 4px;
+  gap: 1px;
+  background: linear-gradient(180deg, #2b2b2b, #171717);
+  border: 2px solid #5b5b5b;
+  border-radius: 999px;
+  padding: 4px 8px;
   width: fit-content;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.7);
   margin-top: 10px;
   margin-bottom: 5px;
+  outline: 1px solid #222;
 }
 
 .lifeBlock {
   display: inline-block;
-  width: 18px;
-  height: 10px;
+  width: 24px;
+  height: 12px;
   border-radius: 1px;
-  margin: 0 1px;
+  margin: 0;
   transition:
     background-color 0.3s,
     opacity 0.3s;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
 }
 
 /* Verde: 5-7 vidas */
