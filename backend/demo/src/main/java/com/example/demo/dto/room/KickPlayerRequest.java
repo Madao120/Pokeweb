@@ -1,4 +1,5 @@
-package com.example.demo.dto;
+package com.example.demo.dto.room;
+
 import lombok.Data;
 
 @Data

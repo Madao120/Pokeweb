@@ -23,6 +23,7 @@
   width: 44px;
   height: 44px;
   border: 2px solid #fff;
+  border-radius: 25px;
   background: #0b1119;
   display: inline-flex;
   align-items: center;
@@ -54,6 +55,13 @@
   white-space: nowrap;
   border-radius: 2px;
   cursor: pointer;
+  height: 1.9rem;
+}
+
+.capsuleBtn {
+  background-color: #0a0e15;
+  border: 3px solid #fff;
+  border-radius: 9px;
 }
 
 .rightControls {

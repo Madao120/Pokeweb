@@ -20,28 +20,13 @@
 
 /* Bloque gris largo horizontal */
 .wordPanel {
-  --word-panel-shape: polygon(
-    0% 0%,
-    30% 0%,
-    35% 12%,
-    100% 12%,
-    100% 100%,
-    35% 100%,
-    30% 88%,
-    0% 88%
-  );
+  --word-panel-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='white' d='M4 4Q4 0 8 0H27Q30 0 33 2.4L39 9.6Q42 12 46 12H96Q100 12 100 16V96Q100 100 96 100H46Q42 100 39 97.6L33 90.4Q30 88 27 88H8Q4 88 4 84V4Z'/%3E%3C/svg%3E");
   min-height: 20.5rem;
-  width: 80%;
+  width: 82%;
   position: relative;
   z-index: 1;
-  background: linear-gradient(180deg, #aeb7c1, #9da6b1);
-  clip-path: var(--word-panel-shape);
-  filter:
-    drop-shadow(2px 0 0 #0e171f)
-    drop-shadow(-2px 0 0 #0e171f)
-    drop-shadow(0 2px 0 #0e171f)
-    drop-shadow(0 -2px 0 #0e171f);
-  padding: 24px 30px;
+  isolation: isolate;
+  padding: 28px 34px 28px 44px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -49,23 +34,53 @@
 
 /* Capa azul oscuro detrás del wordPanel simulando borde */
 .wordPanel::before {
-  content: '';
+  content: "";
   position: absolute;
-  inset: 0;
-  background: #0d1e2e;
-  clip-path: polygon(
-    0% 0%,
-    30% 0%,
-    35% 12%,
-    100% 12%,
-    100% 100%,
-    35% 100%,
-    30% 88%,
-    0% 88%
-  );
-  transform: translate(5px, 5px);
+  inset: -4px;
+  background: linear-gradient(180deg, #626a72, #414951);
+  -webkit-mask-image: var(--word-panel-mask);
+  mask-image: var(--word-panel-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
   z-index: -1;
-  filter: none;
+  margin-left: -50px;
+  margin-right: 20px;
+  box-shadow:
+    0 0 0 1px #2e343a,
+    0 10px 18px rgba(4, 11, 18, 0.22);
+}
+
+.wordPanel::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(133, 143, 153, 0.55) 0%,
+      rgba(223, 228, 233, 0.22) 7%,
+      rgba(238, 242, 245, 0) 15%,
+      rgba(238, 242, 245, 0) 85%,
+      rgba(215, 221, 226, 0.22) 93%,
+      rgba(126, 136, 146, 0.55) 100%
+    ),
+    linear-gradient(180deg, #e6eaee, #d7dde3);
+  -webkit-mask-image: var(--word-panel-mask);
+  mask-image: var(--word-panel-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  margin-left: -50px;
+  margin-right: 20px;
+  z-index: -1;
+}
+
+.wordPanel > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Caja con las pistas e imagen del pokemon*/
@@ -83,11 +98,11 @@
 /* Caja de pistas encima del bloque gris */
 .hintsPanel {
   position: relative;
-  width: clamp(300px, 36vw, 440px);
+  width: 75%;
   min-height: 320px;
   background:
-    linear-gradient(rgba(171, 178, 186, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(171, 178, 186, 0.2) 1px, transparent 1px),
+    linear-gradient(rgba(171, 178, 186, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(171, 178, 186, 0.5) 1px, transparent 1px),
     #f4f6f9;
   background-size:
     16px 16px,
@@ -105,8 +120,8 @@
   z-index: 2;
   overflow: hidden;
   background:
-    linear-gradient(rgba(171, 178, 186, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(171, 178, 186, 0.2) 1px, transparent 1px),
+    linear-gradient(rgba(171, 178, 186, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(171, 178, 186, 0.5) 1px, transparent 1px),
     #f4f6f9;
   background-size:
     16px 16px,
@@ -232,14 +247,9 @@
   overflow-x: auto;
   max-width: calc(100% - 40px);
 }
-
 .maskedWord::-webkit-scrollbar {
   height: 4px;
 }
-
-
-
-
 
 .ptsPreview {
   margin-top: 10px;
@@ -256,7 +266,7 @@
 
 .hintRow {
   display: grid;
-  grid-template-columns: 1fr 1fr 220px;
+  grid-template-columns: 1fr 2fr;
   align-items: stretch;
   gap: 6px;
 }
@@ -410,6 +420,7 @@
   color: #d5efff;
   border: 1px solid #4b9bd0;
   background: rgba(40, 112, 164, 0.24);
+  margin-bottom: 10px;
 }
 
 .resultLose {
@@ -509,7 +520,9 @@
   border-radius: 4px;
   padding: 3px 4px;
   width: fit-content;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  margin-top: 10px;
+  margin-bottom: 5px;
 }
 
 .lifeBlock {
@@ -518,8 +531,12 @@
   height: 10px;
   border-radius: 1px;
   margin: 0 1px;
-  transition: background-color 0.3s, opacity 0.3s;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.3);
+  transition:
+    background-color 0.3s,
+    opacity 0.3s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Verde: 5-7 vidas */
@@ -552,7 +569,7 @@
   position: absolute;
   top: 8px;
   right: 0;
-  width: 200px;
+  width: 18%;
   max-height: 340px;
   overflow-y: auto;
   background: #f4f6f9;

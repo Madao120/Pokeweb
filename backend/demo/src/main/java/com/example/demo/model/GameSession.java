@@ -3,7 +3,7 @@ package com.example.demo.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.example.demo.dto.PokemonM1;
+import com.example.demo.dto.pokemon.PokemonM1;
 
 import lombok.Data;
 

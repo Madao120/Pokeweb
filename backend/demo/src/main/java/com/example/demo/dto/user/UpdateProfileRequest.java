@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.dto.user;
 
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;

@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.dto.PokeUserRequest;
-import com.example.demo.dto.PokeUserResponse;
-import com.example.demo.dto.UpdateProfileRequest;
+import com.example.demo.dto.user.PokeUserRequest;
+import com.example.demo.dto.user.PokeUserResponse;
+import com.example.demo.dto.user.UpdateProfileRequest;
 import com.example.demo.model.PokeUser;
 import com.example.demo.service.PokeUserService;
 

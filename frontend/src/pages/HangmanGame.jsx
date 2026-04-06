@@ -29,12 +29,16 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
 
   // Cargar ranking al montar el componente y al terminar cada partida
   useEffect(() => {
-    getRanking().then(setRanking).catch(() => {});
+    getRanking()
+      .then(setRanking)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     if (session?.gameOver) {
-      getRanking().then(setRanking).catch(() => {});
+      getRanking()
+        .then(setRanking)
+        .catch(() => {});
     }
   }, [session?.gameOver]);
 
@@ -265,6 +269,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
           </p>
 
           <div className={styles.livesBar}>
+            PS&nbsp;
             {Array.from({ length: MAX_INTENTOS }, (_, i) => {
               const remaining = MAX_INTENTOS - intentos;
               let colorClass = styles.lifeGreen;
@@ -356,10 +361,17 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
             {ranking.map((player, i) => (
               <div key={player.id} className={styles.rankingRow}>
                 <span className={styles.rankingPos}>#{i + 1}</span>
-                {player.profilePictureUrl
-                  ? <img src={player.profilePictureUrl} alt={player.name} className={styles.rankingAvatar} />
-                  : <div className={styles.rankingAvatarFallback}>{player.name.charAt(0).toUpperCase()}</div>
-                }
+                {player.profilePictureUrl ? (
+                  <img
+                    src={player.profilePictureUrl}
+                    alt={player.name}
+                    className={styles.rankingAvatar}
+                  />
+                ) : (
+                  <div className={styles.rankingAvatarFallback}>
+                    {player.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <span className={styles.rankingName}>{player.name}</span>
                 <span className={styles.rankingScore}>{player.scoreM1}</span>
               </div>

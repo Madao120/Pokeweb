@@ -7,7 +7,7 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.demo.dto.PokemonM1;
+import com.example.demo.dto.pokemon.PokemonM1;
 
 
 @Service

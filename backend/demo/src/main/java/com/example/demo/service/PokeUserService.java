@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.dto.PokeUserRequest;
-import com.example.demo.dto.UpdateProfileRequest;
+import com.example.demo.dto.user.PokeUserRequest;
+import com.example.demo.dto.user.UpdateProfileRequest;
 import com.example.demo.model.PokeUser;
 import com.example.demo.repository.PokeUserRepository;
 

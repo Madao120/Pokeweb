@@ -1,7 +1,6 @@
-package com.example.demo.dto;
+package com.example.demo.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Email;
 import lombok.Data;
 
 @Data

@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.dto.room;
 
 import java.util.List;
 import java.util.Map;

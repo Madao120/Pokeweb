@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.example.demo.dto.RoomStateDTO;
-import com.example.demo.dto.RoomStateDTO.PlayerSessionDTO;
+import com.example.demo.dto.room.RoomStateDTO;
+import com.example.demo.dto.room.RoomStateDTO.PlayerSessionDTO;
 import com.example.demo.model.GameSession;
 import com.example.demo.model.Room;
 import com.example.demo.model.Room.State;
