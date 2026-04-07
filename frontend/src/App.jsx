@@ -1,6 +1,6 @@
 import "./App.css";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import Register from "./pages/Register";
@@ -28,30 +28,32 @@ function App() {
     }
   });
   const [inGame, setInGame] = useState(false);
+  const [canReturnToModes, setCanReturnToModes] = useState(false);
   const navigate = useNavigate();
 
-  const syncStoredUser = (nextUser) => {
+  const syncStoredUser = useCallback((nextUser) => {
     if (nextUser) {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
       return;
     }
     localStorage.removeItem(USER_STORAGE_KEY);
-  };
+  }, []);
 
-  const handleLogin = (loggedUser) => {
+  const handleLogin = useCallback((loggedUser) => {
     setUser(loggedUser);
     syncStoredUser(loggedUser);
     navigate("/");
-  };
+  }, [navigate, syncStoredUser]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setUser(null);
     syncStoredUser(null);
     setInGame(false);
+    setCanReturnToModes(false);
     navigate("/login");
-  };
+  }, [navigate, syncStoredUser]);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     if (!user?.id) return;
     try {
       const updated = await getUser(user.id);
@@ -60,7 +62,16 @@ function App() {
     } catch (err) {
       console.error("Error al refrescar usuario:", err);
     }
-  };
+  }, [user?.id, syncStoredUser]);
+
+  const handleGameStart = useCallback(() => {
+    setInGame(true);
+  }, []);
+
+  const handleGameEnd = useCallback(async () => {
+    setInGame(false);
+    await refreshUser();
+  }, [refreshUser]);
 
   return (
     <section className="app-shell">
@@ -105,8 +116,9 @@ function App() {
                 <ModeSelector
                   user={user}
                   onReturnToMenu={refreshUser}
-                  onGameStart={() => setInGame(true)}
-                  onGameEnd={async () => { setInGame(false); await refreshUser(); }}
+                  onNavigationChange={setCanReturnToModes}
+                  onGameStart={handleGameStart}
+                  onGameEnd={handleGameEnd}
                 />
               ) : (
                 <Navigate to="/login" />
@@ -134,7 +146,14 @@ function App() {
       </div>
 
       {/* Banner inferior */}
-      {user && <NavBar user={user} inGame={inGame} onLogout={handleLogout} />}
+      {user && (
+        <NavBar
+          user={user}
+          inGame={inGame}
+          canReturnToModes={canReturnToModes}
+          onLogout={handleLogout}
+        />
+      )}
     </section>
   );
 }

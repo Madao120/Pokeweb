@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./NavBar.module.css";
 
-function NavBar({ user, inGame, onLogout }) {
+function NavBar({ user, inGame, canReturnToModes, onLogout }) {
   const navigate = useNavigate();
 
   const handleGoMenu = () => {
@@ -10,6 +10,10 @@ function NavBar({ user, inGame, onLogout }) {
         "Tienes una partida en curso. Si sales ahora perderás 25 puntos por abandono. ¿Quieres continuar?",
       );
       if (!confirmar) return;
+      window.dispatchEvent(new CustomEvent("returnToModeMenu"));
+      return;
+    }
+    if (canReturnToModes) {
       window.dispatchEvent(new CustomEvent("returnToModeMenu"));
       return;
     }
@@ -62,7 +66,7 @@ function NavBar({ user, inGame, onLogout }) {
               className={`${styles.ctrlBtn} ${styles.btnReturn}`}
               onClick={handleGoMenu}
               title="Volver al menú"
-              disabled={!inGame}
+              disabled={!inGame && !canReturnToModes}
             >
               ⮌
             </button>

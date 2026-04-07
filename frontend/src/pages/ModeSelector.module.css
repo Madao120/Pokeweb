@@ -58,7 +58,7 @@
 .mainPanel::before {
   content: "";
   position: absolute;
-  inset: -4px;
+  inset: -5px;
   background: #4a525a;
   clip-path: var(--panel-shape);
   z-index: -2;
@@ -67,7 +67,7 @@
 .mainPanel::after {
   content: "";
   position: absolute;
-  inset: 4px;
+  inset: 5px;
   background:
     linear-gradient(90deg, #646c74 0 2%, #a6afb7 2% 6%, transparent 6% 94%, #a6afb7 94% 98%, #646c74 98% 100%),
     linear-gradient(180deg, #eceff1, #dde2e6);
@@ -120,9 +120,14 @@
 }
 
 .modeCard {
+  --mode-card-start: #d4d9de;
+  --mode-card-end: #bcc4cb;
+  --mode-card-gloss: rgba(255, 255, 255, 0.22);
   width: 190px;
   height: 126px;
-  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
+  position: relative;
+  isolation: isolate;
+  background: transparent;
   border: 0;
   cursor: pointer;
   display: flex;
@@ -134,15 +139,32 @@
   font-size: 0.55rem;
   color: #313940;
   clip-path: var(--panel-shape);
-  filter:
-    drop-shadow(2px 0 0 #555e67)
-    drop-shadow(-2px 0 0 #555e67)
-    drop-shadow(0 2px 0 #555e67)
-    drop-shadow(0 -2px 0 #555e67);
+}
+
+.modeCard::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  background: #666f77;
+  clip-path: var(--panel-shape);
+  z-index: -2;
+}
+
+.modeCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, var(--mode-card-gloss), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(180deg, var(--mode-card-start), var(--mode-card-end));
+  clip-path: var(--panel-shape);
+  z-index: -1;
 }
 
 .modeCard:hover {
-  background: linear-gradient(180deg, #e2e6ea, #c8d0d7);
+  --mode-card-start: #e2e6ea;
+  --mode-card-end: #c8d0d7;
+  --mode-card-gloss: rgba(255, 255, 255, 0.28);
 }
 
 .modeCard.disabled {
@@ -163,18 +185,35 @@
 }
 
 .gameCard {
-  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
+  position: relative;
+  isolation: isolate;
+  background: transparent;
   border: 0;
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   clip-path: var(--panel-shape);
-  filter:
-    drop-shadow(2px 0 0 #555e67)
-    drop-shadow(-2px 0 0 #555e67)
-    drop-shadow(0 2px 0 #555e67)
-    drop-shadow(0 -2px 0 #555e67);
+}
+
+.gameCard::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  background: #666f77;
+  clip-path: var(--panel-shape);
+  z-index: -2;
+}
+
+.gameCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(180deg, #d4d9de, #bcc4cb);
+  clip-path: var(--panel-shape);
+  z-index: -1;
 }
 
 .cardTitle {
@@ -189,23 +228,101 @@
 }
 
 .cardBtn {
+  position: relative;
+  isolation: isolate;
   margin-top: auto;
   height: 42px;
   border: 0;
-  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
-  color: #313940;
+  background: transparent;
+  color: #f3f7f4;
   font-family: var(--font-pixel);
   font-size: 0.48rem;
   clip-path: var(--panel-shape);
-  filter:
-    drop-shadow(2px 0 0 #555e67)
-    drop-shadow(-2px 0 0 #555e67)
-    drop-shadow(0 2px 0 #555e67)
-    drop-shadow(0 -2px 0 #555e67);
+  text-shadow: 1px 1px 0 rgba(33, 45, 34, 0.9);
 }
 
-.cardBtn:hover {
-  background: linear-gradient(180deg, #e2e6ea, #c8d0d7);
+.cardBtn::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  background: #666f77;
+  clip-path: polygon(
+    0 8px,
+    2px 8px,
+    2px 4px,
+    4px 4px,
+    4px 2px,
+    8px 2px,
+    8px 0,
+    calc(100% - 8px) 0,
+    calc(100% - 8px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 8px,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 8px) calc(100% - 2px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    8px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 8px),
+    0 calc(100% - 8px)
+  );
+  z-index: -2;
+}
+
+.cardBtn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(180deg, #52c763, #2f963f);
+  clip-path: polygon(
+    0 8px,
+    2px 8px,
+    2px 4px,
+    4px 4px,
+    4px 2px,
+    8px 2px,
+    8px 0,
+    calc(100% - 8px) 0,
+    calc(100% - 8px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 8px,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 8px) calc(100% - 2px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    8px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 8px),
+    0 calc(100% - 8px)
+  );
+  z-index: -1;
+}
+
+.cardBtn:hover::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(180deg, #63d975, #3ca64d);
 }
 
 .gameWrapper {

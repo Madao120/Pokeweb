@@ -57,7 +57,7 @@
 .panel::before {
   content: "";
   position: absolute;
-  inset: -4px;
+  inset: -5px;
   background: #4a525a;
   clip-path: var(--panel-shape);
   z-index: -2;
@@ -66,7 +66,7 @@
 .panel::after {
   content: "";
   position: absolute;
-  inset: 4px;
+  inset: 5px;
   background:
     linear-gradient(90deg, #646c74 0 2%, #a6afb7 2% 6%, transparent 6% 94%, #a6afb7 94% 98%, #646c74 98% 100%),
     linear-gradient(180deg, #eceff1, #dde2e6);
@@ -90,7 +90,7 @@
 
 .inputFrame {
   width: 100%;
-  padding: 2px;
+  padding: 3px;
   background: #5f6871;
   clip-path: var(--panel-shape);
   transition: background 120ms ease;
@@ -134,10 +134,10 @@
   letter-spacing: 1px;
   clip-path: var(--panel-shape);
   filter:
-    drop-shadow(2px 0 0 #555e67)
-    drop-shadow(-2px 0 0 #555e67)
-    drop-shadow(0 2px 0 #555e67)
-    drop-shadow(0 -2px 0 #555e67);
+    drop-shadow(3px 0 0 #555e67)
+    drop-shadow(-3px 0 0 #555e67)
+    drop-shadow(0 3px 0 #555e67)
+    drop-shadow(0 -3px 0 #555e67);
 }
 
 .btnSubmit:hover:not(:disabled) {

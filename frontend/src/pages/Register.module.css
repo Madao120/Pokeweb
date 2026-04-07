@@ -57,7 +57,7 @@
 .panel::before {
   content: "";
   position: absolute;
-  inset: -4px;
+  inset: -5px;
   background: #4a525a;
   clip-path: var(--panel-shape);
   z-index: -2;
@@ -66,7 +66,7 @@
 .panel::after {
   content: "";
   position: absolute;
-  inset: 4px;
+  inset: 5px;
   background:
     linear-gradient(
       90deg,
@@ -97,7 +97,7 @@
 
 .inputFrame {
   width: 100%;
-  padding: 2px;
+  padding: 3px;
   background: #5f6871;
   clip-path: var(--panel-shape);
   transition: background 120ms ease;
@@ -157,8 +157,8 @@
   cursor: pointer;
   letter-spacing: 1px;
   clip-path: var(--panel-shape);
-  filter: drop-shadow(2px 0 0 #555e67) drop-shadow(-2px 0 0 #555e67)
-    drop-shadow(0 2px 0 #555e67) drop-shadow(0 -2px 0 #555e67);
+  filter: drop-shadow(3px 0 0 #555e67) drop-shadow(-3px 0 0 #555e67)
+    drop-shadow(0 3px 0 #555e67) drop-shadow(0 -3px 0 #555e67);
 }
 
 .btnSubmit:hover:not(:disabled) {
@@ -228,8 +228,8 @@
   background: #eef1f3;
   padding: 3px;
   clip-path: var(--panel-shape);
-  filter: drop-shadow(2px 0 0 #616a73) drop-shadow(-2px 0 0 #616a73)
-    drop-shadow(0 2px 0 #616a73) drop-shadow(0 -2px 0 #616a73);
+  filter: drop-shadow(3px 0 0 #616a73) drop-shadow(-3px 0 0 #616a73)
+    drop-shadow(0 3px 0 #616a73) drop-shadow(0 -3px 0 #616a73);
 }
 
 .avatarEmpty {
@@ -244,8 +244,8 @@
   justify-content: center;
   border: 0;
   clip-path: var(--panel-shape);
-  filter: drop-shadow(2px 0 0 #616a73) drop-shadow(-2px 0 0 #616a73)
-    drop-shadow(0 2px 0 #616a73) drop-shadow(0 -2px 0 #616a73);
+  filter: drop-shadow(3px 0 0 #616a73) drop-shadow(-3px 0 0 #616a73)
+    drop-shadow(0 3px 0 #616a73) drop-shadow(0 -3px 0 #616a73);
 }
 
 .btnPicker {

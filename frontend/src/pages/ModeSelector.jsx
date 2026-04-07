@@ -2,20 +2,36 @@ import styles from "./ModeSelector.module.css";
 import { useEffect, useState } from "react";
 import HangmanGame from "./HangmanGame";
 
-function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
+function ModeSelector({
+  user,
+  onReturnToMenu,
+  onNavigationChange,
+  onGameStart,
+  onGameEnd,
+}) {
   const [mode, setMode] = useState(null);
   const [selectedGame, setSelectedGame] = useState(null);
 
+  const handleSelectMode = (nextMode) => {
+    setSelectedGame(null);
+    setMode(nextMode);
+    onNavigationChange?.(true);
+  };
+
   useEffect(() => {
     const goBackToModes = async () => {
+      onNavigationChange?.(false);
       await onReturnToMenu();
       setSelectedGame(null);
       setMode(null);
       onGameEnd();
     };
     window.addEventListener("returnToModeMenu", goBackToModes);
-    return () => window.removeEventListener("returnToModeMenu", goBackToModes);
-  }, [onReturnToMenu, onGameEnd]);
+    return () => {
+      window.removeEventListener("returnToModeMenu", goBackToModes);
+      onNavigationChange?.(false);
+    };
+  }, [onReturnToMenu, onGameEnd, onNavigationChange]);
 
   if (mode === "single" && selectedGame === "hangman") {
     return (
@@ -60,7 +76,6 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
                 className={styles.cardBtn}
                 onClick={() => {
                   setSelectedGame("hangman");
-                  onGameStart();
                 }}
               >
                 Empezar
@@ -84,12 +99,15 @@ function ModeSelector({ user, onReturnToMenu, onGameStart, onGameEnd }) {
         <h3 className={styles.subtitle}>Elige modo de juego</h3>
 
         <div className={styles.modeGrid}>
-          <button className={styles.modeCard} onClick={() => setMode("single")}>
+          <button
+            className={styles.modeCard}
+            onClick={() => handleSelectMode("single")}
+          >
             Individual
           </button>
           <button
             className={`${styles.modeCard} ${styles.disabled}`}
-            onClick={() => setMode("multi")}
+            onClick={() => handleSelectMode("multi")}
           >
             Multijugador
             <span className={styles.comingSoon}>PROXIMAMENTE</span>

@@ -210,9 +210,25 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
 
   const handleForceLose = useCallback(async () => {
     if (!session || session.gameOver || !user?.id) return;
-    const data = await forceLoseGame(user.id);
-    setSession(data);
-    if (data.gameOver) onGameEnd();
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await forceLoseGame(user.id);
+      setSession({
+        ...data,
+        intentos: MAX_INTENTOS,
+        gameOver: true,
+        ganado: false,
+      });
+      setLetra("");
+      setPalabra("");
+      setWordInputError(false);
+      if (data.gameOver) onGameEnd();
+    } catch (err) {
+      setError(err?.message || "Error al rendirse.");
+    } finally {
+      setLoading(false);
+    }
   }, [onGameEnd, session, user?.id]);
 
   useEffect(() => {
@@ -295,72 +311,91 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
             })}
           </div>
 
+          <div className={styles.usedLetters}>
+            <span className={styles.usedLabel}>USADAS:</span>
+            {session.guessedLetters && session.guessedLetters.length > 0 ? (
+              [...session.guessedLetters].map((l) => (
+                <span key={l} className={styles.letterChip}>
+                  {l}
+                </span>
+              ))
+            ) : (
+              <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
+                -
+              </span>
+            )}
+          </div>
+
           {puntosActuales !== null && (
             <p className={styles.ptsPreview}>
               +{puntosActuales} PTS SI ADIVINAS
             </p>
           )}
-        </div>
 
-        <div className={styles.pokeInfo}>
-          <div
-            className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""}`}
-          >
-            <img src="/ball1.png" alt="Poke Ball" className={styles.ballImg} />
+          <div className={styles.pokeInfo}>
+            <div
+              className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""}`}
+            >
+              <img
+                src="/ball1.png"
+                alt="Poke Ball"
+                className={styles.ballImg}
+              />
 
-            <div className={styles.spriteWhiteLayer} />
+              <div className={styles.spriteWhiteLayer} />
 
-            <div className={styles.spriteRevealInner}>
-              {spriteUrl ? (
-                <img
-                  src={spriteUrl}
-                  alt={session.gameOver ? session.pokemon.name : "Poke Ball"}
-                  className={styles.spriteImg}
-                />
-              ) : (
-                <span className={styles.spriteFallback}>SPRITE</span>
-              )}
+              <div className={styles.spriteRevealInner}>
+                {spriteUrl ? (
+                  <img
+                    src={spriteUrl}
+                    alt={session.gameOver ? session.pokemon.name : "Poke Ball"}
+                    className={styles.spriteImg}
+                  />
+                ) : (
+                  <span className={styles.spriteFallback}>SPRITE</span>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className={`${styles.panel} ${styles.hintsPanel}`}>
-            <div className={styles.hintList}>
-              <div className={styles.hintRow}>
-                <span className={styles.hintKey}>Tipo 1:</span>
-                <br />
-                {mostrarTipo1 ? (
-                  <span
-                    className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
-                  >
-                    {session.pokemon.type1}
-                  </span>
-                ) : (
-                  <span className={styles.hintLocked}>??? (2 fallos)</span>
-                )}
-              </div>
-              <div className={styles.hintRow}>
-                <span className={styles.hintKey}>Generacion:</span>
-                <br />
-                {mostrarGeneracion ? (
-                  <span className={styles.hintVal}>
-                    GEN {session.pokemon.generation}
-                  </span>
-                ) : (
-                  <span className={styles.hintLocked}>??? (4 fallos)</span>
-                )}
-              </div>
-              <div className={styles.hintRow}>
-                <span className={styles.hintKey}>Tipo 2:</span>
-                <br />
-                {mostrarTipo2 ? (
-                  <span
-                    className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
-                  >
-                    {session.pokemon.type2 || "ninguno"}
-                  </span>
-                ) : (
-                  <span className={styles.hintLocked}>??? (6 fallos)</span>
-                )}
+            <div className={`${styles.panel} ${styles.hintsPanel}`}>
+              <div className={styles.hintList}>
+                <div className={styles.hintRow}>
+                  <span className={styles.hintKey}>Tipo 1:</span>
+                  <br />
+                  {mostrarTipo1 ? (
+                    <span
+                      className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
+                    >
+                      {session.pokemon.type1}
+                    </span>
+                  ) : (
+                    <span className={styles.hintLocked}>??? (2 fallos)</span>
+                  )}
+                </div>
+                <div className={styles.hintRow}>
+                  <span className={styles.hintKey}>Generacion:</span>
+                  <br />
+                  {mostrarGeneracion ? (
+                    <span className={styles.hintVal}>
+                      GEN {session.pokemon.generation}
+                    </span>
+                  ) : (
+                    <span className={styles.hintLocked}>??? (4 fallos)</span>
+                  )}
+                </div>
+                <div className={styles.hintRow}>
+                  <span className={styles.hintKey}>Tipo 2:</span>
+                  <br />
+                  {mostrarTipo2 ? (
+                    <span
+                      className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
+                    >
+                      {session.pokemon.type2 || "ninguno"}
+                    </span>
+                  ) : (
+                    <span className={styles.hintLocked}>??? (6 fallos)</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -420,7 +455,12 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
 
         {!session.gameOver ? (
           <div className={styles.guessActions}>
-            <div className={`${styles.inputRow} ${styles.inputRowLetter}`}>
+            <div
+              className={`${styles.inputRow} ${styles.inputRowLetter}`}
+              onClick={() => {
+                if (!loading && letra) handleGuess();
+              }}
+            >
               <input
                 ref={inputRef}
                 className={styles.letterInput}
@@ -428,7 +468,10 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
                 maxLength={1}
                 value={letra}
                 onChange={(e) => {
-                  const onlyLetter = sanitizeWordInput(e.target.value).slice(0, 1);
+                  const onlyLetter = sanitizeWordInput(e.target.value).slice(
+                    0,
+                    1,
+                  );
                   setLetra(onlyLetter.toUpperCase());
                 }}
                 onBeforeInput={(e) => {
@@ -451,7 +494,12 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
                     return;
                   }
 
-                  if (e.ctrlKey || e.metaKey || e.altKey || isControlKey(e.key)) {
+                  if (
+                    e.ctrlKey ||
+                    e.metaKey ||
+                    e.altKey ||
+                    isControlKey(e.key)
+                  ) {
                     return;
                   }
 
@@ -469,7 +517,8 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
                 pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ]"
               />
               <button
-                className={styles.btnGuess}
+                className={`${styles.btnGuess} ${styles.btnGuessLetter}`}
+                type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleGuess}
                 disabled={loading || !letra}
@@ -478,7 +527,12 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
               </button>
             </div>
 
-            <div className={`${styles.inputRow} ${styles.inputRowWord}`}>
+            <div
+              className={`${styles.inputRow} ${styles.inputRowWord}`}
+              onClick={() => {
+                if (!loading) handleGuessWord();
+              }}
+            >
               <input
                 className={`${styles.wordInput} ${wordInputError ? styles.wordInputError : ""}`}
                 type="text"
@@ -491,11 +545,12 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
                   if (e.key === "Enter") handleGuessWord();
                 }}
                 disabled={loading}
-                placeholder="Adivinar palabra completa"
+                placeholder="Palabra completa"
                 aria-invalid={wordInputError}
               />
               <button
                 className={styles.btnGuess}
+                type="button"
                 onClick={handleGuessWord}
                 disabled={loading}
               >
@@ -506,14 +561,14 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
         ) : (
           <div className={styles.botonesFin}>
             <button
-              className={styles.btnStart}
+              className={`${styles.btnStart} ${styles.btnFinishRed}`}
               onClick={handleStart}
               disabled={loading}
             >
               {loading ? "CARGANDO..." : "NUEVA PARTIDA"}
             </button>
             <button
-              className={styles.btnStart}
+              className={`${styles.btnStart} ${styles.btnFinishYellow}`}
               onClick={() =>
                 window.dispatchEvent(new CustomEvent("returnToModeMenu"))
               }
@@ -525,21 +580,6 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
         )}
 
         {error && <p className={styles.error}>{error}</p>}
-
-        <div className={styles.usedLetters}>
-          <span className={styles.usedLabel}>USADAS:</span>
-          {session.guessedLetters && session.guessedLetters.length > 0 ? (
-            [...session.guessedLetters].map((l) => (
-              <span key={l} className={styles.letterChip}>
-                {l}
-              </span>
-            ))
-          ) : (
-            <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
-              -
-            </span>
-          )}
-        </div>
       </div>
     </div>
   );

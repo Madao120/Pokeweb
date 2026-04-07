@@ -107,20 +107,21 @@
 }
 /* Caja con las pistas e imagen del pokemon*/
 .pokeInfo {
+  right: 0rem;
+  bottom: 1rem;
+  width: 45%;
   position: absolute;
-  top: 2.6rem;
-  right: 80px;
   display: flex;
   align-items: flex-end;
   gap: 10px;
+  margin-right: 55px;
   z-index: 6;
-  margin-right: 20rem;
 }
 
 /* Caja de pistas encima del bloque gris */
 .hintsPanel {
   position: relative;
-  width: 20rem;
+  width: 60%;
   min-height: 320px;
   background:
     linear-gradient(rgba(171, 178, 186, 0.5) 1px, transparent 1px),
@@ -233,7 +234,7 @@
   color: #edf1f4;
   border: 1px solid #6d757d;
   font-family: var(--font-pixel);
-  font-size: 0.52rem;
+  font-size: 0.6rem;
   padding: 9px 12px;
   margin-bottom: 14px;
 }
@@ -391,11 +392,17 @@
 }
 
 .bottomPanel .panelLabel {
-  background: transparent;
-  color: #5b646d;
-  border: 0;
-  padding: 0;
+  align-self: flex-start;
+  width: 250px;
+  max-width: 100%;
+  margin-top: 0.25rem;
   margin-bottom: 16px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 2px solid #666f77;
+  box-shadow: 0 0 0 2px rgba(60, 68, 76, 0.22);
 }
 
 .guessActions {
@@ -406,15 +413,20 @@
 }
 
 .inputRow {
+  --row-main-start: #f5645e;
+  --row-main-end: #c93a35;
+  --row-gloss: rgba(255, 255, 255, 0.24);
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   margin-bottom: 10px;
-  padding: 6px;
+  padding: 5px;
   flex: 1 1 50%;
   min-width: 0;
+  position: relative;
+  isolation: isolate;
   border: 0;
-  clip-path: polygon(
+  --input-row-shape: polygon(
     0 10px,
     2px 10px,
     2px 6px,
@@ -447,75 +459,122 @@
   transition:
     background 120ms ease,
     filter 120ms ease;
-  filter: drop-shadow(2px 0 0 #5c646d) drop-shadow(-2px 0 0 #5c646d)
-    drop-shadow(0 2px 0 #5c646d) drop-shadow(0 -2px 0 #5c646d);
+  cursor: pointer;
+  z-index: 0;
+  filter: none;
+}
+
+.inputRow::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  background: #666f77;
+  clip-path: var(--input-row-shape);
+  z-index: -2;
+}
+
+.inputRow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, var(--row-gloss), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(180deg, var(--row-main-start), var(--row-main-end));
+  clip-path: var(--input-row-shape);
+  z-index: -1;
+}
+
+.inputRow > * {
+  position: relative;
+  z-index: 1;
 }
 
 .inputRowLetter {
-  background: linear-gradient(180deg, #d86b74, #c5535d);
+  --row-main-start: #f5645e;
+  --row-main-end: #c93a35;
+  --row-gloss: rgba(255, 255, 255, 0.24);
 }
 
 .inputRowWord {
-  background: linear-gradient(180deg, #d8b252, #c69730);
+  --row-main-start: #f5b63c;
+  --row-main-end: #c78916;
+  --row-gloss: rgba(255, 255, 255, 0.24);
 }
 
 .inputRowLetter:hover {
-  background: linear-gradient(180deg, #e58b92, #d96b74);
+  --row-main-start: #ff7871;
+  --row-main-end: #d94843;
+  --row-gloss: rgba(255, 255, 255, 0.28);
 }
 
 .inputRowWord:hover {
-  background: linear-gradient(180deg, #e4c46f, #d7ab49);
+  --row-main-start: #ffc652;
+  --row-main-end: #d49421;
+  --row-gloss: rgba(255, 255, 255, 0.28);
 }
 
 .letterInput {
-  width: auto;
-  flex: 1 1 50%;
-  min-width: 0;
-  height: 32px;
-  background: #eef1f3;
+  width: 4rem;
+  flex: 0 0 4rem;
+  min-width: 4rem;
+  height: 36px;
+  background: linear-gradient(180deg, #ffffff, #edf1f4);
   color: #313940;
   font-family: var(--font-pixel);
   font-size: 0.9rem;
   text-align: center;
-  border: 0px;
-  outline: 0px;
+  border: 0;
+  outline: 0;
+  padding: 0 10px;
+  box-shadow: inset 0 0 0 2px #f8fbfd;
 }
 
 .wordInput {
-  flex: 1 1 50%;
+  flex: 1 1 auto;
   min-width: 0;
-  height: 32px;
-  border: 2px solid #5f6871;
-  background: #eef1f3;
+  height: 36px;
+  background: linear-gradient(180deg, #ffffff, #edf1f4);
   color: #313940;
   font-family: var(--font-mono);
   padding: 0 8px;
-  border: 0px;
-  outline: 0px;
+  border: 0;
+  outline: 0;
+  box-shadow: inset 0 0 0 2px #f8fbfd;
 }
 
 .wordInputError {
   background: #ffe2e2;
-  box-shadow: inset 0 0 0 2px #b73232;
 }
 
 .btnStart,
 .btnGuess {
   flex: 1;
-  height: 32px;
-  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
-  color: #313940;
+  height: 36px;
+  background: transparent;
+  color: #f8fafc;
   font-family: var(--font-pixel);
-  font-size: 0.39rem;
+  font-size: 0.7rem;
   border: 0;
   border-radius: 2px;
-  filter: drop-shadow(2px 0 0 #555e67) drop-shadow(-2px 0 0 #555e67)
-    drop-shadow(0 2px 0 #555e67) drop-shadow(0 -2px 0 #555e67);
+  filter: none;
+  text-shadow: 1px 1px 0 rgba(34, 39, 45, 0.9);
+  box-shadow: none;
 }
 
 .inputRow .btnGuess {
-  flex: 0 0 9rem;
-  width: 9rem;
+  flex: 0 0 8.75rem;
+  width: 8.75rem;
+}
+
+.btnGuessLetter {
+  white-space: nowrap;
+  flex-basis: 10.5rem !important;
+  width: 10.5rem !important;
+}
+
+.inputRowLetter .btnGuess,
+.inputRowWord .btnGuess {
+  background: transparent;
 }
 
 .inputRow .btnGuess,
@@ -558,12 +617,128 @@
   gap: 10px;
 }
 
+.btnFinishRed,
+.btnFinishYellow {
+  color: #f8fafc;
+  text-shadow: 1px 1px 0 rgba(34, 39, 45, 0.9);
+  position: relative;
+  isolation: isolate;
+}
+
+.btnFinishRed::before,
+.btnFinishYellow::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background: #666f77;
+  clip-path: polygon(
+    0 8px,
+    2px 8px,
+    2px 4px,
+    4px 4px,
+    4px 2px,
+    8px 2px,
+    8px 0,
+    calc(100% - 8px) 0,
+    calc(100% - 8px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 8px,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 8px) calc(100% - 2px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    8px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 8px),
+    0 calc(100% - 8px)
+  );
+  z-index: -2;
+}
+
+.btnFinishRed::after,
+.btnFinishYellow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(
+    0 8px,
+    2px 8px,
+    2px 4px,
+    4px 4px,
+    4px 2px,
+    8px 2px,
+    8px 0,
+    calc(100% - 8px) 0,
+    calc(100% - 8px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 8px,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 8px) calc(100% - 2px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    8px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 8px),
+    0 calc(100% - 8px)
+  );
+  z-index: -1;
+}
+
+.btnFinishRed::after {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
+    linear-gradient(180deg, #f5645e, #c93a35);
+}
+
+.btnFinishYellow::after {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
+    linear-gradient(180deg, #f5b63c, #c78916);
+}
+
 .usedLetters {
-  margin-top: 12px;
+  margin-top: 0px;
+  margin-bottom: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(238, 242, 245, 0.9),
+    rgba(216, 223, 229, 0.9)
+  );
+  border: 2px solid #666f77;
+  box-shadow: inset 0 0 0 1px #f8fbfd;
 }
 
 .usedLabel {
@@ -578,10 +753,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #dde2e6;
+  background: transparent;
   color: #3d454d;
   font-family: var(--font-pixel);
   font-size: 0.42rem;
+  border: 0;
+  box-shadow: none;
 }
 
 .startScreen {
@@ -612,6 +789,7 @@
   color: #d5efff;
   border: 1px solid #7c8791;
   background: rgba(121, 132, 143, 0.24);
+  margin-top: -20px;
   margin-bottom: 10px;
 }
 
