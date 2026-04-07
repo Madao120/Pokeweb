@@ -14,9 +14,22 @@ function ModeSelector({
 }) {
   const [mode, setMode] = useState(null);
   const [isExiting, setIsExiting] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isReturningToModes, setIsReturningToModes] = useState(false);
+
+  useEffect(() => {
+    if (mode !== null) return undefined;
+
+    const frameId = window.requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [mode]);
 
   const handleSelectMode = (nextMode) => {
     setIsExiting(true);
+    setIsVisible(false);
     window.setTimeout(() => {
       setMode(nextMode);
       setIsExiting(false);
@@ -25,12 +38,22 @@ function ModeSelector({
   };
 
   useEffect(() => {
-    const goBackToModes = async () => {
+    const goBackToModes = async (event) => {
+      setIsVisible(false);
+      setIsReturningToModes(true);
+
+      if (!event?.detail?.skipDelay) {
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, EXIT_DELAY_MS),
+        );
+      }
       onNavigationChange?.(false);
       await onReturnToMenu();
       setMode(null);
+      setIsReturningToModes(false);
       onGameEnd();
     };
+
     window.addEventListener("returnToModeMenu", goBackToModes);
     return () => {
       window.removeEventListener("returnToModeMenu", goBackToModes);
@@ -48,14 +71,17 @@ function ModeSelector({
         user={user}
         onGameStart={onGameStart}
         onGameEnd={onGameEnd}
+        isExiting={isReturningToModes}
       />
     );
   }
 
   return (
-    <div className={`${styles.page} ${isExiting ? styles.pageExit : ""}`}>
+    <div
+      className={`${styles.page} ${isVisible && !isExiting ? styles.pageVisible : ""}`}
+    >
       <div
-        className={`${styles.mainPanel} ${isExiting ? styles.mainPanelExit : ""}`}
+        className={`${styles.mainPanel} ${isVisible && !isExiting ? styles.mainPanelVisible : ""}`}
       >
         <div className={styles.header}>
           <p className={styles.welcome}>BIENVENIDO/A</p>

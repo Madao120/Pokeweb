@@ -11,6 +11,7 @@ import {
 } from "../../services/api";
 
 const MAX_INTENTOS = 7;
+const EXIT_DELAY_MS = 520;
 
 function isLetterCharacter(value) {
   return /^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ]$/.test(value);
@@ -53,8 +54,19 @@ function HangmanGame({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [ranking, setRanking] = useState([]);
+  const [panelsVisible, setPanelsVisible] = useState(false);
+  const [resultVisible, setResultVisible] = useState(false);
   const inputRef = useRef(null);
   const sessionRef = useRef(null);
+
+  const animatePanelsIn = useCallback(() => {
+    setPanelsVisible(false);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setPanelsVisible(true);
+      });
+    });
+  }, []);
 
   useEffect(() => {
     sessionRef.current = session;
@@ -121,6 +133,20 @@ function HangmanGame({
   }, [session, loading]);
 
   useEffect(() => {
+    if (!session?.gameOver) {
+      setResultVisible(false);
+      return undefined;
+    }
+
+    setResultVisible(false);
+    const frameId = window.requestAnimationFrame(() => {
+      setResultVisible(true);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [session?.gameOver, session?.pokemon?.name]);
+
+  useEffect(() => {
     const penalizeOnClose = () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
@@ -143,10 +169,19 @@ function HangmanGame({
     };
   }, [user?.id]);
 
-  const handleStart = async () => {
+  const handleStart = useCallback(async (withExit = false) => {
     if (!user?.id) {
       setError("No hay usuario activo. Vuelve a iniciar sesión.");
       return;
+    }
+
+    if (withExit && sessionRef.current) {
+      if (sessionRef.current.gameOver) {
+        setResultVisible(false);
+        await new Promise((resolve) => window.setTimeout(resolve, 240));
+      }
+      setPanelsVisible(false);
+      await new Promise((resolve) => window.setTimeout(resolve, EXIT_DELAY_MS));
     }
 
     setLoading(true);
@@ -160,18 +195,19 @@ function HangmanGame({
       setSpriteUrl(null);
       setRevealPhase("ball");
       onGameStart();
+      animatePanelsIn();
     } catch (err) {
       setError(err?.message || "Error al iniciar la partida.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [animatePanelsIn, onGameStart, user?.id]);
 
   useEffect(() => {
     if (autoStart && !session && user?.id) {
       handleStart();
     }
-  }, [autoStart, user?.id]);
+  }, [autoStart, handleStart, session, user?.id]);
 
   const handleGuess = async () => {
     if (!letra || letra.length !== 1) return;
@@ -246,6 +282,40 @@ function HangmanGame({
       window.removeEventListener("forceLoseGuessPokemon", onForceLose);
   }, [handleForceLose]);
 
+  useEffect(() => {
+    const onReturnToModeMenu = () => {
+      setPanelsVisible(false);
+    };
+
+    window.addEventListener("returnToModeMenu", onReturnToModeMenu);
+    return () =>
+      window.removeEventListener("returnToModeMenu", onReturnToModeMenu);
+  }, []);
+
+  const handleChangeMinigame = useCallback(async () => {
+    if (sessionRef.current?.gameOver) {
+      setResultVisible(false);
+      await new Promise((resolve) => window.setTimeout(resolve, 240));
+    }
+    setPanelsVisible(false);
+    await new Promise((resolve) => window.setTimeout(resolve, EXIT_DELAY_MS));
+    onChangeMinigame?.();
+  }, [onChangeMinigame]);
+
+  const handleChangeMode = useCallback(async () => {
+    if (sessionRef.current?.gameOver) {
+      setResultVisible(false);
+      await new Promise((resolve) => window.setTimeout(resolve, 240));
+    }
+    setPanelsVisible(false);
+    await new Promise((resolve) => window.setTimeout(resolve, EXIT_DELAY_MS));
+    window.dispatchEvent(
+      new CustomEvent("returnToModeMenu", {
+        detail: { skipDelay: true },
+      }),
+    );
+  }, []);
+
   const puntosActuales =
     session && !session.gameOver
       ? ([100, 70, 60, 50, 40, 30, 20, 10][session.intentos] ?? 10)
@@ -305,7 +375,9 @@ function HangmanGame({
   return (
     <div className={styles.container}>
       <div className={styles.topRow}>
-        <div className={`${styles.panel} ${styles.wordPanel}`}>
+        <div
+          className={`${styles.panel} ${styles.wordPanel} ${panelsVisible ? styles.wordPanelVisible : ""}`}
+        >
           <p className={styles.panelLabel}>Pokemon a adivinar</p>
           <p className={maskedWordClassName}>
             {session.maskedWord.split("").join(" ")}
@@ -418,7 +490,9 @@ function HangmanGame({
           </div>
         </div>
 
-        <div className={`${styles.panel} ${styles.rankingPanel}`}>
+        <div
+          className={`${styles.panel} ${styles.rankingPanel} ${panelsVisible ? styles.rankingPanelVisible : ""}`}
+        >
           <p className={styles.panelLabel}>TOP GAME</p>
           <div className={styles.rankingList}>
             {ranking.map((player, i) => {
@@ -454,7 +528,9 @@ function HangmanGame({
       </div>
 
       {session.gameOver && session.ganado && (
-        <div className={styles.resultWin}>
+        <div
+          className={`${styles.resultWin} ${resultVisible ? styles.resultVisible : ""}`}
+        >
           CORRECTO! ERA {session.pokemon.name.toUpperCase()}
           {scoreGanado !== null && (
             <>
@@ -467,14 +543,18 @@ function HangmanGame({
         </div>
       )}
       {session.gameOver && !session.ganado && (
-        <div className={styles.resultLose}>
+        <div
+          className={`${styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
+        >
           DERROTA - ERA {session.pokemon.name.toUpperCase()}
           <br />
           -25 PTS
         </div>
       )}
 
-      <div className={`${styles.panel} ${styles.bottomPanel}`}>
+      <div
+        className={`${styles.panel} ${styles.bottomPanel} ${panelsVisible ? styles.bottomPanelVisible : ""} ${session.gameOver && resultVisible ? styles.bottomPanelShifted : ""}`}
+      >
         <p className={styles.panelLabel}>ADIVINAR</p>
 
         {!session.gameOver ? (
@@ -586,23 +666,21 @@ function HangmanGame({
           <div className={styles.botonesFin}>
             <button
               className={`${styles.btnStart} ${styles.btnFinishRed}`}
-              onClick={handleStart}
+              onClick={() => handleStart(true)}
               disabled={loading}
             >
               {loading ? "CARGANDO..." : "NUEVA PARTIDA"}
             </button>
             <button
               className={`${styles.btnStart} ${styles.btnFinishYellow}`}
-              onClick={onChangeMinigame}
+              onClick={handleChangeMinigame}
               disabled={loading}
             >
               CAMBIAR MINIJUEGO
             </button>
             <button
               className={`${styles.btnStart} ${styles.btnFinishBlue}`}
-              onClick={() =>
-                window.dispatchEvent(new CustomEvent("returnToModeMenu"))
-              }
+              onClick={handleChangeMode}
               disabled={loading}
             >
               CAMBIAR MODO

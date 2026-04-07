@@ -70,6 +70,16 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  opacity: 0;
+  transform: translateX(-42px);
+  transition:
+    opacity 720ms ease,
+    transform 720ms ease;
+}
+
+.wordPanelVisible {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .wordPanel::before {
@@ -375,6 +385,21 @@
   clip-path: var(--bottom-panel-shape);
   padding-right: 8rem;
   padding-left: 8rem;
+  --bottom-panel-shift: 0px;
+  opacity: 0;
+  transform: translateY(calc(34px + var(--bottom-panel-shift)));
+  transition:
+    opacity 720ms ease 80ms,
+    transform 720ms ease 80ms;
+}
+
+.bottomPanelVisible {
+  opacity: 1;
+  transform: translateY(var(--bottom-panel-shift));
+}
+
+.bottomPanelShifted {
+  --bottom-panel-shift: 16px;
 }
 
 .bottomPanel::before {
@@ -809,6 +834,12 @@
   text-align: center;
   padding: 10px;
   width: 80%;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.resultVisible {
+  opacity: 1;
 }
 
 .resultWin {
@@ -984,6 +1015,16 @@
   gap: 4px;
   padding: 10px 8px;
   z-index: 7;
+  opacity: 0;
+  transform: translateY(-34px);
+  transition:
+    opacity 720ms ease 120ms,
+    transform 720ms ease 120ms;
+}
+
+.rankingPanelVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .rankingList {

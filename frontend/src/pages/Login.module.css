@@ -42,7 +42,11 @@
   align-items: center;
   justify-content: center;
   padding: 32px 16px;
-  animation: pageFadeIn 650ms ease-out both;
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 620ms ease,
+    transform 620ms ease;
 }
 
 .panel {
@@ -53,15 +57,21 @@
   padding: 34px 62px 28px;
   background: #d9dee2;
   clip-path: var(--panel-shape);
-  animation: pageFadeIn 850ms ease-out both;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 760ms ease 80ms,
+    transform 760ms ease 80ms;
 }
 
-.pageExit {
-  animation: pageFadeOut 520ms ease-in both;
+.pageVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.panelExit {
-  animation: pageFadeOut 420ms ease-in both;
+.panelVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .panel::before {

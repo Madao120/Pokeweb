@@ -44,7 +44,11 @@
   justify-content: center;
   padding: 28px 16px;
   gap: 28px;
-  animation: pageFadeIn 650ms ease-out both;
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 620ms ease,
+    transform 620ms ease;
 }
 
 .singleLayout {
@@ -62,15 +66,21 @@
   padding: 34px 74px 30px;
   background: #d9dee2;
   clip-path: var(--panel-shape);
-  animation: pageFadeIn 850ms ease-out both;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 760ms ease 80ms,
+    transform 760ms ease 80ms;
 }
 
-.pageExit {
-  animation: pageFadeOut 520ms ease-in both;
+.pageVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.mainPanelExit {
-  animation: pageFadeOut 420ms ease-in both;
+.mainPanelVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .mainPanel::before {

@@ -61,6 +61,16 @@
   padding: 34px 74px 30px;
   background: #d9dee2;
   clip-path: var(--panel-shape);
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 720ms ease,
+    transform 720ms ease;
+}
+
+.mainPanelVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .mainPanel::before {
@@ -285,6 +295,16 @@
   background: #d9dee2;
   clip-path: var(--panel-shape);
   min-height: 100%;
+  opacity: 0;
+  transform: translateY(-30px);
+  transition:
+    opacity 720ms ease 90ms,
+    transform 720ms ease 90ms;
+}
+
+.rankingPanelVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .rankingPanel::before {

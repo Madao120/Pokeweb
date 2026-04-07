@@ -1,6 +1,6 @@
 import styles from "./Login.module.css";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { login } from "../services/api";
 
 const EXIT_DELAY_MS = 520;
@@ -10,6 +10,14 @@ function Login({ onLogin, onGoRegister }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -35,8 +43,12 @@ function Login({ onLogin, onGoRegister }) {
   };
 
   return (
-    <div className={`${styles.page} ${isExiting ? styles.pageExit : ""}`}>
-      <div className={`${styles.panel} ${isExiting ? styles.panelExit : ""}`}>
+    <div
+      className={`${styles.page} ${isVisible && !isExiting ? styles.pageVisible : ""}`}
+    >
+      <div
+        className={`${styles.panel} ${isVisible && !isExiting ? styles.panelVisible : ""}`}
+      >
         <h2 className={styles.title}>LOGIN</h2>
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputFrame}>

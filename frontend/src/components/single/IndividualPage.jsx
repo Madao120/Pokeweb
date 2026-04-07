@@ -4,9 +4,12 @@ import styles from "./IndividualPage.module.css";
 import HangmanGame from "./HangmanGame";
 import { getGlobalRanking } from "../../services/api";
 
-function IndividualPage({ user, onGameStart, onGameEnd }) {
+const EXIT_DELAY_MS = 520;
+
+function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
   const [selectedGame, setSelectedGame] = useState(null);
   const [globalRanking, setGlobalRanking] = useState([]);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -15,6 +18,23 @@ function IndividualPage({ user, onGameStart, onGameEnd }) {
       .then(setGlobalRanking)
       .catch(() => {});
   }, [user?.id]);
+
+  useEffect(() => {
+    if (selectedGame !== null) return undefined;
+
+    const frameId = requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [selectedGame]);
+
+  const handleSelectGame = (game) => {
+    setIsVisible(false);
+    window.setTimeout(() => {
+      setSelectedGame(game);
+    }, EXIT_DELAY_MS);
+  };
 
   if (selectedGame === "hangman") {
     return (
@@ -33,7 +53,9 @@ function IndividualPage({ user, onGameStart, onGameEnd }) {
   return (
     <div className={styles.page}>
       <div className={styles.singleLayout}>
-        <div className={styles.mainPanel}>
+        <div
+          className={`${styles.mainPanel} ${isVisible && !isExiting ? styles.mainPanelVisible : ""}`}
+        >
           <div className={styles.header}>
             <p className={styles.welcome}>MINIJUEGOS INDIVIDUALES</p>
             <p className={styles.username}>{user.name}</p>
@@ -46,9 +68,7 @@ function IndividualPage({ user, onGameStart, onGameEnd }) {
               <p className={styles.cardScore}>Score M1: {user.scoreM1} pts</p>
               <button
                 className={styles.cardBtn}
-                onClick={() => {
-                  setSelectedGame("hangman");
-                }}
+                onClick={() => handleSelectGame("hangman")}
               >
                 Empezar
               </button>
@@ -56,7 +76,9 @@ function IndividualPage({ user, onGameStart, onGameEnd }) {
           </div>
         </div>
 
-        <div className={styles.rankingPanel}>
+        <div
+          className={`${styles.rankingPanel} ${isVisible && !isExiting ? styles.rankingPanelVisible : ""}`}
+        >
           <p className={styles.rankingTitle}>TOP 15 GLOBAL</p>
           <div className={styles.rankingList}>
             {globalRanking.map((player) => {

@@ -1,7 +1,7 @@
 import styles from "./Register.module.css";
 import AvatarPicker from "../components/global/AvatarPicker";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createUser } from "../services/api";
 
 const EXIT_DELAY_MS = 520;
@@ -22,6 +22,14 @@ function Register({ onRegistered, onGoLogin }) {
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
 
   const assignFieldError = (message) => {
     const normalized = message.toLowerCase();
@@ -76,8 +84,12 @@ function Register({ onRegistered, onGoLogin }) {
   };
 
   return (
-    <div className={`${styles.page} ${isExiting ? styles.pageExit : ""}`}>
-      <div className={`${styles.panel} ${isExiting ? styles.panelExit : ""}`}>
+    <div
+      className={`${styles.page} ${isVisible && !isExiting ? styles.pageVisible : ""}`}
+    >
+      <div
+        className={`${styles.panel} ${isVisible && !isExiting ? styles.panelVisible : ""}`}
+      >
         <h2 className={styles.title}>REGISTRO</h2>
         <form className={styles.form} onSubmit={handleSubmit} autoComplete="off">
           <div
