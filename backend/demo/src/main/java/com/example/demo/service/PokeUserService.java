@@ -2,10 +2,13 @@ package com.example.demo.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.user.PokeUserResponse;
 import com.example.demo.dto.user.PokeUserRequest;
 import com.example.demo.dto.user.UpdateProfileRequest;
 import com.example.demo.model.PokeUser;
@@ -109,8 +112,76 @@ public class PokeUserService {
         return user;
     }
 
-    // Top 10 jugadores por scoreM1 para el ranking en pantalla.
-    public List<PokeUser> getTop10() {
-        return pokeUserRepository.findTop10ByScoreM1();
+    // Top 15 del ranking, y si el usuario actual no entra, se anade al final con su posicion real.
+    public List<PokeUserResponse> getRanking(Long currentUserId) {
+        List<PokeUser> topPlayers = pokeUserRepository.findRankingByScoreM1(PageRequest.of(0, 15));
+        List<PokeUserResponse> ranking = topPlayers.stream()
+            .map(this::mapToResponseWithRank)
+            .collect(Collectors.toList());
+
+        if (currentUserId == null) {
+            return ranking;
+        }
+
+        boolean currentUserAlreadyIncluded = topPlayers.stream()
+            .anyMatch(player -> player.getId().equals(currentUserId));
+
+        if (currentUserAlreadyIncluded) {
+            return ranking;
+        }
+
+        pokeUserRepository.findById(currentUserId)
+            .map(this::mapToResponseWithRank)
+            .ifPresent(ranking::add);
+
+        return ranking;
+    }
+
+    public List<PokeUserResponse> getGlobalRanking(Long currentUserId) {
+        List<PokeUser> topPlayers = pokeUserRepository.findRankingByGlobalScore(PageRequest.of(0, 15));
+        List<PokeUserResponse> ranking = topPlayers.stream()
+            .map(this::mapToResponseWithGlobalRank)
+            .collect(Collectors.toList());
+
+        if (currentUserId == null) {
+            return ranking;
+        }
+
+        boolean currentUserAlreadyIncluded = topPlayers.stream()
+            .anyMatch(player -> player.getId().equals(currentUserId));
+
+        if (currentUserAlreadyIncluded) {
+            return ranking;
+        }
+
+        pokeUserRepository.findById(currentUserId)
+            .map(this::mapToResponseWithGlobalRank)
+            .ifPresent(ranking::add);
+
+        return ranking;
+    }
+
+    private PokeUserResponse mapToResponseWithRank(PokeUser user) {
+        PokeUserResponse response = new PokeUserResponse();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setName(user.getName());
+        response.setProfilePictureUrl(user.getProfilePictureUrl());
+        response.setGlobalScore(user.getGlobalScore());
+        response.setScoreM1(user.getScoreM1());
+        response.setRank((int) pokeUserRepository.countByScoreM1GreaterThan(user.getScoreM1()) + 1);
+        return response;
+    }
+
+    private PokeUserResponse mapToResponseWithGlobalRank(PokeUser user) {
+        PokeUserResponse response = new PokeUserResponse();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setName(user.getName());
+        response.setProfilePictureUrl(user.getProfilePictureUrl());
+        response.setGlobalScore(user.getGlobalScore());
+        response.setScoreM1(user.getScoreM1());
+        response.setRank((int) pokeUserRepository.countByGlobalScoreGreaterThan(user.getGlobalScore()) + 1);
+        return response;
     }
 }

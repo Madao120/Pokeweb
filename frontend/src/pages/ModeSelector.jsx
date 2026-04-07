@@ -1,6 +1,9 @@
 import styles from "./ModeSelector.module.css";
 import { useEffect, useState } from "react";
-import HangmanGame from "./HangmanGame";
+import IndividualPage from "../components/single/IndividualPage";
+import MultiplayerPage from "../components/multi/MultiplayerPage";
+
+const EXIT_DELAY_MS = 520;
 
 function ModeSelector({
   user,
@@ -10,19 +13,21 @@ function ModeSelector({
   onGameEnd,
 }) {
   const [mode, setMode] = useState(null);
-  const [selectedGame, setSelectedGame] = useState(null);
+  const [isExiting, setIsExiting] = useState(false);
 
   const handleSelectMode = (nextMode) => {
-    setSelectedGame(null);
-    setMode(nextMode);
-    onNavigationChange?.(true);
+    setIsExiting(true);
+    window.setTimeout(() => {
+      setMode(nextMode);
+      setIsExiting(false);
+      onNavigationChange?.(true);
+    }, EXIT_DELAY_MS);
   };
 
   useEffect(() => {
     const goBackToModes = async () => {
       onNavigationChange?.(false);
       await onReturnToMenu();
-      setSelectedGame(null);
       setMode(null);
       onGameEnd();
     };
@@ -33,63 +38,25 @@ function ModeSelector({
     };
   }, [onReturnToMenu, onGameEnd, onNavigationChange]);
 
-  if (mode === "single" && selectedGame === "hangman") {
-    return (
-      <div className={styles.gameWrapper}>
-        <HangmanGame
-          user={user}
-          onGameStart={onGameStart}
-          onGameEnd={onGameEnd}
-          autoStart
-        />
-      </div>
-    );
-  }
-
   if (mode === "multi") {
-    return (
-      <div className={styles.gameWrapper}>
-        <div className={styles.multiContent}>
-          <p className={styles.multiModeText}>
-            Modo multijugador - proximamente.
-          </p>
-        </div>
-      </div>
-    );
+    return <MultiplayerPage />;
   }
 
   if (mode === "single") {
     return (
-      <div className={styles.page}>
-        <div className={styles.mainPanel}>
-          <div className={styles.header}>
-            <p className={styles.welcome}>MINIJUEGOS INDIVIDUALES</p>
-            <p className={styles.username}>{user.name}</p>
-            <p className={styles.score}>{user.globalScore} PTS</p>
-          </div>
-
-          <div className={styles.cardsGrid}>
-            <article className={styles.gameCard}>
-              <h3 className={styles.cardTitle}>Ahorcado Pokemon</h3>
-              <p className={styles.cardScore}>Score M1: {user.scoreM1} pts</p>
-              <button
-                className={styles.cardBtn}
-                onClick={() => {
-                  setSelectedGame("hangman");
-                }}
-              >
-                Empezar
-              </button>
-            </article>
-          </div>
-        </div>
-      </div>
+      <IndividualPage
+        user={user}
+        onGameStart={onGameStart}
+        onGameEnd={onGameEnd}
+      />
     );
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.mainPanel}>
+    <div className={`${styles.page} ${isExiting ? styles.pageExit : ""}`}>
+      <div
+        className={`${styles.mainPanel} ${isExiting ? styles.mainPanelExit : ""}`}
+      >
         <div className={styles.header}>
           <p className={styles.welcome}>BIENVENIDO/A</p>
           <p className={styles.username}>{user.name}</p>

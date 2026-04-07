@@ -8,7 +8,7 @@ import {
   abandonGame,
   forceLoseGame,
   getRanking,
-} from "../services/api";
+} from "../../services/api";
 
 const MAX_INTENTOS = 7;
 
@@ -37,7 +37,13 @@ function sanitizeWordInput(value) {
     .join("");
 }
 
-function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
+function HangmanGame({
+  user,
+  onGameStart,
+  onGameEnd,
+  onChangeMinigame,
+  autoStart = false,
+}) {
   const [session, setSession] = useState(null);
   const [letra, setLetra] = useState("");
   const [palabra, setPalabra] = useState("");
@@ -55,18 +61,18 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
   }, [session]);
 
   useEffect(() => {
-    getRanking()
+    getRanking(user?.id)
       .then(setRanking)
       .catch(() => {});
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (session?.gameOver) {
-      getRanking()
+      getRanking(user?.id)
         .then(setRanking)
         .catch(() => {});
     }
-  }, [session?.gameOver]);
+  }, [session?.gameOver, user?.id]);
 
   useEffect(() => {
     const loadSprite = async () => {
@@ -259,6 +265,17 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
     return -25;
   })();
 
+  const maskedWordLength = session?.maskedWord?.length ?? 0;
+  const maskedWordClassName = [
+    styles.maskedWord,
+    maskedWordLength >= 20 ? styles.maskedWordVeryLong : "",
+    maskedWordLength >= 15 && maskedWordLength < 20
+      ? styles.maskedWordLong
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   if (!session) {
     if (autoStart || loading) {
       return (
@@ -290,7 +307,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
       <div className={styles.topRow}>
         <div className={`${styles.panel} ${styles.wordPanel}`}>
           <p className={styles.panelLabel}>Pokemon a adivinar</p>
-          <p className={styles.maskedWord}>
+          <p className={maskedWordClassName}>
             {session.maskedWord.split("").join(" ")}
           </p>
 
@@ -404,24 +421,31 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
         <div className={`${styles.panel} ${styles.rankingPanel}`}>
           <p className={styles.panelLabel}>TOP GAME</p>
           <div className={styles.rankingList}>
-            {ranking.map((player, i) => (
-              <div key={player.id} className={styles.rankingRow}>
-                <span className={styles.rankingPos}>#{i + 1}</span>
-                {player.profilePictureUrl ? (
-                  <img
-                    src={player.profilePictureUrl}
-                    alt={player.name}
-                    className={styles.rankingAvatar}
-                  />
-                ) : (
-                  <div className={styles.rankingAvatarFallback}>
-                    {player.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className={styles.rankingName}>{player.name}</span>
-                <span className={styles.rankingScore}>{player.scoreM1}</span>
-              </div>
-            ))}
+            {ranking.map((player, i) => {
+              const isCurrentUser = player.id === user?.id;
+
+              return (
+                <div
+                  key={player.id}
+                  className={`${styles.rankingRow} ${isCurrentUser ? styles.rankingRowCurrentUser : ""}`}
+                >
+                  <span className={styles.rankingPos}>#{player.rank ?? i + 1}</span>
+                  {player.profilePictureUrl ? (
+                    <img
+                      src={player.profilePictureUrl}
+                      alt={player.name}
+                      className={styles.rankingAvatar}
+                    />
+                  ) : (
+                    <div className={styles.rankingAvatarFallback}>
+                      {player.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className={styles.rankingName}>{player.name}</span>
+                  <span className={styles.rankingScore}>{player.scoreM1}</span>
+                </div>
+              );
+            })}
             {ranking.length === 0 && (
               <p className={styles.rankingEmpty}>Sin datos aun</p>
             )}
@@ -569,12 +593,19 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
             </button>
             <button
               className={`${styles.btnStart} ${styles.btnFinishYellow}`}
+              onClick={onChangeMinigame}
+              disabled={loading}
+            >
+              CAMBIAR MINIJUEGO
+            </button>
+            <button
+              className={`${styles.btnStart} ${styles.btnFinishBlue}`}
               onClick={() =>
                 window.dispatchEvent(new CustomEvent("returnToModeMenu"))
               }
               disabled={loading}
             >
-              CAMBIAR MODO DE JUEGO
+              CAMBIAR MODO
             </button>
           </div>
         )}

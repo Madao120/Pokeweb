@@ -27,7 +27,10 @@ public class PokemonApiService {
 
         Map response = restTemplate.getForObject(url, Map.class);
 
-        String name = (String) response.get("name");
+        Map species = (Map) response.get("species");
+        String name = species != null
+            ? (String) species.get("name")
+            : (String) response.get("name");
 
         List<Map> types = (List<Map>) response.get("types");
 

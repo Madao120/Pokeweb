@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -98,13 +97,15 @@ public class PokeUserController {
         }
     }
 
-    // Top 10 ranking por scoreM1
+    // Top 15 ranking por scoreM1; si el usuario actual no entra, se devuelve al final.
     @GetMapping("/ranking")
-    public List<PokeUserResponse> getRanking() {
-        return userService.getTop10()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public List<PokeUserResponse> getRanking(@RequestParam(required = false) Long userId) {
+        return userService.getRanking(userId);
+    }
+
+    @GetMapping("/rankings/global")
+    public List<PokeUserResponse> getGlobalRanking(@RequestParam(required = false) Long userId) {
+        return userService.getGlobalRanking(userId);
     }
 
     // Mapper para pasar de PokeUser (Enttidad) a UserResponse (DTOs)

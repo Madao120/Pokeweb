@@ -135,8 +135,16 @@ export async function updateScore(userId, score) {
 }
 
 // Top 10 jugadores por scoreM1
-export async function getRanking() {
-  const response = await fetch(`${API_URL}/users/ranking`);
+export async function getRanking(userId) {
+  const query = userId ? `?userId=${userId}` : "";
+  const response = await fetch(`${API_URL}/users/ranking${query}`);
   if (!response.ok) throw new Error("Error al obtener el ranking");
+  return await response.json();
+}
+
+export async function getGlobalRanking(userId) {
+  const query = userId ? `?userId=${userId}` : "";
+  const response = await fetch(`${API_URL}/users/rankings/global${query}`);
+  if (!response.ok) throw new Error("Error al obtener el ranking global");
   return await response.json();
 }

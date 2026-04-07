@@ -3,10 +3,13 @@ import styles from "./Login.module.css";
 import { useState } from "react";
 import { login } from "../services/api";
 
+const EXIT_DELAY_MS = 520;
+
 function Login({ onLogin, onGoRegister }) {
   const [form, setForm] = useState({ emailOrName: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,17 +22,21 @@ function Login({ onLogin, onGoRegister }) {
 
     try {
       const user = await login(form);
-      onLogin(user);
+      setIsExiting(true);
+      window.setTimeout(() => {
+        onLogin(user);
+      }, EXIT_DELAY_MS);
     } catch (err) {
       setError(err.message);
+      setIsExiting(false);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.panel}>
+    <div className={`${styles.page} ${isExiting ? styles.pageExit : ""}`}>
+      <div className={`${styles.panel} ${isExiting ? styles.panelExit : ""}`}>
         <h2 className={styles.title}>LOGIN</h2>
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputFrame}>
@@ -62,7 +69,15 @@ function Login({ onLogin, onGoRegister }) {
         <div className={styles.links}>
           <p>
             No tienes cuenta?{" "}
-            <button className={styles.btnLink} onClick={onGoRegister}>
+            <button
+              className={styles.btnLink}
+              onClick={() => {
+                setIsExiting(true);
+                window.setTimeout(() => {
+                  onGoRegister();
+                }, EXIT_DELAY_MS);
+              }}
+            >
               Registrarse
             </button>
           </p>

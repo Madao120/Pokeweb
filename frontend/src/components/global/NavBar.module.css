@@ -15,19 +15,21 @@
 .leftCapsules {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
 }
 
 .photoBox {
-  width: 44px;
-  height: 44px;
+  width: 60px;
+  height: 60px;
   border: 2px solid #fff;
-  border-radius: 25px;
+  border-radius: 50%;
   background: #0b1119;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .photo {
@@ -40,7 +42,7 @@
 .photoFallback {
   color: #dff2ff;
   font-family: var(--font-pixel);
-  font-size: 0.7rem;
+  font-size: 1rem;
 }
 
 .capsule,

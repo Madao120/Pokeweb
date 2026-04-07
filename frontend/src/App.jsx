@@ -7,7 +7,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ModeSelector from "./pages/ModeSelector";
 import Profile from "./pages/Profile";
-import NavBar from "./components/NavBar";
+import NavBar from "./components/global/NavBar";
 import { getUser } from "./services/api";
 
 const USER_STORAGE_KEY = "pokeweb_user";

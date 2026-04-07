@@ -1,5 +1,5 @@
 import styles from "./Profile.module.css";
-import AvatarPicker from "../components/AvatarPicker";
+import AvatarPicker from "../components/global/AvatarPicker";
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";

@@ -1,8 +1,10 @@
 import styles from "./Register.module.css";
-import AvatarPicker from "../components/AvatarPicker";
+import AvatarPicker from "../components/global/AvatarPicker";
 
 import { useState } from "react";
 import { createUser } from "../services/api";
+
+const EXIT_DELAY_MS = 520;
 
 function Register({ onRegistered, onGoLogin }) {
   const [form, setForm] = useState({
@@ -19,6 +21,7 @@ function Register({ onRegistered, onGoLogin }) {
   });
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   const assignFieldError = (message) => {
     const normalized = message.toLowerCase();
@@ -58,19 +61,23 @@ function Register({ onRegistered, onGoLogin }) {
 
     try {
       const createdUser = await createUser(form);
-      onRegistered(createdUser);
+      setIsExiting(true);
+      window.setTimeout(() => {
+        onRegistered(createdUser);
+      }, EXIT_DELAY_MS);
     } catch (err) {
       const message = err.message || "Error al registrar el usuario";
       assignFieldError(message);
       setError(message);
+      setIsExiting(false);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.panel}>
+    <div className={`${styles.page} ${isExiting ? styles.pageExit : ""}`}>
+      <div className={`${styles.panel} ${isExiting ? styles.panelExit : ""}`}>
         <h2 className={styles.title}>REGISTRO</h2>
         <form className={styles.form} onSubmit={handleSubmit} autoComplete="off">
           <div
@@ -155,7 +162,15 @@ function Register({ onRegistered, onGoLogin }) {
         <div className={styles.links}>
           <p>
             Ya tienes cuenta?{" "}
-            <button className={styles.btnLink} onClick={onGoLogin}>
+            <button
+              className={styles.btnLink}
+              onClick={() => {
+                setIsExiting(true);
+                window.setTimeout(() => {
+                  onGoLogin();
+                }, EXIT_DELAY_MS);
+              }}
+            >
               Iniciar sesion
             </button>
           </p>
