@@ -14,24 +14,31 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<String> handleInvalidCredentials(InvalidCredentialsException ex) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)   // 401
-                .body("Usuario o contraseña incorrectos");
+                .status(HttpStatus.UNAUTHORIZED)
+                .body("Usuario o contrasena incorrectos");
     }
 
-    // Email o nombre duplicado (violación de integridad)
+    // Email o nombre duplicado (violacion de integridad)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrity(DataIntegrityViolationException ex) {
         return ResponseEntity
-                .status(HttpStatus.CONFLICT)   // 409
+                .status(HttpStatus.CONFLICT)
                 .body("El email o el nombre ya existen");
     }
 
     // Validaciones (@NotBlank, @Email, etc)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(error -> error.getDefaultMessage())
+                .orElse("Datos invalidos");
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body("Datos inválidos");
+                .body(message);
     }
 
     // Cualquier otro error controlado

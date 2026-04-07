@@ -83,7 +83,22 @@ export async function guessLetter(userId, letra) {
   return await response.json();
 }
 
-// Abandonar partida activa (penalización -25 en backend)
+// Enviar la palabra completa al backend
+export async function guessWord(userId, palabra) {
+  const response = await fetch(
+    `${API_URL}/game/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Error al enviar la palabra");
+  }
+
+  return await response.json();
+}
+
+// Abandonar partida activa (penalizacion -25 en backend)
 export async function abandonGame(userId) {
   const response = await fetch(`${API_URL}/game/abandon?userId=${userId}`, {
     method: "POST",
@@ -105,7 +120,7 @@ export async function forceLoseGame(userId) {
   return await response.json();
 }
 
-// Actualizar puntuación de un usuario
+// Actualizar puntuacion de un usuario
 export async function updateScore(userId, score) {
   const response = await fetch(
     `${API_URL}/users/${userId}/score?score=${score}`,
@@ -113,7 +128,7 @@ export async function updateScore(userId, score) {
   );
 
   if (!response.ok) {
-    throw new Error("Error al actualizar la puntuación");
+    throw new Error("Error al actualizar la puntuacion");
   }
 
   return await response.json();

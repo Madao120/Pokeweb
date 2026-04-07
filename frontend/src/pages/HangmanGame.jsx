@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   startGame,
   guessLetter,
+  guessWord,
   abandonGame,
   forceLoseGame,
   getRanking,
@@ -11,10 +12,36 @@ import {
 
 const MAX_INTENTOS = 7;
 
+function isLetterCharacter(value) {
+  return /^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ]$/.test(value);
+}
+
+function isControlKey(key) {
+  return [
+    "Backspace",
+    "Delete",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+    "Home",
+    "End",
+    "Tab",
+    "Enter",
+  ].includes(key);
+}
+
+function sanitizeWordInput(value) {
+  return Array.from(value)
+    .filter((char) => isLetterCharacter(char))
+    .join("");
+}
+
 function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
   const [session, setSession] = useState(null);
   const [letra, setLetra] = useState("");
   const [palabra, setPalabra] = useState("");
+  const [wordInputError, setWordInputError] = useState(false);
   const [spriteUrl, setSpriteUrl] = useState(null);
   const [revealPhase, setRevealPhase] = useState("ball");
   const [loading, setLoading] = useState(false);
@@ -27,7 +54,6 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
     sessionRef.current = session;
   }, [session]);
 
-  // Cargar ranking al montar el componente y al terminar cada partida
   useEffect(() => {
     getRanking()
       .then(setRanking)
@@ -124,6 +150,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
       setSession(data);
       setLetra("");
       setPalabra("");
+      setWordInputError(false);
       setSpriteUrl(null);
       setRevealPhase("ball");
       onGameStart();
@@ -138,7 +165,6 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
     if (autoStart && !session && user?.id) {
       handleStart();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, user?.id]);
 
   const handleGuess = async () => {
@@ -158,36 +184,23 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
   };
 
   const handleGuessWord = async () => {
-    if (!palabra || !session || session.gameOver) return;
-    const objetivo = (session.pokemon?.name || "").toLowerCase();
+    if (!session || session.gameOver) return;
     const intento = palabra.trim().toLowerCase();
 
+    if (!intento) {
+      setWordInputError(true);
+      return;
+    }
+
     setLoading(true);
+    setWordInputError(false);
     setError(null);
     try {
-      if (intento === objetivo) {
-        const letrasPendientes = [
-          ...new Set(objetivo.replace(/[^a-z]/g, "").split("")),
-        ].filter((l) => !session.guessedLetters?.includes(l));
-        let updated = session;
-        for (const l of letrasPendientes) {
-          updated = await guessLetter(user.id, l);
-          if (updated.gameOver) break;
-        }
-        setSession(updated);
-        if (updated.gameOver) onGameEnd();
-      } else {
-        const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
-        const wrongLetter = alphabet.find(
-          (c) => !objetivo.includes(c) && !session.guessedLetters?.includes(c),
-        );
-        if (wrongLetter) {
-          const data = await guessLetter(user.id, wrongLetter);
-          setSession(data);
-          if (data.gameOver) onGameEnd();
-        }
-      }
+      const data = await guessWord(user.id, intento);
+      setSession(data);
+      if (data.gameOver) onGameEnd();
       setPalabra("");
+      setWordInputError(false);
     } catch (err) {
       setError(err?.message || "Error al enviar la palabra.");
     } finally {
@@ -211,10 +224,6 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
       window.removeEventListener("forceLoseGuessPokemon", onForceLose);
   }, [handleForceLose]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleGuess();
-  };
-
   const puntosActuales =
     session && !session.gameOver
       ? ([100, 70, 60, 50, 40, 30, 20, 10][session.intentos] ?? 10)
@@ -228,8 +237,9 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
   const scoreGanado = (() => {
     if (!session?.gameOver) return null;
     if (Number.isFinite(session.puntosGanados)) return session.puntosGanados;
-    if (session.ganado)
+    if (session.ganado) {
       return [100, 70, 60, 50, 40, 30, 20, 10][intentos] ?? 10;
+    }
     return -25;
   })();
 
@@ -237,7 +247,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
     if (autoStart || loading) {
       return (
         <div className={styles.startScreen}>
-          <p className={styles.startTitle}>ADIVINA EL POKÉMON</p>
+          <p className={styles.startTitle}>ADIVINA EL POKEMON</p>
           <p className={styles.startTitle}>PREPARANDO PARTIDA...</p>
           {error && <p className={styles.error}>{error}</p>}
         </div>
@@ -246,7 +256,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
 
     return (
       <div className={styles.startScreen}>
-        <p className={styles.startTitle}>ADIVINA EL POKÉMON</p>
+        <p className={styles.startTitle}>ADIVINA EL POKEMON</p>
         {error && <p className={styles.error}>{error}</p>}
         <button
           className={styles.btnStart}
@@ -291,11 +301,12 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
             </p>
           )}
         </div>
+
         <div className={styles.pokeInfo}>
           <div
             className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""}`}
           >
-            <img src="/ball1.png" alt="Poké Ball" className={styles.ballImg} />
+            <img src="/ball1.png" alt="Poke Ball" className={styles.ballImg} />
 
             <div className={styles.spriteWhiteLayer} />
 
@@ -303,7 +314,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
               {spriteUrl ? (
                 <img
                   src={spriteUrl}
-                  alt={session.gameOver ? session.pokemon.name : "Poké Ball"}
+                  alt={session.gameOver ? session.pokemon.name : "Poke Ball"}
                   className={styles.spriteImg}
                 />
               ) : (
@@ -313,12 +324,10 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
           </div>
 
           <div className={`${styles.panel} ${styles.hintsPanel}`}>
-            <p className={styles.panelLabel}>PISTAS</p>
-
             <div className={styles.hintList}>
               <div className={styles.hintRow}>
                 <span className={styles.hintKey}>Tipo 1:</span>
-                <br></br>
+                <br />
                 {mostrarTipo1 ? (
                   <span
                     className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
@@ -330,8 +339,8 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
                 )}
               </div>
               <div className={styles.hintRow}>
-                <span className={styles.hintKey}>Generación:</span>
-                <br></br>
+                <span className={styles.hintKey}>Generacion:</span>
+                <br />
                 {mostrarGeneracion ? (
                   <span className={styles.hintVal}>
                     GEN {session.pokemon.generation}
@@ -342,7 +351,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
               </div>
               <div className={styles.hintRow}>
                 <span className={styles.hintKey}>Tipo 2:</span>
-                <br></br>
+                <br />
                 {mostrarTipo2 ? (
                   <span
                     className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
@@ -357,9 +366,8 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
           </div>
         </div>
 
-        {/* Ranking top 10 */}
         <div className={`${styles.panel} ${styles.rankingPanel}`}>
-          <p className={styles.panelLabel}>TOP 10</p>
+          <p className={styles.panelLabel}>TOP GAME</p>
           <div className={styles.rankingList}>
             {ranking.map((player, i) => (
               <div key={player.id} className={styles.rankingRow}>
@@ -380,7 +388,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
               </div>
             ))}
             {ranking.length === 0 && (
-              <p className={styles.rankingEmpty}>Sin datos aún</p>
+              <p className={styles.rankingEmpty}>Sin datos aun</p>
             )}
           </div>
         </div>
@@ -388,12 +396,12 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
 
       {session.gameOver && session.ganado && (
         <div className={styles.resultWin}>
-          ¡CORRECTO! ERA {session.pokemon.name.toUpperCase()}
+          CORRECTO! ERA {session.pokemon.name.toUpperCase()}
           {scoreGanado !== null && (
             <>
               <br />
               {scoreGanado === 100
-                ? `¡GOLPE CRÍTICO! +${scoreGanado} PTS`
+                ? `GOLPE CRITICO! +${scoreGanado} PTS`
                 : `+${scoreGanado} PTS`}
             </>
           )}
@@ -401,7 +409,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
       )}
       {session.gameOver && !session.ganado && (
         <div className={styles.resultLose}>
-          DERROTA — ERA {session.pokemon.name.toUpperCase()}
+          DERROTA - ERA {session.pokemon.name.toUpperCase()}
           <br />
           -25 PTS
         </div>
@@ -419,10 +427,46 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
                 type="text"
                 maxLength={1}
                 value={letra}
-                onChange={(e) => setLetra(e.target.value.toUpperCase())}
-                onKeyDown={handleKeyDown}
+                onChange={(e) => {
+                  const onlyLetter = sanitizeWordInput(e.target.value).slice(0, 1);
+                  setLetra(onlyLetter.toUpperCase());
+                }}
+                onBeforeInput={(e) => {
+                  if (
+                    e.data &&
+                    Array.from(e.data).some((char) => !isLetterCharacter(char))
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pastedText = e.clipboardData.getData("text");
+                  const onlyLetter = sanitizeWordInput(pastedText).slice(0, 1);
+                  setLetra(onlyLetter.toUpperCase());
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleGuess();
+                    return;
+                  }
+
+                  if (e.ctrlKey || e.metaKey || e.altKey || isControlKey(e.key)) {
+                    return;
+                  }
+
+                  if (e.key.length === 1 && !isLetterCharacter(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
                 disabled={loading}
                 placeholder="_"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                inputMode="text"
+                pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ]"
               />
               <button
                 className={styles.btnGuess}
@@ -436,17 +480,24 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
 
             <div className={`${styles.inputRow} ${styles.inputRowWord}`}>
               <input
-                className={styles.wordInput}
+                className={`${styles.wordInput} ${wordInputError ? styles.wordInputError : ""}`}
                 type="text"
                 value={palabra}
-                onChange={(e) => setPalabra(e.target.value)}
+                onChange={(e) => {
+                  setPalabra(e.target.value);
+                  if (e.target.value.trim()) setWordInputError(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleGuessWord();
+                }}
                 disabled={loading}
                 placeholder="Adivinar palabra completa"
+                aria-invalid={wordInputError}
               />
               <button
                 className={styles.btnGuess}
                 onClick={handleGuessWord}
-                disabled={loading || !palabra.trim()}
+                disabled={loading}
               >
                 {loading ? "..." : "ADIVINAR PALABRA"}
               </button>
@@ -485,7 +536,7 @@ function HangmanGame({ user, onGameStart, onGameEnd, autoStart = false }) {
             ))
           ) : (
             <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
-              —
+              -
             </span>
           )}
         </div>

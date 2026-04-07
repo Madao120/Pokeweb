@@ -91,7 +91,10 @@ function App() {
               user ? (
                 <Navigate to="/" />
               ) : (
-                <Register onRegistered={handleLogin} />
+                <Register
+                  onRegistered={handleLogin}
+                  onGoLogin={() => navigate("/login")}
+                />
               )
             }
           />

@@ -14,21 +14,21 @@ import lombok.NoArgsConstructor;
 @Valid
 public class PokeUserRequest {
 
-    //Email del usuario
-    @NotBlank
-    @Email
+    // Email del usuario
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "Introduce un email valido")
     private String email;
 
-    //Nombre a escoger
-    @NotBlank
-    @Size(min = 3, max = 30)
+    // Nombre a escoger
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(min = 3, max = 30, message = "El nombre debe tener entre 3 y 30 caracteres")
     private String name;
 
-    // Contraseña
-    @NotBlank
-    @Size(min = 6)
+    // Contrasena
+    @NotBlank(message = "La contrasena es obligatoria")
+    @Size(min = 6, message = "La contrasena debe tener al menos 6 caracteres")
     private String password;
 
-    // Imagen de perfil que se escogerá entre varias opciones
+    // Imagen de perfil que se escogera entre varias opciones
     private String profilePictureUrl;
 }

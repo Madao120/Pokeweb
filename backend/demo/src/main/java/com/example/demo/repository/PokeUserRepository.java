@@ -11,9 +11,11 @@ import com.example.demo.model.PokeUser;
 public interface PokeUserRepository extends JpaRepository<PokeUser, Long> {
     Optional<PokeUser> findByEmail(String email);
     Optional<PokeUser> findByName(String name);
+    Optional<PokeUser> findByEmailIgnoreCase(String email);
+    Optional<PokeUser> findByNameIgnoreCase(String name);
 
     // Top 10 jugadores ordenados por scoreM1 descendente
-    @Query("SELECT u FROM PokeUser u ORDER BY u.scoreM1 DESC LIMIT 10")
+    @Query("SELECT u FROM PokeUser u ORDER BY u.scoreM1 DESC LIMIT 15")
     List<PokeUser> findTop10ByScoreM1();
 }
 

@@ -32,20 +32,26 @@ function Login({ onLogin, onGoRegister }) {
       <div className={styles.panel}>
         <h2 className={styles.title}>LOGIN</h2>
         <form className={styles.form} onSubmit={handleSubmit}>
-          <input
-            className={styles.input}
-            type="text"
-            name="emailOrName"
-            placeholder="Email o Nombre de usuario"
-            onChange={handleChange}
-          />
-          <input
-            className={styles.input}
-            type="password"
-            name="password"
-            placeholder="Contraseña"
-            onChange={handleChange}
-          />
+          <div className={styles.inputFrame}>
+            <input
+              className={styles.input}
+              type="text"
+              name="emailOrName"
+              placeholder="Email o Nombre de usuario"
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className={styles.inputFrame}>
+            <input
+              className={styles.input}
+              type="password"
+              name="password"
+              placeholder="Contrasena"
+              onChange={handleChange}
+            />
+          </div>
+
           <button className={styles.btnSubmit} type="submit" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
@@ -55,7 +61,7 @@ function Login({ onLogin, onGoRegister }) {
 
         <div className={styles.links}>
           <p>
-            ¿No tienes cuenta?{" "}
+            No tienes cuenta?{" "}
             <button className={styles.btnLink} onClick={onGoRegister}>
               Registrarse
             </button>

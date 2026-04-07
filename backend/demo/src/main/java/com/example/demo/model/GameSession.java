@@ -98,6 +98,33 @@ public class GameSession {
             puntosGanados = -25;
         }
     }
+
+    public void adivinarPalabra(String palabra) {
+        if (gameOver) return;
+
+        String intento = palabra == null ? "" : palabra.trim().toLowerCase();
+        String name = pokemon.getName().toLowerCase();
+
+        if (intento.isEmpty()) return;
+
+        if (name.equals(intento)) {
+            maskedWord = name;
+            gameOver = true;
+            ganado = true;
+            puntosGanados = calcularPuntos();
+            return;
+        }
+
+        intentos++;
+        actualizarPistas();
+
+        if (intentos >= MAX_INTENTOS) {
+            gameOver = true;
+            ganado = false;
+            puntosGanados = -25;
+        }
+    }
+
     private void actualizarPistas() {
         if (intentos >= 2) mostrarTipo1 = true;
         if (intentos >= 4) mostrarGeneracion = true;

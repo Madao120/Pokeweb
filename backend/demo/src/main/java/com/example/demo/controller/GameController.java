@@ -67,6 +67,23 @@ public class GameController {
         return session;
     }
 
+    @PostMapping("/guess-word")
+    public GameSession guessWord(@RequestParam Long userId, @RequestParam String palabra) {
+        GameSession session = sessions.get(userId);
+        if (session == null) {
+            throw new RuntimeException("No hay partida activa para este usuario");
+        }
+        session.adivinarPalabra(palabra);
+
+        if (session.isGameOver() && !session.isScoreAplicado()) {
+            session.setScoreAplicado(true);
+            pokeUserService.addScoreM1(userId, session.getPuntosGanados());
+            sessions.remove(userId);
+        }
+
+        return session;
+    }
+
      // Si el usuario abandona la partida activa (navegar fuera, cerrar, recargar), pierde 25 puntos
     @PostMapping("/abandon")
     public void abandon(@RequestParam Long userId) {

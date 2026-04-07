@@ -1,10 +1,10 @@
 import styles from "./Register.module.css";
 import AvatarPicker from "../components/AvatarPicker";
 
-import { useState } from "react"; //UseState, sirve para manejar estados en componentes funcionales
-import { createUser } from "../services/api"; //Es la funcion proveniente del backend (backend -> services(react(api.js)) -> Register.jsx)
+import { useState } from "react";
+import { createUser } from "../services/api";
 
-function Register({ onRegistered }) {
+function Register({ onRegistered, onGoLogin }) {
   const [form, setForm] = useState({
     email: "",
     name: "",
@@ -12,24 +12,57 @@ function Register({ onRegistered }) {
     profilePictureUrl: "",
   });
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({
+    email: null,
+    name: null,
+    password: null,
+  });
   const [loading, setLoading] = useState(false);
-
   const [showPicker, setShowPicker] = useState(false);
 
+  const assignFieldError = (message) => {
+    const normalized = message.toLowerCase();
+
+    if (normalized.includes("email")) {
+      setFieldErrors((current) => ({ ...current, email: message }));
+      return;
+    }
+
+    if (normalized.includes("nombre")) {
+      setFieldErrors((current) => ({ ...current, name: message }));
+      return;
+    }
+
+    if (normalized.includes("contrasena")) {
+      setFieldErrors((current) => ({ ...current, password: message }));
+    }
+  };
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    setForm((current) => ({ ...current, [name]: value }));
+
+    if (name in fieldErrors) {
+      setFieldErrors((current) => ({ ...current, [name]: null }));
+    }
+
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({ email: null, name: null, password: null });
     setLoading(true);
 
     try {
       const createdUser = await createUser(form);
       onRegistered(createdUser);
     } catch (err) {
-      setError(err.message);
+      const message = err.message || "Error al registrar el usuario";
+      assignFieldError(message);
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -39,29 +72,61 @@ function Register({ onRegistered }) {
     <div className={styles.page}>
       <div className={styles.panel}>
         <h2 className={styles.title}>REGISTRO</h2>
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <input
-            className={styles.input}
-            type="email"
-            name="email"
-            placeholder="ejemplo@correo.com"
-            onChange={handleChange}
-          />
-          <input
-            className={styles.input}
-            type="text"
-            name="name"
-            placeholder="Nombre"
-            onChange={handleChange}
-          />
-          <input
-            className={styles.input}
-            type="password"
-            name="password"
-            placeholder="Contraseña"
-            onChange={handleChange}
-          />
-          {/* Selector de avatar */}
+        <form className={styles.form} onSubmit={handleSubmit} autoComplete="off">
+          <div
+            className={`${styles.inputFrame} ${fieldErrors.email ? styles.inputFrameError : ""}`}
+          >
+            <input
+              className={styles.input}
+              type="email"
+              name="email"
+              placeholder="ejemplo@correo.com"
+              value={form.email}
+              onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.email)}
+              autoComplete="email"
+            />
+          </div>
+          {fieldErrors.email && (
+            <p className={styles.fieldError}>{fieldErrors.email}</p>
+          )}
+
+          <div
+            className={`${styles.inputFrame} ${fieldErrors.name ? styles.inputFrameError : ""}`}
+          >
+            <input
+              className={styles.input}
+              type="text"
+              name="name"
+              placeholder="Nombre"
+              value={form.name}
+              onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.name)}
+              autoComplete="nickname"
+            />
+          </div>
+          {fieldErrors.name && (
+            <p className={styles.fieldError}>{fieldErrors.name}</p>
+          )}
+
+          <div
+            className={`${styles.inputFrame} ${fieldErrors.password ? styles.inputFrameError : ""}`}
+          >
+            <input
+              className={styles.input}
+              type="password"
+              name="password"
+              placeholder="Contrasena"
+              value={form.password}
+              onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.password)}
+              autoComplete="new-password"
+            />
+          </div>
+          {fieldErrors.password && (
+            <p className={styles.fieldError}>{fieldErrors.password}</p>
+          )}
+
           <div className={styles.avatarRow}>
             {form.profilePictureUrl ? (
               <img
@@ -86,12 +151,23 @@ function Register({ onRegistered }) {
           </button>
         </form>
         {error && <p className={styles.error}>{error}</p>}
+
+        <div className={styles.links}>
+          <p>
+            Ya tienes cuenta?{" "}
+            <button className={styles.btnLink} onClick={onGoLogin}>
+              Iniciar sesion
+            </button>
+          </p>
+        </div>
       </div>
 
       {showPicker && (
         <AvatarPicker
           currentUrl={form.profilePictureUrl}
-          onSelect={(url) => setForm({ ...form, profilePictureUrl: url })}
+          onSelect={(url) =>
+            setForm((current) => ({ ...current, profilePictureUrl: url }))
+          }
           onClose={() => setShowPicker(false)}
         />
       )}
