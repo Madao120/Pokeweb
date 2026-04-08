@@ -1,13 +1,10 @@
 import styles from "./Profile.module.css";
 import AvatarPicker from "../components/global/AvatarPicker";
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { updateProfile } from "../services/api";
 
 function Profile({ user, onProfileUpdated }) {
-  const navigate = useNavigate();
-
   const [form, setForm] = useState({
     name: user.name,
     profilePictureUrl: user.profilePictureUrl || "",
@@ -16,6 +13,15 @@ function Profile({ user, onProfileUpdated }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -39,29 +45,29 @@ function Profile({ user, onProfileUpdated }) {
   };
 
   return (
-    <div className={styles.page}>
-      <button className={styles.btnBack} onClick={() => navigate("/")}>
-        ← Volver
-      </button>
-
-      <div className={styles.panel}>
+    <div className={`${styles.page} ${isVisible ? styles.pageVisible : ""}`}>
+      <div className={`${styles.panel} ${isVisible ? styles.panelVisible : ""}`}>
         <h2 className={styles.title}>MI PERFIL</h2>
 
-        {/* Info de solo lectura */}
-        <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Email</span>
-          <span className={styles.infoVal}>{user.email}</span>
-        </div>
-        <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Puntuación Global</span>
-          <span className={styles.infoVal}>{user.globalScore} pts</span>
-        </div>
-        <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Ahorcado (M1)</span>
-          <span className={styles.infoVal}>{user.scoreM1} pts</span>
+        <div className={styles.infoGrid}>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Email</span>
+            <span className={styles.infoVal}>{user.email}</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Puntuación Global</span>
+            <span className={styles.infoVal}>{user.globalScore} pts</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Ahorcado (M1)</span>
+            <span className={styles.infoVal}>{user.scoreM1} pts</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>GuessSound (M2)</span>
+            <span className={styles.infoVal}>{user.scoreM2} pts</span>
+          </div>
         </div>
 
-        {/* Avatar */}
         <div className={styles.avatarSection}>
           {form.profilePictureUrl ? (
             <img
@@ -83,16 +89,17 @@ function Profile({ user, onProfileUpdated }) {
           </button>
         </div>
 
-        {/* Formulario edición */}
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.label}>Nombre de usuario</label>
-          <input
-            className={styles.input}
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-          />
+          <div className={styles.inputFrame}>
+            <input
+              className={styles.input}
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+            />
+          </div>
           <button className={styles.btnSubmit} type="submit" disabled={loading}>
             {loading ? "GUARDANDO..." : "GUARDAR CAMBIOS"}
           </button>

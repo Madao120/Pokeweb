@@ -39,5 +39,7 @@ public class PokeUser {
     // Puntuación del minijuego 1 (ahorcado individual)
     private int scoreM1;
 
-} 
+    // Puntuacion del minijuego 2 (GuessSound)
+    private int scoreM2;
 
+} 

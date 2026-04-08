@@ -108,6 +108,11 @@ public class PokeUserController {
         return userService.getGlobalRanking(userId);
     }
 
+    @GetMapping("/rankings/m2")
+    public List<PokeUserResponse> getRankingM2(@RequestParam(required = false) Long userId) {
+        return userService.getRankingM2(userId);
+    }
+
     // Mapper para pasar de PokeUser (Enttidad) a UserResponse (DTOs)
     private PokeUserResponse mapToResponse(PokeUser user) {
         PokeUserResponse res = new PokeUserResponse();
@@ -117,6 +122,7 @@ public class PokeUserController {
         res.setProfilePictureUrl(user.getProfilePictureUrl());
         res.setGlobalScore(user.getGlobalScore());
         res.setScoreM1(user.getScoreM1());
+        res.setScoreM2(user.getScoreM2());
         return res;
     }
 }

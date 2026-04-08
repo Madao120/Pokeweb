@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
 import styles from "./IndividualPage.module.css";
-import HangmanGame from "./HangmanGame";
+import GuessName from "./GuessName";
+import GuessSound from "./GuessSound";
 import { getGlobalRanking } from "../../services/api";
 
 const EXIT_DELAY_MS = 520;
@@ -39,7 +40,21 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
   if (selectedGame === "hangman") {
     return (
       <div className={styles.gameWrapper}>
-        <HangmanGame
+        <GuessName
+          user={user}
+          onGameStart={onGameStart}
+          onGameEnd={onGameEnd}
+          onChangeMinigame={() => setSelectedGame(null)}
+          autoStart
+        />
+      </div>
+    );
+  }
+
+  if (selectedGame === "guess-sound") {
+    return (
+      <div className={styles.gameWrapper}>
+        <GuessSound
           user={user}
           onGameStart={onGameStart}
           onGameEnd={onGameEnd}
@@ -69,6 +84,16 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
               <button
                 className={styles.cardBtn}
                 onClick={() => handleSelectGame("hangman")}
+              >
+                Empezar
+              </button>
+            </article>
+            <article className={styles.gameCard}>
+              <h3 className={styles.cardTitle}>GuessSound Pokemon</h3>
+              <p className={styles.cardScore}>Score M2: {user.scoreM2} pts</p>
+              <button
+                className={styles.cardBtn}
+                onClick={() => handleSelectGame("guess-sound")}
               >
                 Empezar
               </button>
@@ -119,3 +144,4 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
 }
 
 export default IndividualPage;
+

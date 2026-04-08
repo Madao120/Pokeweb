@@ -148,3 +148,55 @@ export async function getGlobalRanking(userId) {
   if (!response.ok) throw new Error("Error al obtener el ranking global");
   return await response.json();
 }
+
+export async function startGuessSoundGame(userId) {
+  const response = await fetch(`${API_URL}/game/m2/start?userId=${userId}`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Error al iniciar GuessSound");
+  }
+  return await response.json();
+}
+
+export async function guessSoundPokemon(userId, pokemonId) {
+  const response = await fetch(
+    `${API_URL}/game/m2/guess?userId=${userId}&pokemonId=${pokemonId}`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Error al responder ronda");
+  }
+  return await response.json();
+}
+
+export async function abandonGuessSoundGame(userId) {
+  const response = await fetch(`${API_URL}/game/m2/abandon?userId=${userId}`, {
+    method: "POST",
+    keepalive: true,
+  });
+  if (!response.ok) {
+    throw new Error("Error al abandonar GuessSound");
+  }
+}
+
+export async function forceLoseGuessSoundGame(userId) {
+  const response = await fetch(
+    `${API_URL}/game/m2/force-lose?userId=${userId}`,
+    {
+      method: "POST",
+    },
+  );
+  if (!response.ok) {
+    throw new Error("Error al forzar derrota en GuessSound");
+  }
+  return await response.json();
+}
+
+export async function getRankingM2(userId) {
+  const query = userId ? `?userId=${userId}` : "";
+  const response = await fetch(`${API_URL}/users/rankings/m2${query}`);
+  if (!response.ok) throw new Error("Error al obtener ranking M2");
+  return await response.json();
+}

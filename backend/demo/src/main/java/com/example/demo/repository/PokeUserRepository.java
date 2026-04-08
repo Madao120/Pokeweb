@@ -18,10 +18,14 @@ public interface PokeUserRepository extends JpaRepository<PokeUser, Long> {
     @Query("SELECT u FROM PokeUser u ORDER BY u.scoreM1 DESC, u.id ASC")
     List<PokeUser> findRankingByScoreM1(Pageable pageable);
 
+    @Query("SELECT u FROM PokeUser u ORDER BY u.scoreM2 DESC, u.id ASC")
+    List<PokeUser> findRankingByScoreM2(Pageable pageable);
+
     @Query("SELECT u FROM PokeUser u ORDER BY u.globalScore DESC, u.id ASC")
     List<PokeUser> findRankingByGlobalScore(Pageable pageable);
 
     long countByScoreM1GreaterThan(int scoreM1);
+    long countByScoreM2GreaterThan(int scoreM2);
 
     long countByGlobalScoreGreaterThan(int globalScore);
 }

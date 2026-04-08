@@ -1,10 +1,17 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./NavBar.module.css";
 
 function NavBar({ user, inGame, canReturnToModes, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isProfilePage = location.pathname === "/profile";
 
   const handleGoMenu = () => {
+    if (isProfilePage) {
+      navigate("/");
+      return;
+    }
+
     if (inGame) {
       const confirmar = window.confirm(
         "Tienes una partida en curso. Si sales ahora perderás 25 puntos por abandono. ¿Quieres continuar?",
@@ -13,10 +20,12 @@ function NavBar({ user, inGame, canReturnToModes, onLogout }) {
       window.dispatchEvent(new CustomEvent("returnToModeMenu"));
       return;
     }
+
     if (canReturnToModes) {
       window.dispatchEvent(new CustomEvent("returnToModeMenu"));
       return;
     }
+
     navigate("/");
   };
 
@@ -66,7 +75,7 @@ function NavBar({ user, inGame, canReturnToModes, onLogout }) {
               className={`${styles.ctrlBtn} ${styles.btnReturn}`}
               onClick={handleGoMenu}
               title="Volver al menú"
-              disabled={!inGame && !canReturnToModes}
+              disabled={!isProfilePage && !inGame && !canReturnToModes}
             >
               ⮌
             </button>

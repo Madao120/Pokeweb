@@ -19,5 +19,7 @@ public class PokeUserResponse {
     
     private int globalScore;
     private int scoreM1;
+    private int scoreM2;
     private Integer rank;
 }
+

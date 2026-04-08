@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -11,44 +10,40 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.GameSession;
+import com.example.demo.model.GameSessionM2;
 import com.example.demo.service.PokeUserService;
 import com.example.demo.service.PokemonApiService;
 
 @RestController
 @RequestMapping("/game")
 public class GameController {
- 
-    // Inyectamos el servicio de la APIpara obtener pokemons
+
     private final PokemonApiService pokemonApiService;
- 
-    // Inyectamos el servicio de usuarios para actualizar el score al finalizar la partida
     private final PokeUserService pokeUserService;
 
-    // Cada usuario tiene su propia sesión identificada por su userId
-    // ConcurrentHashMap es thread-safe para peticiones simultáneas
+    // Active hangman sessions by user id.
     private final Map<Long, GameSession> sessions = new ConcurrentHashMap<>();
- 
+
+    // Active guess sound sessions by user id.
+    private final Map<Long, GameSessionM2> sessionsM2 = new ConcurrentHashMap<>();
+
     public GameController(PokemonApiService pokemonApiService, PokeUserService pokeUserService) {
         this.pokemonApiService = pokemonApiService;
         this.pokeUserService = pokeUserService;
     }
- 
-    // Inicia una nueva partida para el usuario
+
     @PostMapping("/start")
     public GameSession startGame(@RequestParam Long userId) {
-
         GameSession session = new GameSession(pokemonApiService.getRandomPokemon());
         sessions.put(userId, session);
         return session;
     }
- 
-    // Devuelve el estado actual de la partida del usuario
+
     @GetMapping("/state")
     public GameSession getState(@RequestParam Long userId) {
         return sessions.get(userId);
     }
- 
-    // El usuario adivina una letra
+
     @PostMapping("/guess")
     public GameSession guess(@RequestParam Long userId, @RequestParam String letra) {
         GameSession session = sessions.get(userId);
@@ -56,8 +51,7 @@ public class GameController {
             throw new RuntimeException("No hay partida activa para este usuario");
         }
         session.adivinarLetra(letra);
-        
-        // scoreAplicado evita que se sume más de una vez si llegan peticiones duplicadas (en esto me ayudó la IA, no sabia que era algo que podía pasar)
+
         if (session.isGameOver() && !session.isScoreAplicado()) {
             session.setScoreAplicado(true);
             pokeUserService.addScoreM1(userId, session.getPuntosGanados());
@@ -84,7 +78,6 @@ public class GameController {
         return session;
     }
 
-     // Si el usuario abandona la partida activa (navegar fuera, cerrar, recargar), pierde 25 puntos
     @PostMapping("/abandon")
     public void abandon(@RequestParam Long userId) {
         GameSession session = sessions.get(userId);
@@ -93,7 +86,7 @@ public class GameController {
         }
         sessions.remove(userId);
     }
- 
+
     @PostMapping("/force-lose")
     public GameSession forceLose(@RequestParam Long userId) {
         GameSession session = sessions.get(userId);
@@ -114,12 +107,69 @@ public class GameController {
         return session;
     }
 
-    // Endpoint que usaba el frontend antes — ahora redirige a startGame
-    // Devuelve solo el nombre enmascarado para no exponer el pokemon
+    // Legacy endpoint kept for compatibility with old frontend flow.
     @GetMapping("/random-pokemon")
     public GameSession randomPokemon(@RequestParam Long userId) {
         GameSession session = new GameSession(pokemonApiService.getRandomPokemon());
         sessions.put(userId, session);
+        return session;
+    }
+
+
+    ////// MINIJUEGO 2 GUESSSOUND
+    @PostMapping("/m2/start")
+    public GameSessionM2 startGuessSoundGame(@RequestParam Long userId) {
+        GameSessionM2 session = new GameSessionM2(pokemonApiService.buildGuessSoundRounds(4));
+        sessionsM2.put(userId, session);
+        return session;
+    }
+
+    @GetMapping("/m2/state")
+    public GameSessionM2 getGuessSoundState(@RequestParam Long userId) {
+        return sessionsM2.get(userId);
+    }
+
+    @PostMapping("/m2/guess")
+    public GameSessionM2 guessSound(@RequestParam Long userId, @RequestParam Long pokemonId) {
+        GameSessionM2 session = sessionsM2.get(userId);
+        if (session == null) {
+            throw new RuntimeException("No hay partida activa de GuessSound para este usuario");
+        }
+
+        session.adivinarPokemon(pokemonId);
+
+        if (session.isGameOver() && !session.isScoreAplicado()) {
+            session.setScoreAplicado(true);
+            pokeUserService.addScoreM2(userId, session.getPuntosGanados());
+            sessionsM2.remove(userId);
+        }
+
+        return session;
+    }
+
+    @PostMapping("/m2/abandon")
+    public void abandonGuessSound(@RequestParam Long userId) {
+        GameSessionM2 session = sessionsM2.get(userId);
+        if (session != null && !session.isGameOver()) {
+            pokeUserService.addScoreM2(userId, -25);
+        }
+        sessionsM2.remove(userId);
+    }
+
+    @PostMapping("/m2/force-lose")
+    public GameSessionM2 forceLoseGuessSound(@RequestParam Long userId) {
+        GameSessionM2 session = sessionsM2.get(userId);
+        if (session == null) {
+            throw new RuntimeException("No hay partida activa de GuessSound para este usuario");
+        }
+
+        if (!session.isGameOver()) {
+            session.forzarDerrota();
+            session.setScoreAplicado(true);
+            pokeUserService.addScoreM2(userId, -25);
+            sessionsM2.remove(userId);
+        }
+
         return session;
     }
 }

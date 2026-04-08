@@ -4,9 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.example.demo.dto.user.PokeUserResponse;
 import com.example.demo.dto.user.PokeUserRequest;
@@ -18,10 +21,24 @@ import com.example.demo.repository.PokeUserRepository;
 public class PokeUserService {
     private final PokeUserRepository pokeUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
-    public PokeUserService(PokeUserRepository pokeUserRepository, PasswordEncoder passwordEncoder) {
+    public PokeUserService(
+        PokeUserRepository pokeUserRepository,
+        PasswordEncoder passwordEncoder,
+        JdbcTemplate jdbcTemplate
+    ) {
         this.pokeUserRepository = pokeUserRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @PostConstruct
+    void ensureScoreColumns() {
+        // Helps existing local DBs migrate when adding new minigame score columns.
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS score_m1 INTEGER DEFAULT 0");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS score_m2 INTEGER DEFAULT 0");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS global_score INTEGER DEFAULT 0");
     }
 
     // Creacion de usuario, con excepcion si el email ya existe y si el nombre tambien.
@@ -43,6 +60,7 @@ public class PokeUserService {
         user.setProfilePictureUrl(request.getProfilePictureUrl());
         user.setGlobalScore(0);
         user.setScoreM1(0);
+        user.setScoreM2(0);
 
         return pokeUserRepository.save(user);
     }
@@ -62,13 +80,22 @@ public class PokeUserService {
     }
 
     // Suma o resta puntos del minijuego 1 y recalcula score global.
-    // Por ahora globalScore = scoreM1, luego se ampliara con mas minijuegos.
     public PokeUser addScoreM1(Long id, int puntos) {
         PokeUser user = pokeUserRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
         int nuevoScoreM1 = Math.max(0, user.getScoreM1() + puntos);
         user.setScoreM1(nuevoScoreM1);
-        user.setGlobalScore(nuevoScoreM1);
+        user.setGlobalScore(calcularGlobalScore(user));
+        return pokeUserRepository.save(user);
+    }
+
+    // Suma o resta puntos del minijuego 2 y recalcula score global.
+    public PokeUser addScoreM2(Long id, int puntos) {
+        PokeUser user = pokeUserRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        int nuevoScoreM2 = Math.max(0, user.getScoreM2() + puntos);
+        user.setScoreM2(nuevoScoreM2);
+        user.setGlobalScore(calcularGlobalScore(user));
         return pokeUserRepository.save(user);
     }
 
@@ -161,6 +188,30 @@ public class PokeUserService {
         return ranking;
     }
 
+    public List<PokeUserResponse> getRankingM2(Long currentUserId) {
+        List<PokeUser> topPlayers = pokeUserRepository.findRankingByScoreM2(PageRequest.of(0, 15));
+        List<PokeUserResponse> ranking = topPlayers.stream()
+            .map(this::mapToResponseWithRankM2)
+            .collect(Collectors.toList());
+
+        if (currentUserId == null) {
+            return ranking;
+        }
+
+        boolean currentUserAlreadyIncluded = topPlayers.stream()
+            .anyMatch(player -> player.getId().equals(currentUserId));
+
+        if (currentUserAlreadyIncluded) {
+            return ranking;
+        }
+
+        pokeUserRepository.findById(currentUserId)
+            .map(this::mapToResponseWithRankM2)
+            .ifPresent(ranking::add);
+
+        return ranking;
+    }
+
     private PokeUserResponse mapToResponseWithRank(PokeUser user) {
         PokeUserResponse response = new PokeUserResponse();
         response.setId(user.getId());
@@ -169,7 +220,21 @@ public class PokeUserService {
         response.setProfilePictureUrl(user.getProfilePictureUrl());
         response.setGlobalScore(user.getGlobalScore());
         response.setScoreM1(user.getScoreM1());
+        response.setScoreM2(user.getScoreM2());
         response.setRank((int) pokeUserRepository.countByScoreM1GreaterThan(user.getScoreM1()) + 1);
+        return response;
+    }
+
+    private PokeUserResponse mapToResponseWithRankM2(PokeUser user) {
+        PokeUserResponse response = new PokeUserResponse();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setName(user.getName());
+        response.setProfilePictureUrl(user.getProfilePictureUrl());
+        response.setGlobalScore(user.getGlobalScore());
+        response.setScoreM1(user.getScoreM1());
+        response.setScoreM2(user.getScoreM2());
+        response.setRank((int) pokeUserRepository.countByScoreM2GreaterThan(user.getScoreM2()) + 1);
         return response;
     }
 
@@ -181,7 +246,12 @@ public class PokeUserService {
         response.setProfilePictureUrl(user.getProfilePictureUrl());
         response.setGlobalScore(user.getGlobalScore());
         response.setScoreM1(user.getScoreM1());
+        response.setScoreM2(user.getScoreM2());
         response.setRank((int) pokeUserRepository.countByGlobalScoreGreaterThan(user.getGlobalScore()) + 1);
         return response;
+    }
+
+    private int calcularGlobalScore(PokeUser user) {
+        return Math.max(0, user.getScoreM1() + user.getScoreM2());
     }
 }

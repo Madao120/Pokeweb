@@ -37,6 +37,7 @@ public class AuthController {
         res.setProfilePictureUrl(user.getProfilePictureUrl());
         res.setGlobalScore(user.getGlobalScore());
         res.setScoreM1(user.getScoreM1());
+        res.setScoreM2(user.getScoreM2());
         return res;
     }
 }

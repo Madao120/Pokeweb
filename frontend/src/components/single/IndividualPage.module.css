@@ -372,7 +372,7 @@
 
 .rankingPos {
   font-family: var(--font-pixel, monospace);
-  font-size: 0.36rem;
+  font-size: 1rem;
   color: #59636b;
   min-width: 28px;
   text-align: right;
@@ -404,7 +404,7 @@
 
 .rankingName {
   font-family: var(--font-mono, monospace);
-  font-size: 0.68rem;
+  font-size: 1rem;
   color: #3a434b;
   flex: 1;
   overflow: hidden;
@@ -414,7 +414,7 @@
 
 .rankingScore {
   font-family: var(--font-pixel, monospace);
-  font-size: 0.34rem;
+  font-size: 0.9rem;
   color: #7a5500;
   text-align: right;
   min-width: 42px;
