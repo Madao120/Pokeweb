@@ -12,6 +12,7 @@ import {
 const MAX_FALLOS = 4;
 const EXIT_DELAY_MS = 520;
 const ROUND_TRANSITION_MS = 320;
+const NEXT_ROUND_UI_EXIT_MS = 260;
 const TYPE_COLORS = {
   water: "#4fa5ff",
   grass: "#67c23a",
@@ -69,6 +70,7 @@ function GuessSound({
   const [pendingSession, setPendingSession] = useState(null);
   const [failedRoundInfo, setFailedRoundInfo] = useState(null);
   const [awaitingManualAdvance, setAwaitingManualAdvance] = useState(false);
+  const [showNextRoundUi, setShowNextRoundUi] = useState(false);
   const [roundTransitioning, setRoundTransitioning] = useState(false);
   const sessionRef = useRef(null);
 
@@ -158,6 +160,7 @@ function GuessSound({
       setPendingSession(null);
       setFailedRoundInfo(null);
       setAwaitingManualAdvance(false);
+      setShowNextRoundUi(false);
       setRoundTransitioning(false);
 
       try {
@@ -231,12 +234,14 @@ function GuessSound({
         setFailedRoundInfo(null);
         setPendingSession(null);
         setAwaitingManualAdvance(false);
+        setShowNextRoundUi(false);
         await wait(220);
         await advanceRound(data);
       } else {
         setFlashState("fail");
 
         if (data?.gameOver) {
+          setShowNextRoundUi(false);
           await wait(220);
           await advanceRound(data);
         } else {
@@ -245,6 +250,10 @@ function GuessSound({
           });
           setPendingSession(data);
           setAwaitingManualAdvance(true);
+          setShowNextRoundUi(false);
+          window.requestAnimationFrame(() => {
+            setShowNextRoundUi(true);
+          });
         }
       }
     } catch (err) {
@@ -257,6 +266,8 @@ function GuessSound({
   const handleNextRound = async () => {
     if (!pendingSession || loading || roundTransitioning) return;
 
+    setShowNextRoundUi(false);
+    await wait(NEXT_ROUND_UI_EXIT_MS);
     setAwaitingManualAdvance(false);
     setFailedRoundInfo(null);
     await advanceRound(pendingSession);
@@ -274,6 +285,7 @@ function GuessSound({
       setAwaitingManualAdvance(false);
       setPendingSession(null);
       setFailedRoundInfo(null);
+      setShowNextRoundUi(false);
       setCardsPhase("idle");
       setFlashState("");
       if (data.gameOver) onGameEnd();
@@ -369,16 +381,44 @@ function GuessSound({
           className={`${styles.panel} ${styles.mainPanel} ${panelsVisible ? styles.mainPanelVisible : ""} ${flashState === "success" ? styles.mainPanelFlashSuccess : ""} ${flashState === "fail" ? styles.mainPanelFlashFail : ""}`}
         >
           <div className={styles.mainPanelTint} />
+          <div className={styles.mainPanelContent}>
+            <div className={styles.headerRow}>
+              <p className={styles.panelLabel}>GUESS SOUND</p>
+              <p className={styles.roundLabel}>RONDA {roundNumber}/4</p>
+            </div>
 
-          <div className={styles.headerRow}>
-            <p className={styles.panelLabel}>GUESS SOUND</p>
-            <p className={styles.roundLabel}>RONDA {roundNumber}/4</p>
-          </div>
+            <div className={styles.audioPanel}>
+              {!session.gameOver ? (
+                <>
+                  <p className={styles.audioTitle}>Audio del Pokemon:</p>
+                  <div className={styles.topContainer}>
+                    <div className={styles.livesBar}>
+                      PS&nbsp;
+                      {Array.from({ length: MAX_FALLOS }, (_, i) => {
+                        const remaining = MAX_FALLOS - fallos;
+                        let colorClass = styles.lifeGreen;
+                        if (remaining <= 1) colorClass = styles.lifeRed;
+                        else if (remaining <= 2) colorClass = styles.lifeYellow;
+                        const isUsed = i < fallos;
 
-          <div className={styles.audioPanel}>
-            {!session.gameOver ? (
-              <>
-                <p className={styles.audioTitle}>Audio del Pokemon:</p>
+                        return (
+                          <span
+                            key={i}
+                            className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
+                          />
+                        );
+                      })}
+                    </div>
+                    <audio
+                      key={`${currentRound?.ronda}-${currentRound?.sonido}`}
+                      className={styles.audioPlayer}
+                      controls
+                      preload="none"
+                      src={currentRound?.sonido || ""}
+                    />
+                  </div>
+                </>
+              ) : (
                 <div className={styles.topContainer}>
                   <div className={styles.livesBar}>
                     PS&nbsp;
@@ -397,128 +437,108 @@ function GuessSound({
                       );
                     })}
                   </div>
-                  <audio
-                    key={`${currentRound?.ronda}-${currentRound?.sonido}`}
-                    className={styles.audioPlayer}
-                    controls
-                    preload="none"
-                    src={currentRound?.sonido || ""}
-                  />
+                  <div className={styles.summaryBox}>
+                    <p className={styles.audioEnded}>Partida finalizada</p>
+                    <p className={styles.aciertos}>
+                      Has Acertado: {aciertos}/4 pokemon
+                    </p>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className={styles.topContainer}>
-                <div className={styles.livesBar}>
-                  PS&nbsp;
-                  {Array.from({ length: MAX_FALLOS }, (_, i) => {
-                    const remaining = MAX_FALLOS - fallos;
-                    let colorClass = styles.lifeGreen;
-                    if (remaining <= 1) colorClass = styles.lifeRed;
-                    else if (remaining <= 2) colorClass = styles.lifeYellow;
-                    const isUsed = i < fallos;
+              )}
+            </div>
 
-                    return (
-                      <span
-                        key={i}
-                        className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
-                      />
-                    );
-                  })}
-                </div>
-                <div className={styles.summaryBox}>
-                  <p className={styles.audioEnded}>Partida finalizada</p>
-                  <p className={styles.aciertos}>
-                    Has Acertado: {aciertos}/4 pokemon
-                  </p>
+            {!session.gameOver ? (
+              <div
+                className={`${styles.optionsGrid} ${cardsPhase === "idle" ? styles.optionsGridVisible : ""} ${cardsPhase === "exit" ? styles.optionsGridExit : ""}`}
+              >
+                {currentRound?.opciones?.map((option, index) => {
+                  const totalOptions = currentRound?.opciones?.length ?? 0;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={styles.optionBtn}
+                      onClick={() => handleGuessOption(option.id)}
+                      disabled={isInteractionLocked}
+                    >
+                      <div
+                        className={styles.optionCard}
+                        style={{
+                          ...getOptionBackgroundStyle(
+                            option.type1,
+                            option.type2,
+                          ),
+                          "--card-index": index,
+                          "--card-index-reverse": totalOptions - index - 1,
+                        }}
+                      >
+                        <div className={styles.optionSpriteWrap}>
+                          {option.spriteUrl ? (
+                            <img
+                              src={option.spriteUrl}
+                              alt={option.name}
+                              className={styles.optionSprite}
+                            />
+                          ) : (
+                            <span className={styles.spriteFallback}>
+                              SPRITE
+                            </span>
+                          )}
+                        </div>
+                        <p className={styles.optionName}>{option.name}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={styles.resultBox}>
+                <div className={styles.botonesFin}>
+                  <button
+                    className={`${styles.btnStart} ${styles.btnFinishRed}`}
+                    onClick={() => handleStart(true)}
+                    disabled={loading}
+                  >
+                    {loading ? "CARGANDO..." : "NUEVA PARTIDA"}
+                  </button>
+                  <button
+                    className={`${styles.btnStart} ${styles.btnFinishYellow}`}
+                    onClick={handleChangeMinigame}
+                    disabled={loading}
+                  >
+                    CAMBIAR MINIJUEGO
+                  </button>
+                  <button
+                    className={`${styles.btnStart} ${styles.btnFinishBlue}`}
+                    onClick={handleChangeMode}
+                    disabled={loading}
+                  >
+                    CAMBIAR MODO
+                  </button>
                 </div>
               </div>
             )}
-          </div>
 
-          {!session.gameOver ? (
-            <div
-              className={`${styles.optionsGrid} ${cardsPhase === "idle" ? styles.optionsGridVisible : ""} ${cardsPhase === "exit" ? styles.optionsGridExit : ""}`}
-            >
-              {currentRound?.opciones?.map((option, index) => {
-                const totalOptions = currentRound?.opciones?.length ?? 0;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    className={styles.optionBtn}
-                    onClick={() => handleGuessOption(option.id)}
-                    disabled={isInteractionLocked}
-                  >
-                    <div
-                      className={styles.optionCard}
-                      style={{
-                        ...getOptionBackgroundStyle(option.type1, option.type2),
-                        "--card-index": index,
-                        "--card-index-reverse": totalOptions - index - 1,
-                      }}
-                    >
-                      <div className={styles.optionSpriteWrap}>
-                        {option.spriteUrl ? (
-                          <img
-                            src={option.spriteUrl}
-                            alt={option.name}
-                            className={styles.optionSprite}
-                          />
-                        ) : (
-                          <span className={styles.spriteFallback}>SPRITE</span>
-                        )}
-                      </div>
-                      <p className={styles.optionName}>{option.name}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className={styles.resultBox}>
-              <div className={styles.botonesFin}>
+            {awaitingManualAdvance && failedRoundInfo && (
+              <div
+                className={`${styles.nextRoundBox} ${showNextRoundUi ? styles.nextRoundBoxVisible : ""}`}
+              >
+                <p className={styles.failInfo}>
+                  FALLASTE. ERA {failedRoundInfo.correctName}
+                </p>
                 <button
-                  className={`${styles.btnStart} ${styles.btnFinishRed}`}
-                  onClick={() => handleStart(true)}
-                  disabled={loading}
+                  type="button"
+                  className={`${styles.btnStart} ${styles.btnFinishRed} ${styles.btnNextRound}`}
+                  onClick={handleNextRound}
+                  disabled={loading || roundTransitioning}
                 >
-                  {loading ? "CARGANDO..." : "NUEVA PARTIDA"}
-                </button>
-                <button
-                  className={`${styles.btnStart} ${styles.btnFinishYellow}`}
-                  onClick={handleChangeMinigame}
-                  disabled={loading}
-                >
-                  CAMBIAR MINIJUEGO
-                </button>
-                <button
-                  className={`${styles.btnStart} ${styles.btnFinishBlue}`}
-                  onClick={handleChangeMode}
-                  disabled={loading}
-                >
-                  CAMBIAR MODO
+                  SIGUIENTE RONDA
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {awaitingManualAdvance && failedRoundInfo && (
-            <div className={styles.nextRoundBox}>
-              <p className={styles.failInfo}>
-                FALLASTE. ERA {failedRoundInfo.correctName}
-              </p>
-              <button
-                type="button"
-                className={`${styles.btnStart} ${styles.btnFinishYellow}`}
-                onClick={handleNextRound}
-                disabled={loading || roundTransitioning}
-              >
-                SIGUIENTE RONDA
-              </button>
-            </div>
-          )}
-
-          {error && <p className={styles.error}>{error}</p>}
+            {error && <p className={styles.error}>{error}</p>}
+          </div>
         </div>
 
         <div
@@ -558,17 +578,16 @@ function GuessSound({
             )}
           </div>
         </div>
+        {session.gameOver && (
+          <div
+            className={`${scoreGanado >= 0 ? styles.resultWin : styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
+          >
+            {scoreGanado >= 0 ? "PARTIDA COMPLETADA" : "DERROTA"}
+            <br />
+            {scoreGanado >= 0 ? `+${scoreGanado} PTS` : `${scoreGanado} PTS`}
+          </div>
+        )}
       </div>
-
-      {session.gameOver && (
-        <div
-          className={`${scoreGanado >= 0 ? styles.resultWin : styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
-        >
-          {scoreGanado >= 0 ? "PARTIDA COMPLETADA" : "DERROTA"}
-          <br />
-          {scoreGanado >= 0 ? `+${scoreGanado} PTS` : `${scoreGanado} PTS`}
-        </div>
-      )}
     </div>
   );
 }

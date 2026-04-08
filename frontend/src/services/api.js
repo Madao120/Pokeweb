@@ -200,3 +200,61 @@ export async function getRankingM2(userId) {
   if (!response.ok) throw new Error("Error al obtener ranking M2");
   return await response.json();
 }
+
+export async function startGuessSpriteGame(userId) {
+  const response = await fetch(`${API_URL}/game/m3/start?userId=${userId}`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Error al iniciar GuessSprite");
+  }
+  return await response.json();
+}
+
+export async function guessSpritePokemon(userId, pokemonId) {
+  const response = await fetch(
+    `${API_URL}/game/m3/guess?userId=${userId}&pokemonId=${pokemonId}`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Error al responder GuessSprite");
+  }
+  return await response.json();
+}
+
+export async function abandonGuessSpriteGame(userId) {
+  const response = await fetch(`${API_URL}/game/m3/abandon?userId=${userId}`, {
+    method: "POST",
+    keepalive: true,
+  });
+  if (!response.ok) {
+    throw new Error("Error al abandonar GuessSprite");
+  }
+}
+
+export async function forceLoseGuessSpriteGame(userId) {
+  const response = await fetch(
+    `${API_URL}/game/m3/force-lose?userId=${userId}`,
+    {
+      method: "POST",
+    },
+  );
+  if (!response.ok) {
+    throw new Error("Error al forzar derrota en GuessSprite");
+  }
+  return await response.json();
+}
+
+export async function getRankingM3(userId) {
+  const query = userId ? `?userId=${userId}` : "";
+  const response = await fetch(`${API_URL}/users/rankings/m3${query}`);
+  if (!response.ok) throw new Error("Error al obtener ranking M3");
+  return await response.json();
+}
+
+export async function getGuessSpritePokemonList() {
+  const response = await fetch(`${API_URL}/game/m3/pokemon-list`);
+  if (!response.ok) throw new Error("Error al obtener lista de Pokemon M3");
+  return await response.json();
+}

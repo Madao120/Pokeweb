@@ -38,6 +38,7 @@ public class PokeUserService {
         // Helps existing local DBs migrate when adding new minigame score columns.
         jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS score_m1 INTEGER DEFAULT 0");
         jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS score_m2 INTEGER DEFAULT 0");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS score_m3 INTEGER DEFAULT 0");
         jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS global_score INTEGER DEFAULT 0");
     }
 
@@ -61,6 +62,7 @@ public class PokeUserService {
         user.setGlobalScore(0);
         user.setScoreM1(0);
         user.setScoreM2(0);
+        user.setScoreM3(0);
 
         return pokeUserRepository.save(user);
     }
@@ -95,6 +97,16 @@ public class PokeUserService {
             .orElseThrow(() -> new RuntimeException("User not found"));
         int nuevoScoreM2 = Math.max(0, user.getScoreM2() + puntos);
         user.setScoreM2(nuevoScoreM2);
+        user.setGlobalScore(calcularGlobalScore(user));
+        return pokeUserRepository.save(user);
+    }
+
+    // Suma o resta puntos del minijuego 3 y recalcula score global.
+    public PokeUser addScoreM3(Long id, int puntos) {
+        PokeUser user = pokeUserRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        int nuevoScoreM3 = Math.max(0, user.getScoreM3() + puntos);
+        user.setScoreM3(nuevoScoreM3);
         user.setGlobalScore(calcularGlobalScore(user));
         return pokeUserRepository.save(user);
     }
@@ -212,6 +224,30 @@ public class PokeUserService {
         return ranking;
     }
 
+    public List<PokeUserResponse> getRankingM3(Long currentUserId) {
+        List<PokeUser> topPlayers = pokeUserRepository.findRankingByScoreM3(PageRequest.of(0, 15));
+        List<PokeUserResponse> ranking = topPlayers.stream()
+            .map(this::mapToResponseWithRankM3)
+            .collect(Collectors.toList());
+
+        if (currentUserId == null) {
+            return ranking;
+        }
+
+        boolean currentUserAlreadyIncluded = topPlayers.stream()
+            .anyMatch(player -> player.getId().equals(currentUserId));
+
+        if (currentUserAlreadyIncluded) {
+            return ranking;
+        }
+
+        pokeUserRepository.findById(currentUserId)
+            .map(this::mapToResponseWithRankM3)
+            .ifPresent(ranking::add);
+
+        return ranking;
+    }
+
     private PokeUserResponse mapToResponseWithRank(PokeUser user) {
         PokeUserResponse response = new PokeUserResponse();
         response.setId(user.getId());
@@ -221,6 +257,7 @@ public class PokeUserService {
         response.setGlobalScore(user.getGlobalScore());
         response.setScoreM1(user.getScoreM1());
         response.setScoreM2(user.getScoreM2());
+        response.setScoreM3(user.getScoreM3());
         response.setRank((int) pokeUserRepository.countByScoreM1GreaterThan(user.getScoreM1()) + 1);
         return response;
     }
@@ -234,7 +271,22 @@ public class PokeUserService {
         response.setGlobalScore(user.getGlobalScore());
         response.setScoreM1(user.getScoreM1());
         response.setScoreM2(user.getScoreM2());
+        response.setScoreM3(user.getScoreM3());
         response.setRank((int) pokeUserRepository.countByScoreM2GreaterThan(user.getScoreM2()) + 1);
+        return response;
+    }
+
+    private PokeUserResponse mapToResponseWithRankM3(PokeUser user) {
+        PokeUserResponse response = new PokeUserResponse();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setName(user.getName());
+        response.setProfilePictureUrl(user.getProfilePictureUrl());
+        response.setGlobalScore(user.getGlobalScore());
+        response.setScoreM1(user.getScoreM1());
+        response.setScoreM2(user.getScoreM2());
+        response.setScoreM3(user.getScoreM3());
+        response.setRank((int) pokeUserRepository.countByScoreM3GreaterThan(user.getScoreM3()) + 1);
         return response;
     }
 
@@ -247,11 +299,12 @@ public class PokeUserService {
         response.setGlobalScore(user.getGlobalScore());
         response.setScoreM1(user.getScoreM1());
         response.setScoreM2(user.getScoreM2());
+        response.setScoreM3(user.getScoreM3());
         response.setRank((int) pokeUserRepository.countByGlobalScoreGreaterThan(user.getGlobalScore()) + 1);
         return response;
     }
 
     private int calcularGlobalScore(PokeUser user) {
-        return Math.max(0, user.getScoreM1() + user.getScoreM2());
+        return Math.max(0, user.getScoreM1() + user.getScoreM2() + user.getScoreM3());
     }
 }

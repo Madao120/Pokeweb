@@ -38,6 +38,7 @@ public class AuthController {
         res.setGlobalScore(user.getGlobalScore());
         res.setScoreM1(user.getScoreM1());
         res.setScoreM2(user.getScoreM2());
+        res.setScoreM3(user.getScoreM3());
         return res;
     }
 }

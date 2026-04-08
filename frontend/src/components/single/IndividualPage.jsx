@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import styles from "./IndividualPage.module.css";
 import GuessName from "./GuessName";
 import GuessSound from "./GuessSound";
+import GuessSprite from "./GuessSprite";
 import { getGlobalRanking } from "../../services/api";
 
 const EXIT_DELAY_MS = 520;
@@ -65,6 +66,20 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
     );
   }
 
+  if (selectedGame === "guess-sprite") {
+    return (
+      <div className={styles.gameWrapper}>
+        <GuessSprite
+          user={user}
+          onGameStart={onGameStart}
+          onGameEnd={onGameEnd}
+          onChangeMinigame={() => setSelectedGame(null)}
+          autoStart
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.singleLayout}>
@@ -94,6 +109,16 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
               <button
                 className={styles.cardBtn}
                 onClick={() => handleSelectGame("guess-sound")}
+              >
+                Empezar
+              </button>
+            </article>
+            <article className={styles.gameCard}>
+              <h3 className={styles.cardTitle}>GuessSprite Pokemon</h3>
+              <p className={styles.cardScore}>Score M3: {user.scoreM3} pts</p>
+              <button
+                className={styles.cardBtn}
+                onClick={() => handleSelectGame("guess-sprite")}
               >
                 Empezar
               </button>

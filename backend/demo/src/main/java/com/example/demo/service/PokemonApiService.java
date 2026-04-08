@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import com.example.demo.dto.pokemon.PokemonM1;
 import com.example.demo.dto.pokemon.PokemonM2;
 import com.example.demo.dto.pokemon.PokemonOptionM2;
+import com.example.demo.dto.pokemon.PokemonOptionM3;
 
 
 @Service
@@ -25,6 +26,7 @@ public class PokemonApiService {
     // Para un pokemon aleatorio
     private final Random random = new Random();
     private static final int MAX_POKEMON_ID = 1025;
+    private volatile List<PokemonOptionM3> cachedPokemonCatalogM3;
 
     public PokemonM1 getRandomPokemon() {
 
@@ -190,5 +192,75 @@ public class PokemonApiService {
         }
 
         return new PokemonOptionM2(pokemonId, name, type1, type2, spriteUrl, cryUrl);
+    }
+
+    public List<PokemonOptionM3> getPokemonCatalogM3() {
+        List<PokemonOptionM3> snapshot = cachedPokemonCatalogM3;
+        if (snapshot != null && !snapshot.isEmpty()) {
+            return snapshot;
+        }
+
+        synchronized (this) {
+            if (cachedPokemonCatalogM3 != null && !cachedPokemonCatalogM3.isEmpty()) {
+                return cachedPokemonCatalogM3;
+            }
+
+            String url = "https://pokeapi.co/api/v2/pokemon?limit=" + MAX_POKEMON_ID;
+            Map response = restTemplate.getForObject(url, Map.class);
+            if (response == null) {
+                throw new RuntimeException("No se pudo obtener el catalogo de Pokemon para M3");
+            }
+
+            List<Map> results = (List<Map>) response.get("results");
+            if (results == null) {
+                throw new RuntimeException("Catalogo de Pokemon vacio para M3");
+            }
+
+            List<PokemonOptionM3> catalog = new ArrayList<>();
+            for (Map result : results) {
+                String name = (String) result.get("name");
+                String detailUrl = (String) result.get("url");
+                Long id = extractPokemonIdFromUrl(detailUrl);
+                if (id == null || name == null || name.isBlank()) {
+                    continue;
+                }
+                catalog.add(new PokemonOptionM3(id, name, buildOfficialArtworkUrl(id)));
+            }
+
+            catalog.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            cachedPokemonCatalogM3 = Collections.unmodifiableList(catalog);
+            return cachedPokemonCatalogM3;
+        }
+    }
+
+    public PokemonOptionM3 getRandomPokemonOptionM3() {
+        List<PokemonOptionM3> catalog = getPokemonCatalogM3();
+        if (catalog.isEmpty()) {
+            throw new RuntimeException("No hay Pokemon disponibles para M3");
+        }
+        PokemonOptionM3 option = catalog.get(random.nextInt(catalog.size()));
+        return new PokemonOptionM3(option.getId(), option.getName(), option.getSpriteUrl());
+    }
+
+    private Long extractPokemonIdFromUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        String normalized = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+        int idx = normalized.lastIndexOf('/');
+        if (idx < 0 || idx + 1 >= normalized.length()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(normalized.substring(idx + 1));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String buildOfficialArtworkUrl(Long pokemonId) {
+        return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/"
+            + pokemonId
+            + ".png";
     }
 }

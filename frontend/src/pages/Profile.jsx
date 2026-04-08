@@ -66,6 +66,10 @@ function Profile({ user, onProfileUpdated }) {
             <span className={styles.infoLabel}>GuessSound (M2)</span>
             <span className={styles.infoVal}>{user.scoreM2} pts</span>
           </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>GuessSprite (M3)</span>
+            <span className={styles.infoVal}>{user.scoreM3} pts</span>
+          </div>
         </div>
 
         <div className={styles.avatarSection}>

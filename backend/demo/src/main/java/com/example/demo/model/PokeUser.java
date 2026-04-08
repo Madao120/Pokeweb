@@ -42,4 +42,7 @@ public class PokeUser {
     // Puntuacion del minijuego 2 (GuessSound)
     private int scoreM2;
 
+    // Puntuacion del minijuego 3 (GuessSprite)
+    private int scoreM3;
+
 } 
