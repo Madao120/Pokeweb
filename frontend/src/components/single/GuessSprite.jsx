@@ -40,13 +40,11 @@ function GuessSprite({
   const [pokemonOptions, setPokemonOptions] = useState([]);
   const [query, setQuery] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [panelsVisible, setPanelsVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
   const [feedback, setFeedback] = useState("");
 
   const sessionRef = useRef(null);
-  const dropdownRef = useRef(null);
 
   const animatePanelsIn = useCallback(() => {
     setPanelsVisible(false);
@@ -83,16 +81,6 @@ function GuessSprite({
     const frameId = window.requestAnimationFrame(() => setResultVisible(true));
     return () => window.cancelAnimationFrame(frameId);
   }, [session?.gameOver, session?.puntosGanados]);
-
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (!dropdownRef.current?.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
 
   useEffect(() => {
     const penalizeOnClose = () => {
@@ -167,16 +155,15 @@ function GuessSprite({
 
   const filteredOptions = useMemo(() => {
     const needle = normalizeSearch(query);
-    if (!needle) return pokemonOptions.slice(0, 12);
-    return pokemonOptions
-      .filter((pokemon) => normalizeSearch(pokemon.name).includes(needle))
-      .slice(0, 12);
+    if (!needle) return pokemonOptions;
+    return pokemonOptions.filter((pokemon) =>
+      normalizeSearch(pokemon.name).includes(needle),
+    );
   }, [pokemonOptions, query]);
 
   const handlePickOption = (option) => {
     setSelectedOption(option);
     setQuery(option.name);
-    setDropdownOpen(false);
     setError(null);
   };
 
@@ -206,12 +193,11 @@ function GuessSprite({
       setSession(data);
       setSelectedOption(null);
       setQuery("");
-      setDropdownOpen(false);
 
       if (data.gameOver) {
         setFeedback(
           data.ganado
-            ? "Correcto, era ese Pokemon."
+            ? "Correcto, acertaste."
             : `Derrota. Era ${data.pokemon?.name?.toUpperCase() || "?"}.`,
         );
         onGameEnd();
@@ -319,42 +305,11 @@ function GuessSprite({
   return (
     <div className={styles.container}>
       <div className={styles.topRow}>
-        <div className={styles.mainColumn}>
-          <div
-            className={`${styles.panel} ${styles.imagePanel} ${panelsVisible ? styles.imagePanelVisible : ""}`}
-          >
-            <div className={styles.panelHeader}>
-              <p className={styles.panelLabel}>GUESS SPRITE</p>
-              <p className={styles.roundLabel}>
-                FALLOS {Math.min(fallos, maxFallos)}/{maxFallos}
-              </p>
-            </div>
-
-            <div className={styles.spriteViewport}>
-              {session?.pokemon?.spriteUrl ? (
-                <img
-                  src={session.pokemon.spriteUrl}
-                  alt={session.gameOver ? session.pokemon.name : "Sprite oculto"}
-                  className={`${styles.spriteImage} ${!session.gameOver ? styles.spriteImageMasked : ""}`}
-                  style={{
-                    transformOrigin: `${session.focusX}% ${session.focusY}%`,
-                    transform: `scale(${session.zoomActual ?? 1})`,
-                  }}
-                />
-              ) : (
-                <p className={styles.spriteFallback}>SPRITE</p>
-              )}
-            </div>
-
-            {!session.gameOver && (
-              <p className={styles.pointsHint}>SI ACIERTAS AHORA: +{puntosPreview} PTS</p>
-            )}
-          </div>
-
+        <div className={styles.leftColumn}>
           <div
             className={`${styles.panel} ${styles.searchPanel} ${panelsVisible ? styles.searchPanelVisible : ""}`}
           >
-            <p className={styles.panelLabel}>BUSCADOR DE POKEMON</p>
+            <p className={styles.panelLabel}>GUESS SPRITE</p>
             <div className={styles.livesBar}>
               PS&nbsp;
               {Array.from({ length: 5 }, (_, i) => {
@@ -372,10 +327,15 @@ function GuessSprite({
                 );
               })}
             </div>
+            {!session.gameOver && (
+              <p className={styles.pointsHint}>
+                SI ACIERTAS AHORA: +{puntosPreview} PTS
+              </p>
+            )}
 
             {!session.gameOver ? (
               <>
-                <div className={styles.selectWrap} ref={dropdownRef}>
+                <div className={styles.selectWrap}>
                   <input
                     className={styles.searchInput}
                     type="text"
@@ -383,9 +343,7 @@ function GuessSprite({
                     onChange={(e) => {
                       setQuery(e.target.value);
                       setSelectedOption(null);
-                      setDropdownOpen(true);
                     }}
-                    onFocus={() => setDropdownOpen(true)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -396,32 +354,32 @@ function GuessSprite({
                     autoComplete="off"
                     disabled={loading}
                   />
-                  {dropdownOpen && (
-                    <div className={styles.dropdown}>
-                      {filteredOptions.map((pokemon) => (
-                        <button
-                          key={pokemon.id}
-                          type="button"
-                          className={styles.optionRow}
-                          onClick={() => handlePickOption(pokemon)}
-                        >
-                          <img
-                            src={pokemon.spriteUrl}
-                            alt={pokemon.name}
-                            className={styles.optionSprite}
-                          />
-                          <span className={styles.optionName}>{pokemon.name}</span>
-                        </button>
-                      ))}
-                      {filteredOptions.length === 0 && (
-                        <p className={styles.noResults}>Sin resultados</p>
-                      )}
-                    </div>
-                  )}
+                  <div className={styles.dropdown}>
+                    {filteredOptions.map((pokemon) => (
+                      <button
+                        key={pokemon.id}
+                        type="button"
+                        className={styles.optionRow}
+                        onClick={() => handlePickOption(pokemon)}
+                      >
+                        <img
+                          src={pokemon.spriteUrl}
+                          alt={pokemon.name}
+                          className={styles.optionSprite}
+                        />
+                        <span className={styles.optionName}>
+                          {pokemon.name}
+                        </span>
+                      </button>
+                    ))}
+                    {filteredOptions.length === 0 && (
+                      <p className={styles.noResults}>Sin resultados</p>
+                    )}
+                  </div>
                 </div>
 
                 <button
-                  className={`${styles.btnStart} ${styles.btnGuess}`}
+                  className={`${styles.btnStart} ${styles.btnFinishRed} ${styles.btnGuessCompact}`}
                   onClick={handleGuess}
                   disabled={loading}
                 >
@@ -459,6 +417,41 @@ function GuessSprite({
           </div>
         </div>
 
+        <div className={styles.middleColumn}>
+          <div
+            className={`${styles.panel} ${styles.imagePanel} ${panelsVisible ? styles.imagePanelVisible : ""}`}
+          >
+            <div className={styles.spriteViewport}>
+              {session?.pokemon?.spriteUrl ? (
+                <img
+                  src={session.pokemon.spriteUrl}
+                  alt={
+                    session.gameOver ? session.pokemon.name : "Sprite oculto"
+                  }
+                  className={`${styles.spriteImage} ${!session.gameOver ? styles.spriteImageMasked : ""}`}
+                  style={{
+                    transformOrigin: `${session.focusX}% ${session.focusY}%`,
+                    transform: `scale(${session.zoomActual ?? 1})`,
+                  }}
+                />
+              ) : (
+                <p className={styles.spriteFallback}>SPRITE</p>
+              )}
+            </div>
+          </div>
+          {session.gameOver && (
+            <div
+              className={`${scoreGanado >= 0 ? styles.resultWin : styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
+            >
+              {scoreGanado >= 0
+                ? `CORRECTO! ERA ${session.pokemon?.name?.toUpperCase() || "?"}`
+                : `DERROTA - ERA ${session.pokemon?.name?.toUpperCase() || "?"}`}
+              <br />
+              {scoreGanado >= 0 ? `+${scoreGanado} PTS` : `${scoreGanado} PTS`}
+            </div>
+          )}
+        </div>
+
         <div
           className={`${styles.panel} ${styles.rankingPanel} ${panelsVisible ? styles.rankingPanelVisible : ""}`}
         >
@@ -472,7 +465,9 @@ function GuessSprite({
                   key={player.id}
                   className={`${styles.rankingRow} ${isCurrentUser ? styles.rankingRowCurrentUser : ""}`}
                 >
-                  <span className={styles.rankingPos}>#{player.rank ?? i + 1}</span>
+                  <span className={styles.rankingPos}>
+                    #{player.rank ?? i + 1}
+                  </span>
                   {player.profilePictureUrl ? (
                     <img
                       src={player.profilePictureUrl}
@@ -495,18 +490,6 @@ function GuessSprite({
           </div>
         </div>
       </div>
-
-      {session.gameOver && (
-        <div
-          className={`${scoreGanado >= 0 ? styles.resultWin : styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
-        >
-          {scoreGanado >= 0
-            ? `CORRECTO! ERA ${session.pokemon?.name?.toUpperCase() || "?"}`
-            : `DERROTA - ERA ${session.pokemon?.name?.toUpperCase() || "?"}`}
-          <br />
-          {scoreGanado >= 0 ? `+${scoreGanado} PTS` : `${scoreGanado} PTS`}
-        </div>
-      )}
     </div>
   );
 }
