@@ -15,11 +15,12 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
 
   useEffect(() => {
     if (!user?.id) return;
+    if (selectedGame !== null) return;
 
     getGlobalRanking(user.id)
       .then(setGlobalRanking)
       .catch(() => {});
-  }, [user?.id]);
+  }, [selectedGame, user?.id]);
 
   useEffect(() => {
     if (selectedGame !== null) return undefined;

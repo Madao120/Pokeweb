@@ -1,8 +1,17 @@
-const API_URL = "http://localhost:8080";
+const DEFAULT_API_URL = "http://localhost:8080";
+const API_URL = (import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace(
+  /\/+$/,
+  "",
+);
+
+export function buildApiUrl(path) {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_URL}${normalizedPath}`;
+}
 
 // Crear usuario nuevo
 export async function createUser(user) {
-  const response = await fetch(`${API_URL}/users`, {
+  const response = await fetch(buildApiUrl("/users"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(user),
@@ -18,7 +27,7 @@ export async function createUser(user) {
 
 // Login
 export async function login(credentials) {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const response = await fetch(buildApiUrl("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
@@ -34,7 +43,7 @@ export async function login(credentials) {
 
 // Para obtener los datos del usuario
 export async function getUser(userId) {
-  const response = await fetch(`${API_URL}/users/${userId}`);
+  const response = await fetch(buildApiUrl(`/users/${userId}`));
   if (!response.ok) {
     throw new Error("Error al obtener el usuario");
   }
@@ -43,7 +52,7 @@ export async function getUser(userId) {
 
 // Editar nombre y foto de perfil
 export async function updateProfile(userId, data) {
-  const response = await fetch(`${API_URL}/users/${userId}/profile`, {
+  const response = await fetch(buildApiUrl(`/users/${userId}/profile`), {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -57,7 +66,7 @@ export async function updateProfile(userId, data) {
 
 // Iniciar partida de ahorcado para un usuario
 export async function startGame(userId) {
-  const response = await fetch(`${API_URL}/game/start?userId=${userId}`, {
+  const response = await fetch(buildApiUrl(`/game/start?userId=${userId}`), {
     method: "POST",
   });
 
@@ -71,7 +80,9 @@ export async function startGame(userId) {
 // Enviar una letra al backend
 export async function guessLetter(userId, letra) {
   const response = await fetch(
-    `${API_URL}/game/guess?userId=${userId}&letra=${encodeURIComponent(letra)}`,
+    buildApiUrl(
+      `/game/guess?userId=${userId}&letra=${encodeURIComponent(letra)}`,
+    ),
     { method: "POST" },
   );
 
@@ -86,7 +97,9 @@ export async function guessLetter(userId, letra) {
 // Enviar la palabra completa al backend
 export async function guessWord(userId, palabra) {
   const response = await fetch(
-    `${API_URL}/game/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
+    buildApiUrl(
+      `/game/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
+    ),
     { method: "POST" },
   );
 
@@ -100,7 +113,7 @@ export async function guessWord(userId, palabra) {
 
 // Abandonar partida activa (penalizacion -25 en backend)
 export async function abandonGame(userId) {
-  const response = await fetch(`${API_URL}/game/abandon?userId=${userId}`, {
+  const response = await fetch(buildApiUrl(`/game/abandon?userId=${userId}`), {
     method: "POST",
     keepalive: true,
   });
@@ -111,7 +124,7 @@ export async function abandonGame(userId) {
 }
 
 export async function forceLoseGame(userId) {
-  const response = await fetch(`${API_URL}/game/force-lose?userId=${userId}`, {
+  const response = await fetch(buildApiUrl(`/game/force-lose?userId=${userId}`), {
     method: "POST",
   });
   if (!response.ok) {
@@ -123,7 +136,7 @@ export async function forceLoseGame(userId) {
 // Actualizar puntuacion de un usuario
 export async function updateScore(userId, score) {
   const response = await fetch(
-    `${API_URL}/users/${userId}/score?score=${score}`,
+    buildApiUrl(`/users/${userId}/score?score=${score}`),
     { method: "PUT" },
   );
 
@@ -137,20 +150,20 @@ export async function updateScore(userId, score) {
 // Top 10 jugadores por scoreM1
 export async function getRanking(userId) {
   const query = userId ? `?userId=${userId}` : "";
-  const response = await fetch(`${API_URL}/users/ranking${query}`);
+  const response = await fetch(buildApiUrl(`/users/ranking${query}`));
   if (!response.ok) throw new Error("Error al obtener el ranking");
   return await response.json();
 }
 
 export async function getGlobalRanking(userId) {
   const query = userId ? `?userId=${userId}` : "";
-  const response = await fetch(`${API_URL}/users/rankings/global${query}`);
+  const response = await fetch(buildApiUrl(`/users/rankings/global${query}`));
   if (!response.ok) throw new Error("Error al obtener el ranking global");
   return await response.json();
 }
 
 export async function startGuessSoundGame(userId) {
-  const response = await fetch(`${API_URL}/game/m2/start?userId=${userId}`, {
+  const response = await fetch(buildApiUrl(`/game/m2/start?userId=${userId}`), {
     method: "POST",
   });
   if (!response.ok) {
@@ -161,7 +174,7 @@ export async function startGuessSoundGame(userId) {
 
 export async function guessSoundPokemon(userId, pokemonId) {
   const response = await fetch(
-    `${API_URL}/game/m2/guess?userId=${userId}&pokemonId=${pokemonId}`,
+    buildApiUrl(`/game/m2/guess?userId=${userId}&pokemonId=${pokemonId}`),
     { method: "POST" },
   );
   if (!response.ok) {
@@ -172,7 +185,7 @@ export async function guessSoundPokemon(userId, pokemonId) {
 }
 
 export async function abandonGuessSoundGame(userId) {
-  const response = await fetch(`${API_URL}/game/m2/abandon?userId=${userId}`, {
+  const response = await fetch(buildApiUrl(`/game/m2/abandon?userId=${userId}`), {
     method: "POST",
     keepalive: true,
   });
@@ -183,7 +196,7 @@ export async function abandonGuessSoundGame(userId) {
 
 export async function forceLoseGuessSoundGame(userId) {
   const response = await fetch(
-    `${API_URL}/game/m2/force-lose?userId=${userId}`,
+    buildApiUrl(`/game/m2/force-lose?userId=${userId}`),
     {
       method: "POST",
     },
@@ -196,13 +209,13 @@ export async function forceLoseGuessSoundGame(userId) {
 
 export async function getRankingM2(userId) {
   const query = userId ? `?userId=${userId}` : "";
-  const response = await fetch(`${API_URL}/users/rankings/m2${query}`);
+  const response = await fetch(buildApiUrl(`/users/rankings/m2${query}`));
   if (!response.ok) throw new Error("Error al obtener ranking M2");
   return await response.json();
 }
 
 export async function startGuessSpriteGame(userId) {
-  const response = await fetch(`${API_URL}/game/m3/start?userId=${userId}`, {
+  const response = await fetch(buildApiUrl(`/game/m3/start?userId=${userId}`), {
     method: "POST",
   });
   if (!response.ok) {
@@ -213,7 +226,7 @@ export async function startGuessSpriteGame(userId) {
 
 export async function guessSpritePokemon(userId, pokemonId) {
   const response = await fetch(
-    `${API_URL}/game/m3/guess?userId=${userId}&pokemonId=${pokemonId}`,
+    buildApiUrl(`/game/m3/guess?userId=${userId}&pokemonId=${pokemonId}`),
     { method: "POST" },
   );
   if (!response.ok) {
@@ -224,7 +237,7 @@ export async function guessSpritePokemon(userId, pokemonId) {
 }
 
 export async function abandonGuessSpriteGame(userId) {
-  const response = await fetch(`${API_URL}/game/m3/abandon?userId=${userId}`, {
+  const response = await fetch(buildApiUrl(`/game/m3/abandon?userId=${userId}`), {
     method: "POST",
     keepalive: true,
   });
@@ -235,7 +248,7 @@ export async function abandonGuessSpriteGame(userId) {
 
 export async function forceLoseGuessSpriteGame(userId) {
   const response = await fetch(
-    `${API_URL}/game/m3/force-lose?userId=${userId}`,
+    buildApiUrl(`/game/m3/force-lose?userId=${userId}`),
     {
       method: "POST",
     },
@@ -248,20 +261,20 @@ export async function forceLoseGuessSpriteGame(userId) {
 
 export async function getRankingM3(userId) {
   const query = userId ? `?userId=${userId}` : "";
-  const response = await fetch(`${API_URL}/users/rankings/m3${query}`);
+  const response = await fetch(buildApiUrl(`/users/rankings/m3${query}`));
   if (!response.ok) throw new Error("Error al obtener ranking M3");
   return await response.json();
 }
 
 export async function getGuessSpritePokemonList() {
-  const response = await fetch(`${API_URL}/game/m3/pokemon-list`);
+  const response = await fetch(buildApiUrl("/game/m3/pokemon-list"));
   if (!response.ok) throw new Error("Error al obtener lista de Pokemon M3");
   return await response.json();
 }
 
 export async function getDailyHangmanState(userId) {
   const response = await fetch(
-    `${API_URL}/game/daily/m1/state?userId=${userId}`,
+    buildApiUrl(`/game/daily/m1/state?userId=${userId}`),
   );
   if (!response.ok) throw new Error("Error al obtener estado diario M1");
   return await response.json();
@@ -269,7 +282,7 @@ export async function getDailyHangmanState(userId) {
 
 export async function startDailyHangman(userId) {
   const response = await fetch(
-    `${API_URL}/game/daily/m1/start?userId=${userId}`,
+    buildApiUrl(`/game/daily/m1/start?userId=${userId}`),
     {
       method: "POST",
     },
@@ -280,7 +293,9 @@ export async function startDailyHangman(userId) {
 
 export async function guessDailyHangmanLetter(userId, letra) {
   const response = await fetch(
-    `${API_URL}/game/daily/m1/guess-letter?userId=${userId}&letra=${encodeURIComponent(letra)}`,
+    buildApiUrl(
+      `/game/daily/m1/guess-letter?userId=${userId}&letra=${encodeURIComponent(letra)}`,
+    ),
     { method: "POST" },
   );
   if (!response.ok) {
@@ -292,7 +307,9 @@ export async function guessDailyHangmanLetter(userId, letra) {
 
 export async function guessDailyHangmanWord(userId, palabra) {
   const response = await fetch(
-    `${API_URL}/game/daily/m1/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
+    buildApiUrl(
+      `/game/daily/m1/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
+    ),
     { method: "POST" },
   );
   if (!response.ok) {
@@ -304,7 +321,7 @@ export async function guessDailyHangmanWord(userId, palabra) {
 
 export async function getDailySpriteState(userId) {
   const response = await fetch(
-    `${API_URL}/game/daily/m3/state?userId=${userId}`,
+    buildApiUrl(`/game/daily/m3/state?userId=${userId}`),
   );
   if (!response.ok) throw new Error("Error al obtener estado diario M3");
   return await response.json();
@@ -312,7 +329,7 @@ export async function getDailySpriteState(userId) {
 
 export async function startDailySprite(userId) {
   const response = await fetch(
-    `${API_URL}/game/daily/m3/start?userId=${userId}`,
+    buildApiUrl(`/game/daily/m3/start?userId=${userId}`),
     {
       method: "POST",
     },
@@ -323,7 +340,7 @@ export async function startDailySprite(userId) {
 
 export async function guessDailySprite(userId, pokemonId) {
   const response = await fetch(
-    `${API_URL}/game/daily/m3/guess?userId=${userId}&pokemonId=${pokemonId}`,
+    buildApiUrl(`/game/daily/m3/guess?userId=${userId}&pokemonId=${pokemonId}`),
     { method: "POST" },
   );
   if (!response.ok) {

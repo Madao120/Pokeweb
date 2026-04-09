@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./GuessSound.module.css";
 import {
   abandonGuessSoundGame,
+  buildApiUrl,
   forceLoseGuessSoundGame,
   getRankingM2,
   guessSoundPokemon,
@@ -123,7 +124,7 @@ function GuessSound({
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
         navigator.sendBeacon(
-          `http://localhost:8080/game/m2/abandon?userId=${user.id}`,
+          buildApiUrl(`/game/m2/abandon?userId=${user.id}`),
         );
       }
     };

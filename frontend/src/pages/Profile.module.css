@@ -60,7 +60,10 @@
   max-width: 560px;
   position: relative;
   isolation: isolate;
-  padding: 34px 40px 30px;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-right: 5%;
+  padding-left: 5%;
   background: #d9dee2;
   clip-path: var(--panel-shape);
   opacity: 0;
@@ -114,6 +117,35 @@
   display: grid;
   gap: 10px;
   margin-bottom: 18px;
+  position: relative;
+  isolation: isolate;
+  padding: 10px 12px;
+  background: transparent;
+  clip-path: var(--panel-shape);
+}
+
+.infoGrid::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  background: #666f77;
+  clip-path: var(--btn-shape);
+  z-index: -2;
+}
+
+.infoGrid::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0) 28%
+    ),
+    linear-gradient(180deg, #eeeeee, #eeeeee);
+  clip-path: var(--btn-shape);
+  z-index: -1;
 }
 
 .infoRow {
@@ -121,9 +153,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 12px;
-  background: rgba(238, 241, 243, 0.75);
-  clip-path: var(--panel-shape);
+  padding: 6px 0;
+  background: transparent;
+  clip-path: none;
+  border-bottom: 2px solid #ccc;
 }
 
 .infoLabel {
@@ -230,23 +263,80 @@
 }
 
 .btnSubmit {
+  --btn-shape: polygon(
+    0 8px,
+    2px 8px,
+    2px 4px,
+    4px 4px,
+    4px 2px,
+    8px 2px,
+    8px 0,
+    calc(100% - 8px) 0,
+    calc(100% - 8px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 8px,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 8px),
+    calc(100% - 2px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 8px) calc(100% - 2px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    8px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 8px),
+    0 calc(100% - 8px)
+  );
   margin-top: 6px;
   width: 100%;
-  background: linear-gradient(180deg, #d4d9de, #bcc4cb);
+  height: 44px;
+  background: transparent;
   border: 0;
-  color: #313940;
+  color: #f3f7f4;
   font-family: var(--font-pixel);
   font-size: 0.48rem;
-  padding: 12px;
+  padding: 0 12px;
   cursor: pointer;
   letter-spacing: 1px;
-  clip-path: var(--panel-shape);
-  filter: drop-shadow(3px 0 0 #555e67) drop-shadow(-3px 0 0 #555e67)
-    drop-shadow(0 3px 0 #555e67) drop-shadow(0 -3px 0 #555e67);
+  text-shadow: 1px 1px 0 rgba(33, 45, 34, 0.9);
+  position: relative;
+  isolation: isolate;
+  clip-path: var(--btn-shape);
+  filter: none;
+}
+
+.btnSubmit::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  background: #666f77;
+  clip-path: var(--btn-shape);
+  z-index: -2;
+}
+
+.btnSubmit::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0) 28%
+    ),
+    linear-gradient(180deg, #52c763, #2f963f);
+  clip-path: var(--btn-shape);
+  z-index: -1;
 }
 
 .btnSubmit:hover:not(:disabled) {
-  background: linear-gradient(180deg, #e2e6ea, #c8d0d7);
+  filter: brightness(1.06);
 }
 
 .btnSubmit:disabled {

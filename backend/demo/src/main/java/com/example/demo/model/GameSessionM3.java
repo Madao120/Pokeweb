@@ -58,6 +58,7 @@ public class GameSessionM3 {
             gameOver = true;
             ganado = true;
             puntosGanados = calcularPuntosPorFallos();
+            zoomActual = zoomMinimo;
             return;
         }
 

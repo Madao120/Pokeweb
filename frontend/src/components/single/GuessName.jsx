@@ -6,6 +6,7 @@ import {
   guessLetter,
   guessWord,
   abandonGame,
+  buildApiUrl,
   forceLoseGame,
   getRanking,
   startDailyHangman,
@@ -261,7 +262,7 @@ function GuessName({
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
         navigator.sendBeacon(
-          `http://localhost:8080/game/abandon?userId=${user.id}`,
+          buildApiUrl(`/game/abandon?userId=${user.id}`),
         );
       }
     };

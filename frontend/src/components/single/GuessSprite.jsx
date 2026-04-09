@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./GuessSprite.module.css";
 import {
   abandonGuessSpriteGame,
+  buildApiUrl,
   forceLoseGuessSpriteGame,
   getGuessSpritePokemonList,
   getRankingM3,
@@ -140,7 +141,7 @@ function GuessSprite({
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
         navigator.sendBeacon(
-          `http://localhost:8080/game/m3/abandon?userId=${user.id}`,
+          buildApiUrl(`/game/m3/abandon?userId=${user.id}`),
         );
       }
     };
