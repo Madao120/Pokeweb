@@ -411,7 +411,10 @@
   height: 34px;
   font-size: 0.62rem;
   margin-top: 12px;
-  align-self: flex-start;
+  margin-bottom: 3rem;
+  align-self: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .btnFinishRed,
@@ -689,10 +692,12 @@
 
   .middleColumn {
     order: 1;
-    height: 80%;
+    height: 60%;
   }
 
   .leftColumn {
+    margin-top: -10rem;
+    padding-bottom: -30rem;
     order: 2;
   }
 

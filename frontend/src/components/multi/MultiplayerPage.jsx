@@ -29,6 +29,7 @@ function MultiplayerPage() {
               Unirse
             </button>
           </article>
+
         </div>
       </div>
     </div>

@@ -2,6 +2,9 @@ package com.example.demo.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.example.demo.dto.user.PokeUserResponse;
+import com.example.demo.dto.game.DailyRankingEntry;
 import com.example.demo.dto.user.PokeUserRequest;
 import com.example.demo.dto.user.UpdateProfileRequest;
 import com.example.demo.model.PokeUser;
@@ -40,6 +44,12 @@ public class PokeUserService {
         jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS score_m2 INTEGER DEFAULT 0");
         jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS score_m3 INTEGER DEFAULT 0");
         jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS global_score INTEGER DEFAULT 0");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS daily_hangman_date DATE");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS daily_hangman_attempts INTEGER DEFAULT 0");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS daily_hangman_completed_at TIMESTAMP");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS daily_sprite_date DATE");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS daily_sprite_attempts INTEGER DEFAULT 0");
+        jdbcTemplate.execute("ALTER TABLE pokemon_user ADD COLUMN IF NOT EXISTS daily_sprite_completed_at TIMESTAMP");
     }
 
     // Creacion de usuario, con excepcion si el email ya existe y si el nombre tambien.
@@ -70,6 +80,11 @@ public class PokeUserService {
     // Obtener usuario por id.
     public Optional<PokeUser> getUser(Long id) {
         return pokeUserRepository.findById(id);
+    }
+
+    public PokeUser getRequiredUser(Long id) {
+        return pokeUserRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     // Actualiza la puntuacion global de un usuario (mantenido para compatibilidad).
@@ -248,6 +263,56 @@ public class PokeUserService {
         return ranking;
     }
 
+    public void saveDailyHangmanResult(Long userId, LocalDate date, int attempts, LocalDateTime completedAt) {
+        PokeUser user = getRequiredUser(userId);
+        user.setDailyHangmanDate(date);
+        user.setDailyHangmanAttempts(Math.max(0, attempts));
+        user.setDailyHangmanCompletedAt(completedAt);
+        pokeUserRepository.save(user);
+    }
+
+    public void saveDailySpriteResult(Long userId, LocalDate date, int attempts, LocalDateTime completedAt) {
+        PokeUser user = getRequiredUser(userId);
+        user.setDailySpriteDate(date);
+        user.setDailySpriteAttempts(Math.max(0, attempts));
+        user.setDailySpriteCompletedAt(completedAt);
+        pokeUserRepository.save(user);
+    }
+
+    public List<DailyRankingEntry> getDailyHangmanRanking(LocalDate today, Long currentUserId) {
+        List<PokeUser> sorted = pokeUserRepository.findAll().stream()
+            .filter(user -> today.equals(user.getDailyHangmanDate()) && user.getDailyHangmanCompletedAt() != null)
+            .sorted(
+                Comparator
+                    .comparingInt(PokeUser::getDailyHangmanAttempts)
+                    .thenComparing(
+                        PokeUser::getDailyHangmanCompletedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    )
+                    .thenComparing(PokeUser::getId)
+            )
+            .collect(Collectors.toList());
+
+        return mapDailyRanking(sorted, currentUserId, true);
+    }
+
+    public List<DailyRankingEntry> getDailySpriteRanking(LocalDate today, Long currentUserId) {
+        List<PokeUser> sorted = pokeUserRepository.findAll().stream()
+            .filter(user -> today.equals(user.getDailySpriteDate()) && user.getDailySpriteCompletedAt() != null)
+            .sorted(
+                Comparator
+                    .comparingInt(PokeUser::getDailySpriteAttempts)
+                    .thenComparing(
+                        PokeUser::getDailySpriteCompletedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    )
+                    .thenComparing(PokeUser::getId)
+            )
+            .collect(Collectors.toList());
+
+        return mapDailyRanking(sorted, currentUserId, false);
+    }
+
     private PokeUserResponse mapToResponseWithRank(PokeUser user) {
         PokeUserResponse response = new PokeUserResponse();
         response.setId(user.getId());
@@ -306,5 +371,47 @@ public class PokeUserService {
 
     private int calcularGlobalScore(PokeUser user) {
         return Math.max(0, user.getScoreM1() + user.getScoreM2() + user.getScoreM3());
+    }
+
+    private List<DailyRankingEntry> mapDailyRanking(List<PokeUser> sorted, Long currentUserId, boolean hangman) {
+        List<DailyRankingEntry> top = sorted.stream()
+            .limit(15)
+            .map(user -> {
+                int attempts = hangman ? user.getDailyHangmanAttempts() : user.getDailySpriteAttempts();
+                int rank = sorted.indexOf(user) + 1;
+                return new DailyRankingEntry(
+                    user.getId(),
+                    user.getName(),
+                    user.getProfilePictureUrl(),
+                    attempts,
+                    rank
+                );
+            })
+            .collect(Collectors.toList());
+
+        if (currentUserId == null) {
+            return top;
+        }
+
+        boolean alreadyIncluded = top.stream().anyMatch(entry -> entry.getId().equals(currentUserId));
+        if (alreadyIncluded) {
+            return top;
+        }
+
+        for (int i = 0; i < sorted.size(); i++) {
+            PokeUser user = sorted.get(i);
+            if (!user.getId().equals(currentUserId)) continue;
+            int attempts = hangman ? user.getDailyHangmanAttempts() : user.getDailySpriteAttempts();
+            top.add(new DailyRankingEntry(
+                user.getId(),
+                user.getName(),
+                user.getProfilePictureUrl(),
+                attempts,
+                i + 1
+            ));
+            break;
+        }
+
+        return top;
     }
 }

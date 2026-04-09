@@ -14,6 +14,9 @@ import com.example.demo.model.GameSession;
 import com.example.demo.model.GameSessionM2;
 import com.example.demo.model.GameSessionM3;
 import com.example.demo.dto.pokemon.PokemonOptionM3;
+import com.example.demo.dto.game.DailyHangmanRoundResponse;
+import com.example.demo.dto.game.DailySpriteRoundResponse;
+import com.example.demo.service.DailyGameService;
 import com.example.demo.service.PokeUserService;
 import com.example.demo.service.PokemonApiService;
 
@@ -23,6 +26,7 @@ public class GameController {
 
     private final PokemonApiService pokemonApiService;
     private final PokeUserService pokeUserService;
+    private final DailyGameService dailyGameService;
 
     // Active hangman sessions by user id.
     private final Map<Long, GameSession> sessions = new ConcurrentHashMap<>();
@@ -33,9 +37,14 @@ public class GameController {
     // Active guess sprite sessions by user id.
     private final Map<Long, GameSessionM3> sessionsM3 = new ConcurrentHashMap<>();
 
-    public GameController(PokemonApiService pokemonApiService, PokeUserService pokeUserService) {
+    public GameController(
+        PokemonApiService pokemonApiService,
+        PokeUserService pokeUserService,
+        DailyGameService dailyGameService
+    ) {
         this.pokemonApiService = pokemonApiService;
         this.pokeUserService = pokeUserService;
+        this.dailyGameService = dailyGameService;
     }
 
     @PostMapping("/start")
@@ -249,5 +258,51 @@ public class GameController {
         }
 
         return session;
+    }
+
+    ////// MODO DIARIO M1 (AHORCADO)
+    @GetMapping("/daily/m1/state")
+    public DailyHangmanRoundResponse getDailyHangmanState(@RequestParam Long userId) {
+        return dailyGameService.getDailyHangmanState(userId);
+    }
+
+    @PostMapping("/daily/m1/start")
+    public DailyHangmanRoundResponse startDailyHangman(@RequestParam Long userId) {
+        return dailyGameService.startDailyHangman(userId);
+    }
+
+    @PostMapping("/daily/m1/guess-letter")
+    public DailyHangmanRoundResponse guessDailyHangmanLetter(
+        @RequestParam Long userId,
+        @RequestParam String letra
+    ) {
+        return dailyGameService.guessDailyHangmanLetter(userId, letra);
+    }
+
+    @PostMapping("/daily/m1/guess-word")
+    public DailyHangmanRoundResponse guessDailyHangmanWord(
+        @RequestParam Long userId,
+        @RequestParam String palabra
+    ) {
+        return dailyGameService.guessDailyHangmanWord(userId, palabra);
+    }
+
+    ////// MODO DIARIO M3 (SPRITE)
+    @GetMapping("/daily/m3/state")
+    public DailySpriteRoundResponse getDailySpriteState(@RequestParam Long userId) {
+        return dailyGameService.getDailySpriteState(userId);
+    }
+
+    @PostMapping("/daily/m3/start")
+    public DailySpriteRoundResponse startDailySprite(@RequestParam Long userId) {
+        return dailyGameService.startDailySprite(userId);
+    }
+
+    @PostMapping("/daily/m3/guess")
+    public DailySpriteRoundResponse guessDailySprite(
+        @RequestParam Long userId,
+        @RequestParam Long pokemonId
+    ) {
+        return dailyGameService.guessDailySprite(userId, pokemonId);
     }
 }

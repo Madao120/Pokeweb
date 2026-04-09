@@ -8,6 +8,8 @@ import {
   getRankingM3,
   guessSpritePokemon,
   startGuessSpriteGame,
+  startDailySprite,
+  guessDailySprite,
 } from "../../services/api";
 
 const EXIT_DELAY_MS = 520;
@@ -27,13 +29,41 @@ function normalizeSearch(text) {
     .toLowerCase();
 }
 
+function buildDailySolvedSpriteSession(baseSession, dailyInfo, pokemonOptions) {
+  const solvedName =
+    baseSession?.pokemon?.name || dailyInfo?.todayPokemonName || "";
+  const optionMatch = (pokemonOptions || []).find(
+    (opt) => normalizeSearch(opt?.name) === normalizeSearch(solvedName),
+  );
+
+  return {
+    ...(baseSession || {}),
+    pokemon: {
+      ...(baseSession?.pokemon || {}),
+      name: solvedName,
+      spriteUrl:
+        optionMatch?.spriteUrl || baseSession?.pokemon?.spriteUrl || null,
+    },
+    gameOver: true,
+    ganado: true,
+    zoomActual: 1,
+    focusX: baseSession?.focusX ?? 50,
+    focusY: baseSession?.focusY ?? 50,
+    intentos:
+      baseSession?.intentos ??
+      (Number.isFinite(dailyInfo?.attemptsToday) ? dailyInfo.attemptsToday : 0),
+  };
+}
+
 function GuessSprite({
   user,
   onGameStart,
   onGameEnd,
   onChangeMinigame,
   autoStart = false,
+  mode = "normal",
 }) {
+  const isDailyMode = mode === "daily";
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -44,6 +74,7 @@ function GuessSprite({
   const [panelsVisible, setPanelsVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [dailyInfo, setDailyInfo] = useState(null);
 
   const sessionRef = useRef(null);
 
@@ -61,17 +92,19 @@ function GuessSprite({
   }, [session]);
 
   useEffect(() => {
+    if (isDailyMode) return;
     getRankingM3(user?.id)
       .then(setRanking)
       .catch(() => {});
-  }, [user?.id]);
+  }, [isDailyMode, user?.id]);
 
   useEffect(() => {
+    if (isDailyMode) return;
     if (!session?.gameOver) return;
     getRankingM3(user?.id)
       .then(setRanking)
       .catch(() => {});
-  }, [session?.gameOver, user?.id]);
+  }, [isDailyMode, session?.gameOver, user?.id]);
 
   useEffect(() => {
     if (!session?.gameOver) {
@@ -84,6 +117,25 @@ function GuessSprite({
   }, [session?.gameOver, session?.puntosGanados]);
 
   useEffect(() => {
+    if (!isDailyMode) return undefined;
+    const timer = window.setInterval(() => {
+      setDailyInfo((prev) =>
+        prev
+          ? {
+              ...prev,
+              millisUntilNextReset: Math.max(
+                0,
+                (prev.millisUntilNextReset || 0) - 1000,
+              ),
+            }
+          : prev,
+      );
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [isDailyMode]);
+
+  useEffect(() => {
+    if (isDailyMode) return undefined;
     const penalizeOnClose = () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
@@ -95,16 +147,17 @@ function GuessSprite({
 
     window.addEventListener("beforeunload", penalizeOnClose);
     return () => window.removeEventListener("beforeunload", penalizeOnClose);
-  }, [user?.id]);
+  }, [isDailyMode, user?.id]);
 
   useEffect(() => {
+    if (isDailyMode) return undefined;
     return () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
         abandonGuessSpriteGame(user.id).catch(() => {});
       }
     };
-  }, [user?.id]);
+  }, [isDailyMode, user?.id]);
 
   const handleStart = useCallback(
     async (withExit = false) => {
@@ -129,15 +182,38 @@ function GuessSprite({
       setSelectedOption(null);
 
       try {
-        const [nextSession, options] = await Promise.all([
-          startGuessSpriteGame(user.id),
+        const [nextData, options] = await Promise.all([
+          isDailyMode
+            ? startDailySprite(user.id)
+            : startGuessSpriteGame(user.id),
           pokemonOptions.length === 0
             ? getGuessSpritePokemonList()
             : Promise.resolve(pokemonOptions),
         ]);
-        setSession(nextSession);
+        if (isDailyMode) {
+          setSession(
+            nextData?.session ??
+              (nextData?.completedToday
+                ? buildDailySolvedSpriteSession(
+                    sessionRef.current,
+                    nextData,
+                    options,
+                  )
+                : null),
+          );
+          setRanking(nextData?.ranking ?? []);
+          setDailyInfo({
+            completedToday: Boolean(nextData?.completedToday),
+            attemptsToday: nextData?.attemptsToday ?? null,
+            todayPokemonName: nextData?.todayPokemonName ?? null,
+            yesterdayPokemonName: nextData?.yesterdayPokemonName ?? null,
+            millisUntilNextReset: nextData?.millisUntilNextReset ?? 0,
+          });
+        } else {
+          setSession(nextData);
+        }
         setPokemonOptions(options);
-        onGameStart();
+        if (nextData?.session || !isDailyMode) onGameStart?.();
         animatePanelsIn();
       } catch (err) {
         setError(err?.message || "Error al iniciar GuessSprite.");
@@ -145,7 +221,7 @@ function GuessSprite({
         setLoading(false);
       }
     },
-    [animatePanelsIn, onGameStart, pokemonOptions, user?.id],
+    [animatePanelsIn, isDailyMode, onGameStart, pokemonOptions, user?.id],
   );
 
   useEffect(() => {
@@ -201,21 +277,46 @@ function GuessSprite({
     setFeedback("");
 
     try {
-      const data = await guessSpritePokemon(user.id, optionToSend.id);
-      setSession(data);
+      const data = isDailyMode
+        ? await guessDailySprite(user.id, optionToSend.id)
+        : await guessSpritePokemon(user.id, optionToSend.id);
+      const nextSession =
+        isDailyMode && data?.completedToday && !data?.session
+          ? buildDailySolvedSpriteSession(session, data, pokemonOptions)
+          : isDailyMode
+            ? (data?.session ?? null)
+            : data;
+      setSession(nextSession);
       setSelectedOption(null);
       setQuery("");
-
-      if (data.gameOver) {
-        setFeedback(
-          data.ganado
-            ? "Correcto, acertaste."
-            : `Derrota. Era ${data.pokemon?.name?.toUpperCase() || "?"}.`,
-        );
-        onGameEnd();
-      } else {
-        setFeedback("No era. Se amplia el sprite para el siguiente intento.");
+      if (isDailyMode) {
+        setRanking(data?.ranking ?? []);
+        setDailyInfo({
+          completedToday: Boolean(data?.completedToday),
+          attemptsToday: data?.attemptsToday ?? null,
+          todayPokemonName: data?.todayPokemonName ?? null,
+          yesterdayPokemonName: data?.yesterdayPokemonName ?? null,
+          millisUntilNextReset: data?.millisUntilNextReset ?? 0,
+        });
       }
+
+      if (!isDailyMode && nextSession?.gameOver) {
+        setFeedback(
+          nextSession.ganado
+            ? "Correcto, acertaste."
+            : `Derrota. Era ${nextSession.pokemon?.name?.toUpperCase() || "?"}.`,
+        );
+        onGameEnd?.();
+      } else if (!isDailyMode) {
+        setFeedback(
+          isDailyMode
+            ? "No era. El zoom ya no bajara al llegar al minimo."
+            : "No era. Se amplia el sprite para el siguiente intento.",
+        );
+      } else if (!data?.completedToday) {
+        setFeedback("No era. El zoom ya no bajara al llegar al minimo.");
+      }
+      if (isDailyMode && data?.completedToday) onGameEnd?.();
     } catch (err) {
       setError(err?.message || "Error al responder la ronda.");
     } finally {
@@ -224,6 +325,7 @@ function GuessSprite({
   };
 
   const handleForceLose = useCallback(async () => {
+    if (isDailyMode) return;
     if (!session || session.gameOver || !user?.id) return;
     setLoading(true);
     setError(null);
@@ -237,7 +339,7 @@ function GuessSprite({
     } finally {
       setLoading(false);
     }
-  }, [onGameEnd, session, user?.id]);
+  }, [isDailyMode, onGameEnd, session, user?.id]);
 
   useEffect(() => {
     const onForceLose = () => {
@@ -283,10 +385,59 @@ function GuessSprite({
   }, []);
 
   if (!session) {
+    if (isDailyMode && dailyInfo?.completedToday) {
+      const nextInMs = Math.max(0, dailyInfo.millisUntilNextReset || 0);
+      const totalSeconds = Math.floor(nextInMs / 1000);
+      const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+      const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+        2,
+        "0",
+      );
+      const ss = String(totalSeconds % 60).padStart(2, "0");
+      const countdown = `${hh}:${mm}:${ss}`;
+
+      return (
+        <div className={styles.startScreen}>
+          <p className={styles.startTitle}>GUESS SPRITE DIARIO COMPLETADO</p>
+          <p className={styles.startTitle}>
+            HOY: {dailyInfo.todayPokemonName?.toUpperCase() || "-"}
+          </p>
+          <p className={styles.startTitle}>
+            AYER: {dailyInfo.yesterdayPokemonName?.toUpperCase() || "-"}
+          </p>
+          <p className={styles.startTitle}>
+            {dailyInfo.attemptsToday ?? 0} INTENTOS
+          </p>
+          <p className={styles.startTitle}>SIGUIENTE EN {countdown}</p>
+          <div className={styles.botonesFin}>
+            <button
+              className={`${styles.btnStart} ${styles.btnFinishYellow}`}
+              onClick={onChangeMinigame}
+              disabled={loading}
+            >
+              IR A RONDA 1
+            </button>
+            <button
+              className={`${styles.btnStart} ${styles.btnFinishBlue}`}
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent("returnToModeMenu"))
+              }
+              disabled={loading}
+            >
+              CAMBIAR MODO
+            </button>
+          </div>
+          {error && <p className={styles.error}>{error}</p>}
+        </div>
+      );
+    }
+
     if (autoStart || loading) {
       return (
         <div className={styles.startScreen}>
-          <p className={styles.startTitle}>GUESS SPRITE</p>
+          <p className={styles.startTitle}>
+            {isDailyMode ? "GUESS SPRITE DIARIO" : "GUESS SPRITE"}
+          </p>
           <p className={styles.startTitle}>PREPARANDO PARTIDA...</p>
           {error && <p className={styles.error}>{error}</p>}
         </div>
@@ -295,14 +446,20 @@ function GuessSprite({
 
     return (
       <div className={styles.startScreen}>
-        <p className={styles.startTitle}>GUESS SPRITE</p>
+        <p className={styles.startTitle}>
+          {isDailyMode ? "GUESS SPRITE DIARIO" : "GUESS SPRITE"}
+        </p>
         {error && <p className={styles.error}>{error}</p>}
         <button
           className={styles.btnStart}
           onClick={handleStart}
           disabled={loading}
         >
-          {loading ? "CARGANDO..." : "EMPEZAR PARTIDA"}
+          {loading
+            ? "CARGANDO..."
+            : isDailyMode
+              ? "EMPEZAR RONDA"
+              : "EMPEZAR PARTIDA"}
         </button>
       </div>
     );
@@ -312,36 +469,48 @@ function GuessSprite({
   const maxFallos = session.maxFallos ?? 5;
   const puntosPreview =
     fallos <= maxFallos ? (POINTS_BY_FALLOS[fallos] ?? 10) : null;
-  const scoreGanado = session.puntosGanados;
+  const scoreGanado = isDailyMode
+    ? session.ganado
+      ? 0
+      : -1
+    : session.puntosGanados;
 
   return (
-    <div className={styles.container}>
-      <div className={styles.topRow}>
+    <div
+      className={`${styles.container} ${isDailyMode ? styles.containerDaily : ""}`}
+    >
+      <div
+        className={`${styles.topRow} ${isDailyMode ? styles.topRowDaily : ""}`}
+      >
         <div className={styles.leftColumn}>
           <div
             className={`${styles.panel} ${styles.searchPanel} ${panelsVisible ? styles.searchPanelVisible : ""}`}
           >
             <p className={styles.panelLabel}>GUESS SPRITE</p>
-            <div className={styles.livesBar}>
-              PS&nbsp;
-              {Array.from({ length: 5 }, (_, i) => {
-                const remaining = Math.max(0, 5 - fallos);
-                let colorClass = styles.lifeGreen;
-                if (remaining <= 1) colorClass = styles.lifeRed;
-                else if (remaining <= 3) colorClass = styles.lifeYellow;
-                const isUsed = i < Math.min(fallos, 5);
+            {!isDailyMode && (
+              <div className={styles.livesBar}>
+                PS&nbsp;
+                {Array.from({ length: 5 }, (_, i) => {
+                  const remaining = Math.max(0, 5 - fallos);
+                  let colorClass = styles.lifeGreen;
+                  if (remaining <= 1) colorClass = styles.lifeRed;
+                  else if (remaining <= 3) colorClass = styles.lifeYellow;
+                  const isUsed = i < Math.min(fallos, 5);
 
-                return (
-                  <span
-                    key={i}
-                    className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
-                  />
-                );
-              })}
-            </div>
+                  return (
+                    <span
+                      key={i}
+                      className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
+                    />
+                  );
+                })}
+              </div>
+            )}
             {!session.gameOver && (
               <p className={styles.pointsHint}>
-                SI ACIERTAS AHORA: +{puntosPreview} PTS
+                {isDailyMode
+                  ? `INTENTOS ACTUALES: ${session.intentos ?? 0}`
+                  : `SI ACIERTAS AHORA: +${puntosPreview} PTS`}
               </p>
             )}
 
@@ -398,6 +567,23 @@ function GuessSprite({
                   {loading ? "..." : "ADIVINAR"}
                 </button>
               </>
+            ) : isDailyMode ? (
+              <div className={styles.botonesFin}>
+                <button
+                  className={`${styles.btnStart} ${styles.btnFinishYellow}`}
+                  onClick={handleChangeMinigame}
+                  disabled={loading}
+                >
+                  ADIVINASTE! SIGUIENTE RONDA
+                </button>
+                <button
+                  className={`${styles.btnStart} ${styles.btnFinishBlue}`}
+                  onClick={handleChangeMode}
+                  disabled={loading}
+                >
+                  CAMBIAR MODO
+                </button>
+              </div>
             ) : (
               <div className={styles.botonesFin}>
                 <button
@@ -455,11 +641,14 @@ function GuessSprite({
             <div
               className={`${scoreGanado >= 0 ? styles.resultWin : styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
             >
-              {scoreGanado >= 0
+              {session.ganado
                 ? `CORRECTO! ERA ${session.pokemon?.name?.toUpperCase() || "?"}`
                 : `DERROTA - ERA ${session.pokemon?.name?.toUpperCase() || "?"}`}
               <br />
-              {scoreGanado >= 0 ? `+${scoreGanado} PTS` : `${scoreGanado} PTS`}
+              {!isDailyMode &&
+                (scoreGanado >= 0
+                  ? `+${scoreGanado} PTS`
+                  : `${scoreGanado} PTS`)}
             </div>
           )}
         </div>
@@ -492,7 +681,11 @@ function GuessSprite({
                     </div>
                   )}
                   <span className={styles.rankingName}>{player.name}</span>
-                  <span className={styles.rankingScore}>{player.scoreM3}</span>
+                  <span className={styles.rankingScore}>
+                    {isDailyMode
+                      ? `${player.attempts ?? "-"} INT`
+                      : player.scoreM3}
+                  </span>
                 </div>
               );
             })}

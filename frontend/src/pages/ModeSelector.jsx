@@ -2,6 +2,7 @@ import styles from "./ModeSelector.module.css";
 import { useEffect, useState } from "react";
 import IndividualPage from "../components/single/IndividualPage";
 import MultiplayerPage from "../components/multi/MultiplayerPage";
+import DailyModePage from "../components/daily/DailyModePage";
 
 const EXIT_DELAY_MS = 520;
 
@@ -62,7 +63,16 @@ function ModeSelector({
   }, [onReturnToMenu, onGameEnd, onNavigationChange]);
 
   if (mode === "multi") {
-    return <MultiplayerPage />;
+    return <MultiplayerPage user={user} />;
+  }
+
+  if (mode === "daily") {
+    return (
+      <DailyModePage
+        user={user}
+        onBack={() => window.dispatchEvent(new CustomEvent("returnToModeMenu"))}
+      />
+    );
   }
 
   if (mode === "single") {
@@ -94,16 +104,21 @@ function ModeSelector({
         <div className={styles.modeGrid}>
           <button
             className={styles.modeCard}
+            onClick={() => handleSelectMode("daily")}
+          >
+            Diario
+          </button>
+          <button
+            className={styles.modeCard}
             onClick={() => handleSelectMode("single")}
           >
             Individual
           </button>
           <button
-            className={`${styles.modeCard} ${styles.disabled}`}
+            className={styles.modeCard}
             onClick={() => handleSelectMode("multi")}
           >
             Multijugador
-            <span className={styles.comingSoon}>PROXIMAMENTE</span>
           </button>
         </div>
       </div>

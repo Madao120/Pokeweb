@@ -8,6 +8,9 @@ import {
   abandonGame,
   forceLoseGame,
   getRanking,
+  startDailyHangman,
+  guessDailyHangmanLetter,
+  guessDailyHangmanWord,
 } from "../../services/api";
 
 const MAX_INTENTOS = 7;
@@ -38,13 +41,42 @@ function sanitizeWordInput(value) {
     .join("");
 }
 
+function buildDailySolvedHangmanSession(baseSession, dailyInfo) {
+  const solvedName =
+    baseSession?.pokemon?.name ||
+    dailyInfo?.todayPokemonName ||
+    baseSession?.maskedWord ||
+    "";
+  const normalizedSolvedName = String(solvedName).toLowerCase();
+
+  return {
+    ...(baseSession || {}),
+    pokemon: {
+      ...(baseSession?.pokemon || {}),
+      name: solvedName,
+    },
+    maskedWord: normalizedSolvedName,
+    gameOver: true,
+    ganado: true,
+    mostrarTipo1: true,
+    mostrarGeneracion: true,
+    mostrarTipo2: true,
+    guessedLetters: baseSession?.guessedLetters || [],
+    intentos:
+      baseSession?.intentos ??
+      (Number.isFinite(dailyInfo?.attemptsToday) ? dailyInfo.attemptsToday : 0),
+  };
+}
+
 function GuessName({
   user,
   onGameStart,
   onGameEnd,
   onChangeMinigame,
   autoStart = false,
+  mode = "normal",
 }) {
+  const isDailyMode = mode === "daily";
   const [session, setSession] = useState(null);
   const [letra, setLetra] = useState("");
   const [palabra, setPalabra] = useState("");
@@ -59,6 +91,7 @@ function GuessName({
   const [wordFailFlash, setWordFailFlash] = useState(false);
   const [wordSuccessFlash, setWordSuccessFlash] = useState(false);
   const [ballWobble, setBallWobble] = useState(false);
+  const [dailyInfo, setDailyInfo] = useState(null);
   const inputRef = useRef(null);
   const wordInputRef = useRef(null);
   const sessionRef = useRef(null);
@@ -80,18 +113,20 @@ function GuessName({
   }, [session]);
 
   useEffect(() => {
+    if (isDailyMode) return;
     getRanking(user?.id)
       .then(setRanking)
       .catch(() => {});
-  }, [user?.id]);
+  }, [isDailyMode, user?.id]);
 
   useEffect(() => {
+    if (isDailyMode) return;
     if (session?.gameOver) {
       getRanking(user?.id)
         .then(setRanking)
         .catch(() => {});
     }
-  }, [session?.gameOver, user?.id]);
+  }, [isDailyMode, session?.gameOver, user?.id]);
 
   useEffect(() => {
     const loadSprite = async () => {
@@ -203,6 +238,25 @@ function GuessName({
   }, []);
 
   useEffect(() => {
+    if (!isDailyMode) return undefined;
+    const timer = window.setInterval(() => {
+      setDailyInfo((prev) =>
+        prev
+          ? {
+              ...prev,
+              millisUntilNextReset: Math.max(
+                0,
+                (prev.millisUntilNextReset || 0) - 1000,
+              ),
+            }
+          : prev,
+      );
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [isDailyMode]);
+
+  useEffect(() => {
+    if (isDailyMode) return undefined;
     const penalizeOnClose = () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
@@ -214,16 +268,17 @@ function GuessName({
 
     window.addEventListener("beforeunload", penalizeOnClose);
     return () => window.removeEventListener("beforeunload", penalizeOnClose);
-  }, [user?.id]);
+  }, [isDailyMode, user?.id]);
 
   useEffect(() => {
+    if (isDailyMode) return undefined;
     return () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
         abandonGame(user.id).catch(() => {});
       }
     };
-  }, [user?.id]);
+  }, [isDailyMode, user?.id]);
 
   const handleStart = useCallback(
     async (withExit = false) => {
@@ -246,8 +301,29 @@ function GuessName({
       setLoading(true);
       setError(null);
       try {
-        const data = await startGame(user.id);
-        setSession(data);
+        const data = isDailyMode
+          ? await startDailyHangman(user.id)
+          : await startGame(user.id);
+
+        if (isDailyMode) {
+          setSession(
+            data?.session ??
+              (data?.completedToday
+                ? buildDailySolvedHangmanSession(sessionRef.current, data)
+                : null),
+          );
+          setRanking(data?.ranking ?? []);
+          setDailyInfo({
+            completedToday: Boolean(data?.completedToday),
+            attemptsToday: data?.attemptsToday ?? null,
+            todayPokemonName: data?.todayPokemonName ?? null,
+            yesterdayPokemonName: data?.yesterdayPokemonName ?? null,
+            millisUntilNextReset: data?.millisUntilNextReset ?? 0,
+          });
+        } else {
+          setSession(data);
+        }
+
         setLetra("");
         setPalabra("");
         setWordInputError(false);
@@ -256,7 +332,9 @@ function GuessName({
         setBallWobble(false);
         setSpriteUrl(null);
         setRevealPhase("ball");
-        onGameStart();
+        if (data?.session || !isDailyMode) {
+          onGameStart?.();
+        }
         animatePanelsIn();
       } catch (err) {
         setError(err?.message || "Error al iniciar la partida.");
@@ -264,7 +342,7 @@ function GuessName({
         setLoading(false);
       }
     },
-    [animatePanelsIn, onGameStart, user?.id],
+    [animatePanelsIn, isDailyMode, onGameStart, user?.id],
   );
 
   useEffect(() => {
@@ -281,17 +359,38 @@ function GuessName({
     try {
       const intentosAntes = session?.intentos ?? 0;
       const maskedAntes = session?.maskedWord ?? "";
-      const data = await guessLetter(user.id, letra);
-      const falloLetra = data.intentos > intentosAntes;
-      const aciertoLetra = !falloLetra && data.maskedWord !== maskedAntes;
-      setSession(data);
+      const data = isDailyMode
+        ? await guessDailyHangmanLetter(user.id, letra)
+        : await guessLetter(user.id, letra);
+      const nextSession =
+        isDailyMode && data?.completedToday && !data?.session
+          ? buildDailySolvedHangmanSession(session, data)
+          : isDailyMode
+            ? (data?.session ?? null)
+            : data;
+      const falloLetra =
+        (nextSession?.intentos ?? intentosAntes) > intentosAntes;
+      const aciertoLetra =
+        !falloLetra && (nextSession?.maskedWord ?? "") !== maskedAntes;
+      setSession(nextSession);
       setLetra("");
+      if (isDailyMode) {
+        setRanking(data?.ranking ?? []);
+        setDailyInfo({
+          completedToday: Boolean(data?.completedToday),
+          attemptsToday: data?.attemptsToday ?? null,
+          todayPokemonName: data?.todayPokemonName ?? null,
+          yesterdayPokemonName: data?.yesterdayPokemonName ?? null,
+          millisUntilNextReset: data?.millisUntilNextReset ?? 0,
+        });
+      }
       if (falloLetra) {
         triggerFailFlash();
-      } else if (aciertoLetra || data.ganado) {
+      } else if (aciertoLetra || nextSession?.ganado) {
         triggerSuccessFlash();
       }
-      if (data.gameOver) onGameEnd();
+      if (!isDailyMode && nextSession?.gameOver) onGameEnd?.();
+      if (isDailyMode && data?.completedToday) onGameEnd?.();
     } catch (err) {
       setError(err?.message || "Error al enviar la letra.");
     } finally {
@@ -313,10 +412,32 @@ function GuessName({
     setWordInputError(false);
     setError(null);
     try {
-      const data = await guessWord(user.id, intento);
-      const falloPalabra = !data.ganado;
-      setSession(data);
-      if (data.gameOver) onGameEnd();
+      const data = isDailyMode
+        ? await guessDailyHangmanWord(user.id, intento)
+        : await guessWord(user.id, intento);
+      const nextSession =
+        isDailyMode && data?.completedToday && !data?.session
+          ? buildDailySolvedHangmanSession(
+              { ...(session || {}), maskedWord: intento },
+              data,
+            )
+          : isDailyMode
+            ? (data?.session ?? null)
+            : data;
+      const falloPalabra = !(nextSession?.ganado || data?.completedToday);
+      setSession(nextSession);
+      if (isDailyMode) {
+        setRanking(data?.ranking ?? []);
+        setDailyInfo({
+          completedToday: Boolean(data?.completedToday),
+          attemptsToday: data?.attemptsToday ?? null,
+          todayPokemonName: data?.todayPokemonName ?? null,
+          yesterdayPokemonName: data?.yesterdayPokemonName ?? null,
+          millisUntilNextReset: data?.millisUntilNextReset ?? 0,
+        });
+      }
+      if (!isDailyMode && nextSession?.gameOver) onGameEnd?.();
+      if (isDailyMode && data?.completedToday) onGameEnd?.();
       if (falloPalabra) {
         triggerFailFlash();
       } else {
@@ -332,6 +453,7 @@ function GuessName({
   };
 
   const handleForceLose = useCallback(async () => {
+    if (isDailyMode) return;
     if (!session || session.gameOver || !user?.id) return;
     setLoading(true);
     setError(null);
@@ -352,7 +474,7 @@ function GuessName({
     } finally {
       setLoading(false);
     }
-  }, [onGameEnd, session, user?.id]);
+  }, [isDailyMode, onGameEnd, session, user?.id]);
 
   useEffect(() => {
     const onForceLose = () => {
@@ -398,7 +520,7 @@ function GuessName({
   }, []);
 
   const puntosActuales =
-    session && !session.gameOver
+    !isDailyMode && session && !session.gameOver
       ? ([100, 70, 60, 50, 40, 30, 20, 10][session.intentos] ?? 10)
       : null;
 
@@ -408,6 +530,7 @@ function GuessName({
   const mostrarTipo2 = session?.mostrarTipo2 ?? intentos >= 6;
 
   const scoreGanado = (() => {
+    if (isDailyMode) return null;
     if (!session?.gameOver) return null;
     if (Number.isFinite(session.puntosGanados)) return session.puntosGanados;
     if (session.ganado) {
@@ -428,6 +551,53 @@ function GuessName({
     .join(" ");
 
   if (!session) {
+    if (isDailyMode && dailyInfo?.completedToday) {
+      const nextInMs = Math.max(0, dailyInfo.millisUntilNextReset || 0);
+      const totalSeconds = Math.floor(nextInMs / 1000);
+      const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+      const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+        2,
+        "0",
+      );
+      const ss = String(totalSeconds % 60).padStart(2, "0");
+      const countdown = `${hh}:${mm}:${ss}`;
+
+      return (
+        <div className={styles.startScreen}>
+          <p className={styles.startTitle}>AHORCADO DIARIO COMPLETADO</p>
+          <p className={styles.startTitle}>
+            HOY: {dailyInfo.todayPokemonName?.toUpperCase() || "-"}
+          </p>
+          <p className={styles.startTitle}>
+            AYER: {dailyInfo.yesterdayPokemonName?.toUpperCase() || "-"}
+          </p>
+          <p className={styles.startTitle}>
+            {dailyInfo.attemptsToday ?? 0} INTENTOS
+          </p>
+          <p className={styles.startTitle}>SIGUIENTE EN {countdown}</p>
+          <div className={styles.botonesFin}>
+            <button
+              className={`${styles.btnStart} ${styles.btnFinishYellow}`}
+              onClick={onChangeMinigame}
+              disabled={loading}
+            >
+              SIGUIENTE RONDA
+            </button>
+            <button
+              className={`${styles.btnStart} ${styles.btnFinishBlue}`}
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent("returnToModeMenu"))
+              }
+              disabled={loading}
+            >
+              CAMBIAR MODO
+            </button>
+          </div>
+          {error && <p className={styles.error}>{error}</p>}
+        </div>
+      );
+    }
+
     if (autoStart || loading) {
       return (
         <div className={styles.startScreen}>
@@ -440,14 +610,20 @@ function GuessName({
 
     return (
       <div className={styles.startScreen}>
-        <p className={styles.startTitle}>ADIVINA EL POKEMON</p>
+        <p className={styles.startTitle}>
+          {isDailyMode ? "AHORCADO DIARIO" : "ADIVINA EL POKEMON"}
+        </p>
         {error && <p className={styles.error}>{error}</p>}
         <button
           className={styles.btnStart}
           onClick={handleStart}
           disabled={loading}
         >
-          {loading ? "CARGANDO..." : "EMPEZAR PARTIDA"}
+          {loading
+            ? "CARGANDO..."
+            : isDailyMode
+              ? "EMPEZAR RONDA"
+              : "EMPEZAR PARTIDA"}
         </button>
       </div>
     );
@@ -464,22 +640,24 @@ function GuessName({
             {session.maskedWord.split("").join(" ")}
           </p>
 
-          <div className={styles.livesBar}>
-            PS&nbsp;
-            {Array.from({ length: MAX_INTENTOS }, (_, i) => {
-              const remaining = MAX_INTENTOS - intentos;
-              let colorClass = styles.lifeGreen;
-              if (remaining <= 2) colorClass = styles.lifeRed;
-              else if (remaining <= 4) colorClass = styles.lifeYellow;
-              const isUsed = i < intentos;
-              return (
-                <span
-                  key={i}
-                  className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
-                />
-              );
-            })}
-          </div>
+          {!isDailyMode && (
+            <div className={styles.livesBar}>
+              PS&nbsp;
+              {Array.from({ length: MAX_INTENTOS }, (_, i) => {
+                const remaining = MAX_INTENTOS - intentos;
+                let colorClass = styles.lifeGreen;
+                if (remaining <= 2) colorClass = styles.lifeRed;
+                else if (remaining <= 4) colorClass = styles.lifeYellow;
+                const isUsed = i < intentos;
+                return (
+                  <span
+                    key={i}
+                    className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
+                  />
+                );
+              })}
+            </div>
+          )}
 
           <div className={styles.usedLetters}>
             <span className={styles.usedLabel}>USADAS:</span>
@@ -596,7 +774,11 @@ function GuessName({
                     </div>
                   )}
                   <span className={styles.rankingName}>{player.name}</span>
-                  <span className={styles.rankingScore}>{player.scoreM1}</span>
+                  <span className={styles.rankingScore}>
+                    {isDailyMode
+                      ? `${player.attempts ?? "-"} INT`
+                      : player.scoreM1}
+                  </span>
                 </div>
               );
             })}
@@ -742,6 +924,23 @@ function GuessName({
                 {loading ? "..." : "ADIVINAR PALABRA"}
               </button>
             </div>
+          </div>
+        ) : isDailyMode ? (
+          <div className={styles.botonesFin}>
+            <button
+              className={`${styles.btnStart} ${styles.btnFinishYellow}`}
+              onClick={handleChangeMinigame}
+              disabled={loading}
+            >
+              ADIVINASTE! SIGUIENTE RONDA
+            </button>
+            <button
+              className={`${styles.btnStart} ${styles.btnFinishBlue}`}
+              onClick={handleChangeMode}
+              disabled={loading}
+            >
+              CAMBIAR MODO
+            </button>
           </div>
         ) : (
           <div className={styles.botonesFin}>

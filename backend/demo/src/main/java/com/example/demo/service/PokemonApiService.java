@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -29,33 +30,19 @@ public class PokemonApiService {
     private volatile List<PokemonOptionM3> cachedPokemonCatalogM3;
 
     public PokemonM1 getRandomPokemon() {
-
         int id = random.nextInt(MAX_POKEMON_ID) + 1;
+        return getPokemonM1ById(id);
+    }
 
+    public PokemonM1 getPokemonM1ById(int id) {
         String url = "https://pokeapi.co/api/v2/pokemon/" + id;
-
         Map response = restTemplate.getForObject(url, Map.class);
+        return mapPokemonM1FromApiResponse(id, response);
+    }
 
-        Map species = (Map) response.get("species");
-        String name = species != null
-            ? (String) species.get("name")
-            : (String) response.get("name");
-
-        List<Map> types = (List<Map>) response.get("types");
-
-        Map type1Map = (Map) types.get(0).get("type");
-        String type1 = (String) type1Map.get("name");
-
-        String type2 = null;
-
-        if (types.size() > 1) {
-            Map type2Map = (Map) types.get(1).get("type");
-            type2 = (String) type2Map.get("name");
-        }
-
-        String generation = getGenerationFromId(id);
-
-        return new PokemonM1(name, type1, type2, generation);
+    public PokemonM1 getDailyPokemonM1(LocalDate date, String salt) {
+        int id = getDeterministicPokemonId(date, salt);
+        return getPokemonM1ById(id);
     }
 
     private String getGenerationFromId(int id) {
@@ -240,6 +227,55 @@ public class PokemonApiService {
         }
         PokemonOptionM3 option = catalog.get(random.nextInt(catalog.size()));
         return new PokemonOptionM3(option.getId(), option.getName(), option.getSpriteUrl());
+    }
+
+    public PokemonOptionM3 getDailyPokemonM3(LocalDate date, String salt) {
+        int id = getDeterministicPokemonId(date, salt);
+        return getPokemonOptionM3ById((long) id);
+    }
+
+    public PokemonOptionM3 getPokemonOptionM3ById(Long pokemonId) {
+        List<PokemonOptionM3> catalog = getPokemonCatalogM3();
+        return catalog.stream()
+            .filter(p -> p.getId() != null && p.getId().equals(pokemonId))
+            .findFirst()
+            .map(p -> new PokemonOptionM3(p.getId(), p.getName(), p.getSpriteUrl()))
+            .orElseThrow(() -> new RuntimeException("No se encontro Pokemon para M3 con id " + pokemonId));
+    }
+
+    private PokemonM1 mapPokemonM1FromApiResponse(int id, Map response) {
+        if (response == null) {
+            throw new RuntimeException("Respuesta vacia de PokeAPI");
+        }
+
+        Map species = (Map) response.get("species");
+        String name = species != null
+            ? (String) species.get("name")
+            : (String) response.get("name");
+
+        List<Map> types = (List<Map>) response.get("types");
+        if (types == null || types.isEmpty()) {
+            throw new RuntimeException("Pokemon sin tipos valido");
+        }
+
+        Map type1Map = (Map) types.get(0).get("type");
+        String type1 = (String) type1Map.get("name");
+
+        String type2 = null;
+        if (types.size() > 1) {
+            Map type2Map = (Map) types.get(1).get("type");
+            type2 = (String) type2Map.get("name");
+        }
+
+        String generation = getGenerationFromId(id);
+        return new PokemonM1(name, type1, type2, generation);
+    }
+
+    private int getDeterministicPokemonId(LocalDate date, String salt) {
+        long base = date.toEpochDay();
+        long seed = base * 31L + (salt == null ? 0 : salt.hashCode());
+        Random seeded = new Random(seed);
+        return seeded.nextInt(MAX_POKEMON_ID) + 1;
     }
 
     private Long extractPokemonIdFromUrl(String url) {

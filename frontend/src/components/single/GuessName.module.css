@@ -877,6 +877,68 @@
   }
 }
 
+.containerDaily {
+  min-height: auto;
+  height: auto;
+}
+
+.topRowDaily {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.containerDaily .wordPanel {
+  width: 100%;
+  top: 0;
+  margin-bottom: 0;
+  min-height: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.containerDaily .pokeInfo {
+  position: static;
+  width: 100%;
+  height: auto;
+  right: auto;
+  bottom: auto;
+  padding-right: 0;
+  margin-top: 10px;
+  align-items: stretch;
+}
+
+.containerDaily .spriteReveal {
+  width: 130px;
+  min-width: 130px;
+  height: 130px;
+}
+
+.containerDaily .hintsPanel {
+  min-height: 0;
+  height: auto;
+}
+
+.containerDaily .rankingPanel {
+  position: static;
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+}
+
+.containerDaily .bottomPanel {
+  width: 100%;
+  min-height: 0;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.containerDaily .resultWin,
+.containerDaily .resultLose {
+  width: 100%;
+}
+
 .usedLabel {
   font-family: var(--font-pixel);
   font-size: 0.4rem;

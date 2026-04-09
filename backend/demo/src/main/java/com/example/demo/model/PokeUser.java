@@ -1,5 +1,8 @@
 package com.example.demo.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -44,5 +47,15 @@ public class PokeUser {
 
     // Puntuacion del minijuego 3 (GuessSprite)
     private int scoreM3;
+
+    // Datos diarios del ahorcado (M1 diario)
+    private LocalDate dailyHangmanDate;
+    private int dailyHangmanAttempts;
+    private LocalDateTime dailyHangmanCompletedAt;
+
+    // Datos diarios de GuessSprite (M3 diario)
+    private LocalDate dailySpriteDate;
+    private int dailySpriteAttempts;
+    private LocalDateTime dailySpriteCompletedAt;
 
 } 

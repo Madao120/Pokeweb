@@ -258,3 +258,77 @@ export async function getGuessSpritePokemonList() {
   if (!response.ok) throw new Error("Error al obtener lista de Pokemon M3");
   return await response.json();
 }
+
+export async function getDailyHangmanState(userId) {
+  const response = await fetch(
+    `${API_URL}/game/daily/m1/state?userId=${userId}`,
+  );
+  if (!response.ok) throw new Error("Error al obtener estado diario M1");
+  return await response.json();
+}
+
+export async function startDailyHangman(userId) {
+  const response = await fetch(
+    `${API_URL}/game/daily/m1/start?userId=${userId}`,
+    {
+      method: "POST",
+    },
+  );
+  if (!response.ok) throw new Error("Error al iniciar diario M1");
+  return await response.json();
+}
+
+export async function guessDailyHangmanLetter(userId, letra) {
+  const response = await fetch(
+    `${API_URL}/game/daily/m1/guess-letter?userId=${userId}&letra=${encodeURIComponent(letra)}`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Error al enviar letra diaria");
+  }
+  return await response.json();
+}
+
+export async function guessDailyHangmanWord(userId, palabra) {
+  const response = await fetch(
+    `${API_URL}/game/daily/m1/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Error al enviar palabra diaria");
+  }
+  return await response.json();
+}
+
+export async function getDailySpriteState(userId) {
+  const response = await fetch(
+    `${API_URL}/game/daily/m3/state?userId=${userId}`,
+  );
+  if (!response.ok) throw new Error("Error al obtener estado diario M3");
+  return await response.json();
+}
+
+export async function startDailySprite(userId) {
+  const response = await fetch(
+    `${API_URL}/game/daily/m3/start?userId=${userId}`,
+    {
+      method: "POST",
+    },
+  );
+  if (!response.ok) throw new Error("Error al iniciar diario M3");
+  return await response.json();
+}
+
+export async function guessDailySprite(userId, pokemonId) {
+  const response = await fetch(
+    `${API_URL}/game/daily/m3/guess?userId=${userId}&pokemonId=${pokemonId}`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Error al responder sprite diario");
+  }
+  return await response.json();
+}
