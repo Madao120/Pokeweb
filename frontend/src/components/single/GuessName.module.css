@@ -1259,3 +1259,77 @@
   text-align: center;
   padding: 12px 0;
 }
+
+@media (max-width: 1200px) {
+  .container {
+    width: 100%;
+    min-height: auto;
+    margin: 0;
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .topRow {
+    display: contents;
+    min-height: 0;
+  }
+
+  .wordPanel {
+    order: 1;
+    width: 100%;
+    top: 0;
+    margin-bottom: 0;
+    min-height: 0;
+    padding: 14px 14px 12px;
+  }
+
+  .wordPanel .panelLabel,
+  .maskedWord,
+  .usedLetters {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .pokeInfo {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding-right: 0;
+    margin-top: 8px;
+    align-items: stretch;
+  }
+
+  .hintsPanel {
+    min-height: 0;
+    height: auto;
+  }
+
+  .bottomPanel {
+    order: 2;
+    width: 100%;
+    min-height: 0;
+    padding: 14px 14px 10px;
+  }
+
+  .guessActions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .inputRow {
+    width: 100%;
+  }
+
+  .rankingPanel {
+    order: 3;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 320px;
+    margin-top: 0;
+    transform: none !important;
+  }
+}
