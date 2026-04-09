@@ -60,15 +60,15 @@ public class PokemonApiService {
 
     private String getGenerationFromId(int id) {
 
-        if (id <= 151) return "Generation I";
-        if (id <= 251) return "Generation II";
-        if (id <= 386) return "Generation III";
-        if (id <= 493) return "Generation IV";
-        if (id <= 649) return "Generation V";
-        if (id <= 721) return "Generation VI";
-        if (id <= 809) return "Generation VII";
-        if (id <= 905) return "Generation VIII";
-        if (id <= MAX_POKEMON_ID) return "Generation IX";
+        if (id <= 151) return "Gen I Kanto";
+        if (id <= 251) return "Gen II Johto";
+        if (id <= 386) return "Gen III Hoenn";
+        if (id <= 493) return "Gen IV Sinnoh";
+        if (id <= 649) return "Gen V Unova/Teselia";
+        if (id <= 721) return "Gen VI Kalos";
+        if (id <= 809) return "Gen VII Alola";
+        if (id <= 905) return "Gen VIII Galar";
+        if (id <= MAX_POKEMON_ID) return "Gen IX Paldea";
 
         return "Generation X";
     }

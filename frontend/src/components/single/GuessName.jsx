@@ -56,8 +56,15 @@ function GuessName({
   const [ranking, setRanking] = useState([]);
   const [panelsVisible, setPanelsVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
+  const [wordFailFlash, setWordFailFlash] = useState(false);
+  const [wordSuccessFlash, setWordSuccessFlash] = useState(false);
+  const [ballWobble, setBallWobble] = useState(false);
   const inputRef = useRef(null);
+  const wordInputRef = useRef(null);
   const sessionRef = useRef(null);
+  const wordFailFlashTimeoutRef = useRef(null);
+  const wordSuccessFlashTimeoutRef = useRef(null);
+  const ballWobbleTimeoutRef = useRef(null);
 
   const animatePanelsIn = useCallback(() => {
     setPanelsVisible(false);
@@ -147,6 +154,55 @@ function GuessName({
   }, [session?.gameOver, session?.pokemon?.name]);
 
   useEffect(() => {
+    return () => {
+      if (wordFailFlashTimeoutRef.current) {
+        window.clearTimeout(wordFailFlashTimeoutRef.current);
+      }
+      if (wordSuccessFlashTimeoutRef.current) {
+        window.clearTimeout(wordSuccessFlashTimeoutRef.current);
+      }
+      if (ballWobbleTimeoutRef.current) {
+        window.clearTimeout(ballWobbleTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const triggerFailFlash = useCallback(() => {
+    setWordSuccessFlash(false);
+    setWordFailFlash(false);
+    window.requestAnimationFrame(() => {
+      setWordFailFlash(true);
+    });
+    if (wordFailFlashTimeoutRef.current) {
+      window.clearTimeout(wordFailFlashTimeoutRef.current);
+    }
+    wordFailFlashTimeoutRef.current = window.setTimeout(() => {
+      setWordFailFlash(false);
+    }, 760);
+  }, []);
+
+  const triggerSuccessFlash = useCallback(() => {
+    setWordFailFlash(false);
+    setWordSuccessFlash(false);
+    window.requestAnimationFrame(() => {
+      setWordSuccessFlash(true);
+      setBallWobble(true);
+    });
+    if (wordSuccessFlashTimeoutRef.current) {
+      window.clearTimeout(wordSuccessFlashTimeoutRef.current);
+    }
+    wordSuccessFlashTimeoutRef.current = window.setTimeout(() => {
+      setWordSuccessFlash(false);
+    }, 620);
+    if (ballWobbleTimeoutRef.current) {
+      window.clearTimeout(ballWobbleTimeoutRef.current);
+    }
+    ballWobbleTimeoutRef.current = window.setTimeout(() => {
+      setBallWobble(false);
+    }, 600);
+  }, []);
+
+  useEffect(() => {
     const penalizeOnClose = () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
@@ -195,6 +251,9 @@ function GuessName({
         setLetra("");
         setPalabra("");
         setWordInputError(false);
+        setWordFailFlash(false);
+        setWordSuccessFlash(false);
+        setBallWobble(false);
         setSpriteUrl(null);
         setRevealPhase("ball");
         onGameStart();
@@ -215,13 +274,23 @@ function GuessName({
   }, [autoStart, handleStart, session, user?.id]);
 
   const handleGuess = async () => {
+    if (loading) return;
     if (!letra || letra.length !== 1) return;
     setLoading(true);
     setError(null);
     try {
+      const intentosAntes = session?.intentos ?? 0;
+      const maskedAntes = session?.maskedWord ?? "";
       const data = await guessLetter(user.id, letra);
+      const falloLetra = data.intentos > intentosAntes;
+      const aciertoLetra = !falloLetra && data.maskedWord !== maskedAntes;
       setSession(data);
       setLetra("");
+      if (falloLetra) {
+        triggerFailFlash();
+      } else if (aciertoLetra || data.ganado) {
+        triggerSuccessFlash();
+      }
       if (data.gameOver) onGameEnd();
     } catch (err) {
       setError(err?.message || "Error al enviar la letra.");
@@ -231,6 +300,7 @@ function GuessName({
   };
 
   const handleGuessWord = async () => {
+    if (loading) return;
     if (!session || session.gameOver) return;
     const intento = palabra.trim().toLowerCase();
 
@@ -244,8 +314,14 @@ function GuessName({
     setError(null);
     try {
       const data = await guessWord(user.id, intento);
+      const falloPalabra = !data.ganado;
       setSession(data);
       if (data.gameOver) onGameEnd();
+      if (falloPalabra) {
+        triggerFailFlash();
+      } else {
+        triggerSuccessFlash();
+      }
       setPalabra("");
       setWordInputError(false);
     } catch (err) {
@@ -428,12 +504,12 @@ function GuessName({
 
           <div className={styles.pokeInfo}>
             <div
-              className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""}`}
+              className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""} ${wordFailFlash ? styles.spriteRevealFailFlash : ""} ${wordSuccessFlash ? styles.spriteRevealSuccessFlash : ""}`}
             >
               <img
                 src="/ball1.png"
                 alt="Poke Ball"
-                className={styles.ballImg}
+                className={`${styles.ballImg} ${ballWobble ? styles.ballWobble : ""}`}
               />
 
               <div className={styles.spriteWhiteLayer} />
@@ -469,7 +545,7 @@ function GuessName({
                   <span className={styles.hintKey}>Generacion:</span>
                   {mostrarGeneracion ? (
                     <span className={styles.hintVal}>
-                      GEN {session.pokemon.generation}
+                      {session.pokemon.generation}
                     </span>
                   ) : (
                     <span className={styles.hintLocked}>??? (4 fallos)</span>
@@ -566,7 +642,7 @@ function GuessName({
             <div
               className={`${styles.inputRow} ${styles.inputRowLetter}`}
               onClick={() => {
-                if (!loading && letra) handleGuess();
+                if (!loading) inputRef.current?.focus();
               }}
             >
               <input
@@ -638,10 +714,11 @@ function GuessName({
             <div
               className={`${styles.inputRow} ${styles.inputRowWord}`}
               onClick={() => {
-                if (!loading) handleGuessWord();
+                if (!loading) wordInputRef.current?.focus();
               }}
             >
               <input
+                ref={wordInputRef}
                 className={`${styles.wordInput} ${wordInputError ? styles.wordInputError : ""}`}
                 type="text"
                 value={palabra}
@@ -699,4 +776,3 @@ function GuessName({
 }
 
 export default GuessName;
-

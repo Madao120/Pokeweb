@@ -109,7 +109,7 @@
   inset: 4px;
   clip-path: var(--panel-shape);
   pointer-events: none;
-  --tint-rgb: 120, 205, 130;
+  --tint-rgb: 164, 172, 180;
   background: linear-gradient(
     90deg,
     transparent 0 6%,
@@ -118,7 +118,7 @@
   );
   z-index: 0;
   opacity: 0;
-  transition: opacity 620ms ease-in-out;
+  transition: opacity 280ms ease-in-out;
 }
 
 .mainPanelContent {

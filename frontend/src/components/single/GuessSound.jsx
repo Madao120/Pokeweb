@@ -13,6 +13,9 @@ const MAX_FALLOS = 4;
 const EXIT_DELAY_MS = 520;
 const ROUND_TRANSITION_MS = 320;
 const NEXT_ROUND_UI_EXIT_MS = 260;
+const FLASH_FADE_IN_MS = 280;
+const FLASH_HOLD_MS = 170;
+const FLASH_FADE_OUT_MS = 280;
 const TYPE_COLORS = {
   water: "#4fa5ff",
   grass: "#67c23a",
@@ -235,14 +238,18 @@ function GuessSound({
         setPendingSession(null);
         setAwaitingManualAdvance(false);
         setShowNextRoundUi(false);
-        await wait(220);
+        await wait(FLASH_FADE_IN_MS + FLASH_HOLD_MS);
+        setFlashState("");
+        await wait(FLASH_FADE_OUT_MS);
         await advanceRound(data);
       } else {
         setFlashState("fail");
 
         if (data?.gameOver) {
           setShowNextRoundUi(false);
-          await wait(220);
+          await wait(FLASH_FADE_IN_MS + FLASH_HOLD_MS);
+          setFlashState("");
+          await wait(FLASH_FADE_OUT_MS);
           await advanceRound(data);
         } else {
           setFailedRoundInfo({
@@ -268,6 +275,8 @@ function GuessSound({
 
     setShowNextRoundUi(false);
     await wait(NEXT_ROUND_UI_EXIT_MS);
+    setFlashState("");
+    await wait(FLASH_FADE_OUT_MS);
     setAwaitingManualAdvance(false);
     setFailedRoundInfo(null);
     await advanceRound(pendingSession);
