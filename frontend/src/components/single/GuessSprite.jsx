@@ -12,6 +12,7 @@ import {
 
 const EXIT_DELAY_MS = 520;
 const POINTS_BY_FALLOS = [100, 80, 60, 40, 20, 10];
+const MAX_DROPDOWN_RESULTS = 30;
 
 function wait(ms) {
   return new Promise((resolve) => {
@@ -155,10 +156,21 @@ function GuessSprite({
 
   const filteredOptions = useMemo(() => {
     const needle = normalizeSearch(query);
-    if (!needle) return pokemonOptions;
-    return pokemonOptions.filter((pokemon) =>
-      normalizeSearch(pokemon.name).includes(needle),
-    );
+    if (!needle) return pokemonOptions.slice(0, MAX_DROPDOWN_RESULTS);
+
+    const startsWith = [];
+    const includes = [];
+
+    for (const pokemon of pokemonOptions) {
+      const normalizedName = normalizeSearch(pokemon.name);
+      if (normalizedName.startsWith(needle)) {
+        startsWith.push(pokemon);
+      } else if (normalizedName.includes(needle)) {
+        includes.push(pokemon);
+      }
+    }
+
+    return [...startsWith, ...includes].slice(0, MAX_DROPDOWN_RESULTS);
   }, [pokemonOptions, query]);
 
   const handlePickOption = (option) => {

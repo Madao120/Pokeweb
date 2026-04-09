@@ -161,8 +161,8 @@
   flex-direction: column;
   max-height: 100%;
   width: 100%;
-  padding-left: 4rem;
-  padding-right: 4rem;
+  padding-left: 10%;
+  padding-right: 10%;
 }
 
 .searchPanelVisible {
@@ -324,8 +324,9 @@
 .dropdown {
   position: relative;
   margin-top: 6px;
-  flex: 1;
-  min-height: 320px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(52vh, 420px);
   overflow-y: auto;
   border: 2px solid #4a525a;
   background: #f2f5f8;
@@ -382,15 +383,13 @@
 
 .botonesFin {
   margin-top: 12px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.botonesFin {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 150px;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .btnStart {
@@ -686,6 +685,19 @@
   .topRow {
     grid-template-columns: 1fr;
     height: auto;
+  }
+
+  .middleColumn {
+    order: 1;
+    height: 80%;
+  }
+
+  .leftColumn {
+    order: 2;
+  }
+
+  .rankingPanel {
+    order: 3;
   }
 
   .leftColumn,
