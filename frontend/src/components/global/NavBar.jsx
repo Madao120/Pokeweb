@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./NavBar.module.css";
 
-function NavBar({ user, inGame, canReturnToModes, onLogout }) {
+function NavBar({ user, inGame, canReturnToModes }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isProfilePage = location.pathname === "/profile";
@@ -17,12 +17,16 @@ function NavBar({ user, inGame, canReturnToModes, onLogout }) {
         "Tienes una partida en curso. Si sales ahora perderás 25 puntos por abandono. ¿Quieres continuar?",
       );
       if (!confirmar) return;
-      window.dispatchEvent(new CustomEvent("returnToModeMenu"));
+      window.dispatchEvent(
+        new CustomEvent("returnToModeMenu", { cancelable: true }),
+      );
       return;
     }
 
     if (canReturnToModes) {
-      window.dispatchEvent(new CustomEvent("returnToModeMenu"));
+      window.dispatchEvent(
+        new CustomEvent("returnToModeMenu", { cancelable: true }),
+      );
       return;
     }
 
@@ -55,11 +59,9 @@ function NavBar({ user, inGame, canReturnToModes, onLogout }) {
                 </span>
               )}
             </span>
-            <span className={styles.capsule}>Score {user.globalScore}</span>
-            <span className={styles.capsule}>{user.name}</span>
-            <button className={styles.capsuleBtn} onClick={onLogout}>
-              Logout
-            </button>
+            <span className={styles.capsule}>
+              {user.name}: {user.globalScore} pts
+            </span>
           </div>
 
           <div className={styles.rightControls}>

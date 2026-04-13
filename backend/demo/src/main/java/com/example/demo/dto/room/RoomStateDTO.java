@@ -46,6 +46,7 @@ public class RoomStateDTO {
 
     // Votaciones en sala
     private Map<String, Integer> modeVotes;
+    private Map<Long, String> playerModeVotes;
     private Map<String, Integer> postRoundVotes;
 
     // ── Fin de ronda ─────────────────────────────────────────────────────────

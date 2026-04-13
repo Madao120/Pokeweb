@@ -16,6 +16,7 @@ import com.example.demo.dto.room.VoteModeRequest;
 import com.example.demo.dto.room.VotePostRoundRequest;
 import com.example.demo.model.Room;
 import com.example.demo.service.RoomService;
+import jakarta.validation.Valid;
 
 /**
  * REST + WebSocket para multijugador.
@@ -49,7 +50,7 @@ public class RoomController {
     // ── Crear sala ─────────────────────────────────────────────────────────────
 
     @PostMapping
-    public ResponseEntity<RoomStateDTO> createRoom(@RequestBody CreateRoomRequest req) {
+    public ResponseEntity<RoomStateDTO> createRoom(@Valid @RequestBody CreateRoomRequest req) {
         Room room = roomService.createRoom(req.getUserId(), req.getPassword());
         return ResponseEntity.ok(roomService.toDTO(room, req.getUserId(),
                 "Sala creada. Código: " + room.getRoomCode()));
@@ -60,7 +61,7 @@ public class RoomController {
     @PostMapping("/{code}/join")
     public ResponseEntity<RoomStateDTO> joinRoom(
             @PathVariable String code,
-            @RequestBody JoinRoomRequest req) {
+            @Valid @RequestBody JoinRoomRequest req) {
 
         Room room = roomService.joinRoom(code, req.getUserId(), req.getPassword());
         RoomStateDTO dto = roomService.toDTO(room, req.getUserId(),

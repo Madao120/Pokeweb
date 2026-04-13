@@ -1,5 +1,5 @@
 import styles from "./ModeSelector.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import IndividualPage from "../components/single/IndividualPage";
 import MultiplayerPage from "../components/multi/MultiplayerPage";
 import DailyModePage from "../components/daily/DailyModePage";
@@ -17,6 +17,11 @@ function ModeSelector({
   const [isExiting, setIsExiting] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isReturningToModes, setIsReturningToModes] = useState(false);
+  const modeRef = useRef(mode);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   useEffect(() => {
     if (mode !== null) return undefined;
@@ -40,6 +45,15 @@ function ModeSelector({
 
   useEffect(() => {
     const goBackToModes = async (event) => {
+      if (event?.defaultPrevented) return;
+
+      if (modeRef.current === "multi" && !event?.detail?.skipMultiplayerConfirm) {
+        const confirmExit = window.confirm(
+          "Quieres salir de la sala multijugador? Tus datos no se guardaran si vuelves a entrar luego.",
+        );
+        if (!confirmExit) return;
+      }
+
       setIsVisible(false);
       setIsReturningToModes(true);
 
@@ -70,7 +84,11 @@ function ModeSelector({
     return (
       <DailyModePage
         user={user}
-        onBack={() => window.dispatchEvent(new CustomEvent("returnToModeMenu"))}
+        onBack={() =>
+          window.dispatchEvent(
+            new CustomEvent("returnToModeMenu", { cancelable: true }),
+          )
+        }
       />
     );
   }

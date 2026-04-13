@@ -4,7 +4,7 @@ import AvatarPicker from "../components/global/AvatarPicker";
 import { useEffect, useState } from "react";
 import { updateProfile } from "../services/api";
 
-function Profile({ user, onProfileUpdated }) {
+function Profile({ user, onProfileUpdated, onLogout }) {
   const [form, setForm] = useState({
     name: user.name,
     profilePictureUrl: user.profilePictureUrl || "",
@@ -113,6 +113,14 @@ function Profile({ user, onProfileUpdated }) {
         {success && (
           <p className={styles.success}>Perfil actualizado correctamente.</p>
         )}
+
+        <button
+          type="button"
+          className={styles.btnLogout}
+          onClick={onLogout}
+        >
+          LOGOUT
+        </button>
       </div>
 
       {showPicker && (

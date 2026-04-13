@@ -57,5 +57,4 @@ public class PokeUser {
     private LocalDate dailySpriteDate;
     private int dailySpriteAttempts;
     private LocalDateTime dailySpriteCompletedAt;
-
 } 
