@@ -179,6 +179,8 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  position: relative;
+  min-height: 120px;
 }
 
 .playerCardLeader {
@@ -231,27 +233,42 @@
 }
 
 .playerActions {
-  margin-top: 8px;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 6px;
+  height: 22px;
+  pointer-events: none;
 }
 
-.manageBtn {
+.iconBtn {
+  position: absolute;
   border: 0;
-  background: #5c6772;
-  color: #f2f5f8;
-  padding: 6px 8px;
-  font-family: var(--font-mono);
-  font-size: 0.86rem;
+  width: 22px;
+  height: 22px;
+  border-radius: 2px;
+  font-family: var(--font-pixel);
+  font-size: 0.46rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  pointer-events: auto;
+}
+
+.leaderBtn {
+  left: 0;
+  background: #d7bf63;
+  color: #3d3212;
 }
 
 .kickBtn {
+  right: 0;
   background: #a74848;
+  color: #fff3f3;
 }
 
-.manageBtn:disabled {
+.iconBtn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -343,8 +360,14 @@
     grid-template-columns: 1fr;
   }
 
+  .sectionTitle {
+    text-align: center;
+    padding-top: 3px;
+  }
+
   .usersPanel {
     max-height: none;
+    padding: 14px;
   }
 
   .playersList {
@@ -353,16 +376,19 @@
     flex-wrap: wrap;
     overflow: visible;
     padding-bottom: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 
   .playerCard {
-    min-width: 0;
     max-width: calc(25% - 8px);
-    flex: 1 1 calc(25% - 8px);
+    flex-basis: calc(25% - 8px);
+    max-height: 8.2rem;
     flex-direction: column;
     align-items: center;
     text-align: center;
     gap: 8px;
+    padding-bottom: 30px;
   }
 
   .playerInfo {
@@ -394,19 +420,7 @@
   }
 }
 
-@media (max-width: 760px) {
-  .playerCard {
-    max-width: calc(33.333% - 8px);
-    flex-basis: calc(33.333% - 8px);
-  }
-}
-
 @media (max-width: 520px) {
-  .playerCard {
-    max-width: calc(50% - 8px);
-    flex-basis: calc(50% - 8px);
-  }
-
   .mainPanel {
     padding-top: 20px;
     padding-right: clamp(22px, 8vw, 30px);

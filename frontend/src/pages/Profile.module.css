@@ -71,6 +71,8 @@
   transition:
     opacity 760ms ease 80ms,
     transform 760ms ease 80ms;
+  padding-right: 2rem;
+  padding-left: 2rem;
 }
 
 .panelVisible {

@@ -309,15 +309,24 @@ function MultiplayerPage({ user }) {
     }
   };
 
-  const handleKickPlayer = async (targetId) => {
+  const handleKickPlayer = async (targetPlayer) => {
     if (!roomState?.roomCode) return;
+    const confirmKick = window.confirm(
+      `Estas seguro que quieres expulsar a ${targetPlayer.name}?`,
+    );
+    if (!confirmKick) return;
+
     setError("");
     setInfo("");
-    setActionLoading(`kick:${targetId}`);
+    setActionLoading(`kick:${targetPlayer.id}`);
     try {
-      const updated = await kickMultiplayerPlayer(roomState.roomCode, user.id, targetId);
+      const updated = await kickMultiplayerPlayer(
+        roomState.roomCode,
+        user.id,
+        targetPlayer.id,
+      );
       applyRoomState(updated);
-      setInfo("Jugador expulsado de la sala.");
+      setInfo(`${targetPlayer.name} ha sido expulsado de la sala.`);
     } catch (err) {
       setError(mapJoinError(err.message));
     } finally {
@@ -325,15 +334,24 @@ function MultiplayerPage({ user }) {
     }
   };
 
-  const handleTransferLeader = async (newLeaderId) => {
+  const handleTransferLeader = async (newLeader) => {
     if (!roomState?.roomCode) return;
+    const confirmLeader = window.confirm(
+      `Estas seguro que quieres darle el liderazgo a ${newLeader.name}?`,
+    );
+    if (!confirmLeader) return;
+
     setError("");
     setInfo("");
-    setActionLoading(`leader:${newLeaderId}`);
+    setActionLoading(`leader:${newLeader.id}`);
     try {
-      const updated = await transferMultiplayerLeader(roomState.roomCode, user.id, newLeaderId);
+      const updated = await transferMultiplayerLeader(
+        roomState.roomCode,
+        user.id,
+        newLeader.id,
+      );
       applyRoomState(updated);
-      setInfo("Liderazgo transferido.");
+      setInfo(`${newLeader.name} es ahora el lider de la sala.`);
     } catch (err) {
       setError(mapJoinError(err.message));
     } finally {

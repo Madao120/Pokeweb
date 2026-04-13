@@ -49,24 +49,32 @@ function RoomLobby({
                   {canManagePlayers && player.id !== currentUserId && (
                     <div className={styles.playerActions}>
                       <button
-                        className={styles.manageBtn}
+                        className={`${styles.iconBtn} ${styles.leaderBtn}`}
                         type="button"
                         disabled={Boolean(actionLoading)}
-                        onClick={() => onTransferLeader(player.id)}
+                        title="Dar liderazgo"
+                        onClick={() =>
+                          onTransferLeader({
+                            id: player.id,
+                            name: player.name,
+                          })
+                        }
                       >
-                        {actionLoading === `leader:${player.id}`
-                          ? "Transfiriendo..."
-                          : "Dar liderazgo"}
+                        {actionLoading === `leader:${player.id}` ? "..." : "♛"}
                       </button>
                       <button
-                        className={`${styles.manageBtn} ${styles.kickBtn}`}
+                        className={`${styles.iconBtn} ${styles.kickBtn}`}
                         type="button"
                         disabled={Boolean(actionLoading)}
-                        onClick={() => onKickPlayer(player.id)}
+                        title="Expulsar"
+                        onClick={() =>
+                          onKickPlayer({
+                            id: player.id,
+                            name: player.name,
+                          })
+                        }
                       >
-                        {actionLoading === `kick:${player.id}`
-                          ? "Expulsando..."
-                          : "Expulsar"}
+                        {actionLoading === `kick:${player.id}` ? "..." : "✕"}
                       </button>
                     </div>
                   )}
