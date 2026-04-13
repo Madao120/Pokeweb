@@ -180,7 +180,7 @@
   gap: 10px;
   align-items: center;
   position: relative;
-  min-height: 120px;
+  min-height: 92px;
 }
 
 .playerCardLeader {
@@ -206,6 +206,12 @@
 
 .playerInfo {
   min-width: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: center;
 }
 
 .playerName {
@@ -215,6 +221,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .leaderBadge {
@@ -224,25 +232,28 @@
   color: #f4f0de;
   font-family: var(--font-pixel);
   font-size: 0.32rem;
+  justify-self: start;
+  grid-column: 1;
+  grid-row: 3;
 }
 
 .playerScore {
   color: #4a5764;
   font-family: var(--font-mono);
   margin-top: 4px;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .playerActions {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 6px;
-  height: 22px;
-  pointer-events: none;
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .iconBtn {
-  position: absolute;
   border: 0;
   width: 22px;
   height: 22px;
@@ -253,17 +264,14 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  pointer-events: auto;
 }
 
 .leaderBtn {
-  left: 0;
   background: #d7bf63;
   color: #3d3212;
 }
 
 .kickBtn {
-  right: 0;
   background: #a74848;
   color: #fff3f3;
 }
@@ -375,7 +383,7 @@
     flex-direction: row;
     flex-wrap: wrap;
     overflow: visible;
-    padding-bottom: 0;
+    padding-bottom: 0.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
   }
@@ -405,6 +413,29 @@
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+  }
+
+  .playerActions {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 6px;
+    height: 22px;
+    display: block;
+    pointer-events: none;
+  }
+
+  .iconBtn {
+    position: absolute;
+    pointer-events: auto;
+  }
+
+  .leaderBtn {
+    left: 0;
+  }
+
+  .kickBtn {
+    right: 0;
   }
 
   .mainPanel {

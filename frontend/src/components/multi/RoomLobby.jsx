@@ -5,7 +5,6 @@ function RoomLobby({
   roomCode,
   roomState,
   socketConnected,
-  info,
   error,
   orderedPlayers,
   minigames,
@@ -97,7 +96,6 @@ function RoomLobby({
             </div>
           </div>
 
-          {info && <p className={styles.info}>{info}</p>}
           {error && <p className={styles.error}>{error}</p>}
 
           <section className={styles.gamesColumn}>

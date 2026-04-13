@@ -61,9 +61,13 @@ function MultiplayerPage({ user }) {
   const [socketConnected, setSocketConnected] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
   const [wasKicked, setWasKicked] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   const clientRef = useRef(null);
   const stepRef = useRef(step);
+  const leaderIdRef = useRef(null);
+
+  const sameId = (a, b) => String(a) === String(b);
 
   const roomCode = roomState?.roomCode || "";
 
@@ -77,13 +81,14 @@ function MultiplayerPage({ user }) {
         name: detail?.name || `Jugador ${playerId}`,
         profilePictureUrl: detail?.profilePictureUrl || "",
         score,
-        isLeader: roomState?.leaderId === playerId,
+        isLeader: sameId(roomState?.leaderId, playerId),
       };
     });
   }, [playerDetails, roomState]);
 
   const myVotedMode = roomState?.playerModeVotes?.[user.id] || null;
-  const canManagePlayers = roomState?.leaderId === user.id && roomState?.state === "WAITING";
+  const canManagePlayers =
+    sameId(roomState?.leaderId, user.id) && roomState?.state === "WAITING";
 
   useEffect(() => {
     stepRef.current = step;
@@ -137,11 +142,30 @@ function MultiplayerPage({ user }) {
   };
 
   const applyRoomState = (nextState) => {
+    const leaderChanged =
+      leaderIdRef.current !== null &&
+      !sameId(leaderIdRef.current, nextState?.leaderId);
+
+    leaderIdRef.current = nextState?.leaderId ?? null;
     setRoomState(nextState);
     if (stepRef.current !== "lobby") return;
-    const isStillInRoom = (nextState?.playerIds || []).includes(user.id);
+    const isStillInRoom = (nextState?.playerIds || []).some((pid) =>
+      sameId(pid, user.id),
+    );
     if (!isStillInRoom) {
       handleKicked();
+      return;
+    }
+
+    // Si cambia el liderazgo, sincronizamos estado una vez por REST para evitar
+    // tener que refrescar manualmente en clientes que recibieron WS tardío.
+    if (leaderChanged && nextState?.roomCode) {
+      getMultiplayerRoomState(nextState.roomCode, user.id)
+        .then((freshState) => {
+          leaderIdRef.current = freshState?.leaderId ?? null;
+          setRoomState(freshState);
+        })
+        .catch(() => {});
     }
   };
 
@@ -309,12 +333,8 @@ function MultiplayerPage({ user }) {
     }
   };
 
-  const handleKickPlayer = async (targetPlayer) => {
+  const executeKickPlayer = async (targetPlayer) => {
     if (!roomState?.roomCode) return;
-    const confirmKick = window.confirm(
-      `Estas seguro que quieres expulsar a ${targetPlayer.name}?`,
-    );
-    if (!confirmKick) return;
 
     setError("");
     setInfo("");
@@ -334,12 +354,8 @@ function MultiplayerPage({ user }) {
     }
   };
 
-  const handleTransferLeader = async (newLeader) => {
+  const executeTransferLeader = async (newLeader) => {
     if (!roomState?.roomCode) return;
-    const confirmLeader = window.confirm(
-      `Estas seguro que quieres darle el liderazgo a ${newLeader.name}?`,
-    );
-    if (!confirmLeader) return;
 
     setError("");
     setInfo("");
@@ -357,6 +373,22 @@ function MultiplayerPage({ user }) {
     } finally {
       setActionLoading("");
     }
+  };
+
+  const handleKickPlayer = (targetPlayer) => {
+    setConfirmDialog({
+      title: "Confirmar expulsion",
+      message: `Estas seguro que quieres expulsar a ${targetPlayer.name}?`,
+      onConfirm: () => executeKickPlayer(targetPlayer),
+    });
+  };
+
+  const handleTransferLeader = (newLeader) => {
+    setConfirmDialog({
+      title: "Confirmar liderazgo",
+      message: `Estas seguro que quieres darle el liderazgo a ${newLeader.name}?`,
+      onConfirm: () => executeTransferLeader(newLeader),
+    });
   };
 
   if (wasKicked) {
@@ -392,22 +424,51 @@ function MultiplayerPage({ user }) {
 
   if (step === "lobby" && roomState) {
     return (
-      <RoomLobby
-        currentUserId={user.id}
-        roomCode={roomCode}
-        roomState={roomState}
-        socketConnected={socketConnected}
-        info={info}
-        error={error}
-        orderedPlayers={orderedPlayers}
-        minigames={MINIGAMES}
-        myVotedMode={myVotedMode}
-        canManagePlayers={canManagePlayers}
-        actionLoading={actionLoading}
-        onVoteMode={handleVoteMode}
-        onKickPlayer={handleKickPlayer}
-        onTransferLeader={handleTransferLeader}
-      />
+      <>
+        <RoomLobby
+          currentUserId={user.id}
+          roomCode={roomCode}
+          roomState={roomState}
+          socketConnected={socketConnected}
+          error={error}
+          orderedPlayers={orderedPlayers}
+          minigames={MINIGAMES}
+          myVotedMode={myVotedMode}
+          canManagePlayers={canManagePlayers}
+          actionLoading={actionLoading}
+          onVoteMode={handleVoteMode}
+          onKickPlayer={handleKickPlayer}
+          onTransferLeader={handleTransferLeader}
+        />
+        {confirmDialog && (
+          <div className={styles.confirmOverlay}>
+            <div className={styles.confirmBox}>
+              <p className={styles.confirmTitle}>{confirmDialog.title}</p>
+              <p className={styles.confirmText}>{confirmDialog.message}</p>
+              <div className={styles.confirmActions}>
+                <button
+                  className={styles.optionBtnGhost}
+                  type="button"
+                  onClick={() => setConfirmDialog(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className={styles.optionBtn}
+                  type="button"
+                  onClick={async () => {
+                    const action = confirmDialog.onConfirm;
+                    setConfirmDialog(null);
+                    await action();
+                  }}
+                >
+                  Aceptar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -422,8 +483,6 @@ function MultiplayerPage({ user }) {
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
-        {info && <p className={styles.info}>{info}</p>}
-
         {step === "create" && (
           <form className={styles.formCard} onSubmit={handleCreate}>
             <h3 className={styles.optionTitle}>Crear sala</h3>

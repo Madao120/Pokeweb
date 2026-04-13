@@ -78,6 +78,7 @@ function GuessSprite({
   const [dailyInfo, setDailyInfo] = useState(null);
 
   const sessionRef = useRef(null);
+  const skipAutoAbandonRef = useRef(false);
 
   const animatePanelsIn = useCallback(() => {
     setPanelsVisible(false);
@@ -153,12 +154,24 @@ function GuessSprite({
   useEffect(() => {
     if (isDailyMode) return undefined;
     return () => {
+      if (skipAutoAbandonRef.current) return;
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
         abandonGuessSpriteGame(user.id).catch(() => {});
       }
     };
   }, [isDailyMode, user?.id]);
+
+  const syncExitState = useCallback(async () => {
+    const currentSession = sessionRef.current;
+    if (!isDailyMode && user?.id && currentSession && !currentSession.gameOver) {
+      skipAutoAbandonRef.current = true;
+      try {
+        await abandonGuessSpriteGame(user.id);
+      } catch {}
+    }
+    await onGameEnd?.();
+  }, [isDailyMode, onGameEnd, user?.id]);
 
   const handleStart = useCallback(
     async (withExit = false) => {
@@ -366,16 +379,18 @@ function GuessSprite({
       setResultVisible(false);
       await wait(240);
     }
+    await syncExitState();
     setPanelsVisible(false);
     await wait(EXIT_DELAY_MS);
     onChangeMinigame?.();
-  }, [onChangeMinigame]);
+  }, [onChangeMinigame, syncExitState]);
 
   const handleChangeMode = useCallback(async () => {
     if (sessionRef.current?.gameOver) {
       setResultVisible(false);
       await wait(240);
     }
+    await syncExitState();
     setPanelsVisible(false);
     await wait(EXIT_DELAY_MS);
     window.dispatchEvent(
@@ -383,7 +398,7 @@ function GuessSprite({
         detail: { skipDelay: true },
       }),
     );
-  }, []);
+  }, [syncExitState]);
 
   if (!session) {
     if (isDailyMode && dailyInfo?.completedToday) {
