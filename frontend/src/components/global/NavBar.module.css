@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 84px;
+  min-height: 84px;
   padding: 0 14px;
   background: linear-gradient(180deg, #3a3f4a 0%, #2a2f3a 55%, #22252d 100%);
   border-top: 2px solid #4dc4ff;
@@ -20,6 +20,7 @@
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  min-width: 0;
 }
 
 .photoBox {
@@ -48,8 +49,7 @@
   font-size: 1rem;
 }
 
-.capsule,
-.capsuleBtn {
+.capsule {
   font-family: var(--font-pixel);
   font-size: 0.46rem;
   color: #eff8ff;
@@ -61,18 +61,16 @@
   border-radius: 2px;
   cursor: pointer;
   height: 1.9rem;
-}
-
-.capsuleBtn {
-  background-color: #0a0e15;
-  border: 3px solid #fff;
-  border-radius: 9px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rightControls {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .ctrlBtn {
@@ -115,5 +113,36 @@
     opacity: 1;
     transform: none;
     animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .navbar {
+    min-height: 76px;
+    padding: 8px 8px;
+    gap: 8px;
+  }
+
+  .leftCapsules {
+    gap: 6px;
+    flex: 1 1 auto;
+  }
+
+  .photoBox {
+    width: 46px;
+    height: 46px;
+  }
+
+  .capsule {
+    font-size: 0.37rem;
+    padding: 8px 9px;
+    height: 1.7rem;
+    border-width: 2px;
+  }
+
+  .ctrlBtn {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
   }
 }

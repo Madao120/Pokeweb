@@ -3,6 +3,7 @@ package com.example.demo.service;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class RoomService {
 
     private final Map<String, Room> rooms = new ConcurrentHashMap<>();
     private final PokemonApiService pokemonApiService;
+    private static final String ROOM_PASSWORD_REGEX = "^\\d{3,}$";
 
     public RoomService(PokemonApiService pokemonApiService) {
         this.pokemonApiService = pokemonApiService;
@@ -26,8 +28,14 @@ public class RoomService {
     // ── Crear sala ────────────────────────────────────────────────────────────
 
     public Room createRoom(Long userId, String password) {
+        if (userId == null) {
+            throw new RuntimeException("USER_ID_REQUIRED");
+        }
+        if (password == null || !password.trim().matches(ROOM_PASSWORD_REGEX)) {
+            throw new RuntimeException("INVALID_ROOM_PASSWORD");
+        }
         String code = generateCode();
-        Room room = new Room(code, password, userId);
+        Room room = new Room(code, password.trim(), userId);
         rooms.put(code, room);
         return room;
     }
@@ -96,6 +104,7 @@ public class RoomService {
         if (!room.getPlayerIds().contains(userId))
             throw new RuntimeException("NOT_IN_ROOM");
 
+        // Un usuario solo mantiene un voto activo; si cambia de modo, se reemplaza.
         room.getModeVotes().put(userId, mode);
         return room;
     }
@@ -248,6 +257,7 @@ public class RoomService {
         dto.setRemainingMs(room.getRemainingMs());
         dto.setMessage(message);
         dto.setModeVotes(countModeVotes(room));
+        dto.setPlayerModeVotes(buildPlayerModeVotes(room));
         dto.setPostRoundVotes(countPostRoundVotes(room));
 
         if (room.getCurrentMode() != null)
@@ -295,6 +305,12 @@ public class RoomService {
         return out;
     }
 
+    private Map<Long, String> buildPlayerModeVotes(Room room) {
+        Map<Long, String> out = new HashMap<>();
+        room.getModeVotes().forEach((pid, mode) -> out.put(pid, mode.name()));
+        return out;
+    }
+
     private Map<String, Integer> countPostRoundVotes(Room room) {
         Map<String, Integer> out = new HashMap<>();
         room.getPostRoundVotes().values().forEach(action ->
@@ -318,7 +334,10 @@ public class RoomService {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     public Room getRoom(String code) {
-        Room room = rooms.get(code.toUpperCase());
+        if (code == null || code.trim().isEmpty()) {
+            throw new RuntimeException("ROOM_NOT_FOUND");
+        }
+        Room room = rooms.get(code.trim());
         if (room == null) throw new RuntimeException("ROOM_NOT_FOUND");
         return room;
     }
@@ -326,10 +345,7 @@ public class RoomService {
     private String generateCode() {
         String code;
         do {
-            code = UUID.randomUUID().toString()
-                    .replace("-", "")
-                    .substring(0, 6)
-                    .toUpperCase();
+            code = String.format("%06d", ThreadLocalRandom.current().nextInt(0, 1_000_000));
         } while (rooms.containsKey(code));
         return code;
     }

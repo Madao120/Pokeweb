@@ -135,6 +135,7 @@ function App() {
                     setUser(updated);
                     syncStoredUser(updated);
                   }}
+                  onLogout={handleLogout}
                 />
               ) : (
                 <Navigate to="/login" />
@@ -151,7 +152,6 @@ function App() {
           user={user}
           inGame={inGame}
           canReturnToModes={canReturnToModes}
-          onLogout={handleLogout}
         />
       )}
     </section>

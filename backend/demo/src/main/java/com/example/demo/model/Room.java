@@ -21,10 +21,10 @@ import lombok.Data;
 public class Room {
 
     public enum State { WAITING, PLAYING, ROUND_FINISHED, FINISHED }
-    public enum GameMode { HANGMAN }   // se amplía en fases futuras
+    public enum GameMode { HANGMAN, GUESS_SOUND, GUESS_SPRITE }
 
     private final String roomCode;
-    private final String password;       // null = sala abierta
+    private final String password;
     private Long leaderId;         // líder actual de la sala (puede transferirse)
 
     private State state = State.WAITING;
@@ -126,3 +126,4 @@ public class Room {
         state = State.WAITING;
     }
 }
+

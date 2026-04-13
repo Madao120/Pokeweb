@@ -349,3 +349,89 @@ export async function guessDailySprite(userId, pokemonId) {
   }
   return await response.json();
 }
+
+export async function createMultiplayerRoom(userId, password) {
+  const response = await fetch(buildApiUrl("/rooms"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, password }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido crear la sala");
+  }
+
+  return await response.json();
+}
+
+export async function joinMultiplayerRoom(code, userId, password) {
+  const response = await fetch(buildApiUrl(`/rooms/${code}/join`), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, password }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido unir a la sala");
+  }
+
+  return await response.json();
+}
+
+export async function getMultiplayerRoomState(code, userId) {
+  const response = await fetch(buildApiUrl(`/rooms/${code}?userId=${userId}`));
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido recuperar la sala");
+  }
+
+  return await response.json();
+}
+
+export async function voteMultiplayerMode(code, userId, mode) {
+  const response = await fetch(buildApiUrl(`/rooms/${code}/vote-mode`), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, mode }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido registrar el voto");
+  }
+
+  return await response.json();
+}
+
+export async function kickMultiplayerPlayer(code, leaderId, targetId) {
+  const response = await fetch(buildApiUrl(`/rooms/${code}/kick`), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ leaderId, targetId }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido expulsar al jugador");
+  }
+
+  return await response.json();
+}
+
+export async function transferMultiplayerLeader(code, currentLeaderId, newLeaderId) {
+  const response = await fetch(buildApiUrl(`/rooms/${code}/leader`), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentLeaderId, newLeaderId }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido transferir el liderazgo");
+  }
+
+  return await response.json();
+}
