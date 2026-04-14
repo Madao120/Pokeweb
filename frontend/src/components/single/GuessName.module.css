@@ -1327,6 +1327,10 @@
   .maskedWord {
     justify-content: center;
     text-align: center;
+    white-space: normal;
+    overflow-x: hidden;
+    font-size: clamp(0.62rem, 3.4vw, 0.9rem);
+    letter-spacing: clamp(1px, 0.9vw, 4px);
   }
 
   .ptsPreview {
