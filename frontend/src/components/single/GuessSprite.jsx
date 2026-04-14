@@ -533,24 +533,33 @@ function GuessSprite({
             {!session.gameOver ? (
               <>
                 <div className={styles.selectWrap}>
-                  <input
-                    className={styles.searchInput}
-                    type="text"
-                    value={query}
-                    onChange={(e) => {
-                      setQuery(e.target.value);
-                      setSelectedOption(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleGuess();
-                      }
-                    }}
-                    placeholder="Escribe para buscar por nombre..."
-                    autoComplete="off"
-                    disabled={loading}
-                  />
+                  <div className={styles.searchRow}>
+                    <input
+                      className={styles.searchInput}
+                      type="text"
+                      value={query}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        setSelectedOption(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleGuess();
+                        }
+                      }}
+                      placeholder="Escribe para buscar por nombre..."
+                      autoComplete="off"
+                      disabled={loading}
+                    />
+                    <button
+                      className={`${styles.btnStart} ${styles.btnFinishRed} ${styles.btnGuessCompact}`}
+                      onClick={handleGuess}
+                      disabled={loading}
+                    >
+                      {loading ? "..." : "ADIVINAR"}
+                    </button>
+                  </div>
                   <div className={styles.dropdown}>
                     {filteredOptions.map((pokemon) => (
                       <button
@@ -574,14 +583,6 @@ function GuessSprite({
                     )}
                   </div>
                 </div>
-
-                <button
-                  className={`${styles.btnStart} ${styles.btnFinishRed} ${styles.btnGuessCompact}`}
-                  onClick={handleGuess}
-                  disabled={loading}
-                >
-                  {loading ? "..." : "ADIVINAR"}
-                </button>
               </>
             ) : isDailyMode ? (
               <div className={styles.botonesFin}>

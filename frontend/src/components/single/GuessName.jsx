@@ -93,10 +93,12 @@ function GuessName({
   const [wordSuccessFlash, setWordSuccessFlash] = useState(false);
   const [ballWobble, setBallWobble] = useState(false);
   const [dailyInfo, setDailyInfo] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef(null);
   const wordInputRef = useRef(null);
   const sessionRef = useRef(null);
   const skipAutoAbandonRef = useRef(false);
+  const revealRef = useRef(null);
   const wordFailFlashTimeoutRef = useRef(null);
   const wordSuccessFlashTimeoutRef = useRef(null);
   const ballWobbleTimeoutRef = useRef(null);
@@ -256,6 +258,23 @@ function GuessName({
     }, 1000);
     return () => window.clearInterval(timer);
   }, [isDailyMode]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1200px)");
+    const handleChange = () => setIsMobile(media.matches);
+    handleChange();
+    if (media.addEventListener) {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || !session?.ganado) return;
+    revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [isMobile, session?.ganado]);
 
   useEffect(() => {
     if (isDailyMode) return undefined;
@@ -684,14 +703,17 @@ function GuessName({
 
                   <div className={styles.usedLetters}>
                     <span className={styles.usedLabel}>USADAS:</span>
-                    {session.guessedLetters && session.guessedLetters.length > 0 ? (
+                    {session.guessedLetters &&
+                    session.guessedLetters.length > 0 ? (
                       [...session.guessedLetters].map((l) => (
                         <span key={l} className={styles.letterChip}>
                           {l}
                         </span>
                       ))
                     ) : (
-                      <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
+                      <span
+                        style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}
+                      >
                         -
                       </span>
                     )}
@@ -720,7 +742,11 @@ function GuessName({
                       {spriteUrl ? (
                         <img
                           src={spriteUrl}
-                          alt={session.gameOver ? session.pokemon.name : "Poke Ball"}
+                          alt={
+                            session.gameOver
+                              ? session.pokemon.name
+                              : "Poke Ball"
+                          }
                           className={styles.spriteImg}
                         />
                       ) : (
@@ -997,6 +1023,34 @@ function GuessName({
 
         {error && <p className={styles.error}>{error}</p>}
       </div>
+
+      {isMobile && (
+        <div ref={revealRef} className={styles.mobileSpriteDock}>
+          <div
+            className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""} ${wordFailFlash ? styles.spriteRevealFailFlash : ""} ${wordSuccessFlash ? styles.spriteRevealSuccessFlash : ""}`}
+          >
+            <img
+              src="/ball1.png"
+              alt="Poke Ball"
+              className={`${styles.ballImg} ${ballWobble ? styles.ballWobble : ""}`}
+            />
+
+            <div className={styles.spriteWhiteLayer} />
+
+            <div className={styles.spriteRevealInner}>
+              {spriteUrl ? (
+                <img
+                  src={spriteUrl}
+                  alt={session.gameOver ? session.pokemon.name : "Poke Ball"}
+                  className={styles.spriteImg}
+                />
+              ) : (
+                <span className={styles.spriteFallback}>SPRITE</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

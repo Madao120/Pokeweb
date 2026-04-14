@@ -310,6 +310,12 @@
   flex-direction: column;
 }
 
+.searchRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .searchInput {
   width: 100%;
   height: 44px;
@@ -319,6 +325,8 @@
   padding: 8px 10px;
   background: #f6f8fa;
   color: #25313c;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .dropdown {
@@ -331,6 +339,13 @@
   border: 2px solid #4a525a;
   background: #f2f5f8;
   z-index: 1;
+}
+
+.btnGuessCompact {
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 12px;
+  white-space: nowrap;
 }
 
 .optionRow {
@@ -692,11 +707,12 @@
 
   .middleColumn {
     order: 1;
-    height: 60%;
+    height: 80%;
+    margin-bottom: 1rem;
   }
 
   .leftColumn {
-    margin-top: -10rem;
+    margin-top: -5rem;
     padding-bottom: -30rem;
     order: 2;
   }
@@ -718,5 +734,38 @@
 
   .botonesFin {
     grid-template-columns: 1fr;
+  }
+
+  .imagePanel {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    gap: 12px;
+  }
+
+  .spriteViewport {
+    width: min(78vw, 320px);
+    aspect-ratio: 1 / 1;
+    height: min(78vw, 320px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .searchRow {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    max-height: 5rem;
+    margin-top: -1rem;
+  }
+
+  .btnGuessCompact {
+    height: 35px;
+    min-width: 110px;
+    padding: 0px;
+    margin: 0px;
+  }
+
+  .searchPanel {
+    gap: 12px;
   }
 }

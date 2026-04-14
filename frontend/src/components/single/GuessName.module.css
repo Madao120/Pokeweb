@@ -154,6 +154,13 @@
   min-width: 2rem;
 }
 
+.mobileSpriteDock {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+
 /* Caja de pistas encima del bloque gris */
 .hintsPanel {
   position: relative;
@@ -482,8 +489,8 @@
   padding: 24px 24px 8px;
   background: #d9dee2;
   clip-path: var(--bottom-panel-shape);
-  padding-right: 8rem;
-  padding-left: 8rem;
+  padding-left: 5.5rem;
+  padding-right: 5.5rem;
   --bottom-panel-shift: 0px;
   opacity: 0;
   transform: translateY(calc(34px + var(--bottom-panel-shift)));
@@ -1292,15 +1299,23 @@
 
   .wordPanel {
     order: 1;
-    width: 100%;
+    width: calc(100% - 16px);
     top: 0;
     margin-bottom: 0;
     min-height: 0;
-    padding: 14px 14px 12px;
+    padding-top: 1rem;
+    padding-right: 10%;
+    padding-left: 10%;
+    padding-bottom: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
   }
 
   .wordPanel .panelLabel {
     width: 100%;
+    align-self: center;
+    text-align: center;
   }
 
   .maskedWord,
@@ -1309,16 +1324,91 @@
     max-width: 100%;
   }
 
+  .maskedWord {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ptsPreview {
+    text-align: center;
+  }
+
   .gameLayout {
     flex-direction: column;
+    align-items: center;
+  }
+
+  .hintsPanel {
+    order: 1;
+    width: 100%;
+    flex-basis: auto;
+    margin-top: 0;
+  }
+
+  .mainColumn {
+    order: 2;
+    align-items: center;
+  }
+
+  .mainColumn {
+    display: contents;
+  }
+
+  .wordPanel .panelLabel {
+    order: 0;
+    align-self: center;
+    text-align: center;
+  }
+
+  .bottomPanel .panelLabel {
+    order: 0;
+    align-self: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .maskedWord {
+    order: 2;
+  }
+
+  .bottomRow {
+    order: 3;
+  }
+
+  .hintList {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .hintRow {
+    gap: 6px;
+  }
+
+  .hintKey {
+    width: 100%;
   }
 
   .bottomRow {
     flex-direction: column;
   }
 
+  .livesBar {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .usedLetters {
+    justify-content: center;
+  }
+
   .spriteDock {
-    align-items: center;
+    display: none;
+  }
+
+  .mobileSpriteDock {
+    display: flex;
+    order: 3;
   }
 
   .spriteReveal {
@@ -1327,20 +1417,28 @@
   }
 
   .hintsPanel {
-    width: 100%;
-    flex-basis: auto;
-  }
-
-  .hintsPanel {
     min-height: 0;
     height: auto;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .bottomPanel {
     order: 2;
-    width: 100%;
+    width: calc(100% - 16px);
     min-height: 0;
-    padding: 14px 14px 10px;
+    margin-left: auto;
+    margin-right: auto;
+    align-self: center;
+    padding-top: 1rem;
+    padding-right: 10%;
+    padding-left: 10%;
+    padding-bottom: 1rem;
+  }
+
+  .bottomPanel .panelLabel {
+    align-self: center;
+    text-align: center;
   }
 
   .guessActions {
@@ -1353,7 +1451,7 @@
   }
 
   .rankingPanel {
-    order: 3;
+    order: 4;
     position: relative !important;
     top: auto !important;
     right: auto !important;
