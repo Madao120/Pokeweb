@@ -66,7 +66,9 @@
   isolation: isolate;
   top: 1.8rem;
   margin-bottom: 2rem;
-  padding: 1rem 1.4rem 1.3rem;
+  padding-top: 1rem;
+  padding-left: 5.5rem;
+  padding-right: 5.5rem;
   opacity: 0;
   transform: translateX(-42px);
   transition:
@@ -113,44 +115,51 @@
   z-index: 1;
 }
 
-.gameplayGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(108px, 14vw, 172px) clamp(230px, 30%, 330px);
-  grid-template-rows: auto minmax(170px, 1fr);
-  grid-template-areas:
-    "top spacer hints"
-    "bottom sprite hints";
+.gameLayout {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.bottomRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.bottomLeft {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  min-height: 100%;
-}
-
-.mainTopPanel {
-  grid-area: top;
-}
-
-.mainBottomPanel {
-  grid-area: bottom;
-}
-
-.mainTopPanel,
-.mainBottomPanel {
-  padding: 0;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
 .spriteDock {
-  grid-area: sprite;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  flex: 0 0 auto;
+  min-height: 2rem;
+  min-width: 2rem;
 }
 
 /* Caja de pistas encima del bloque gris */
 .hintsPanel {
-  grid-area: hints;
   position: relative;
-  width: 100%;
-  height: 100%;
+  flex: 0 0 clamp(230px, 30%, 330px);
+  width: clamp(230px, 30%, 330px);
+  height: auto;
   min-height: 300px;
   background:
     linear-gradient(rgba(171, 178, 186, 0.5) 1px, transparent 1px),
@@ -163,14 +172,15 @@
   border: 4px solid #4a525a;
   box-shadow: inset 0 0 0 2px #fff;
   padding: 14px;
+  margin-top: 15px;
   min-width: 0;
   box-sizing: border-box;
 }
 
 .spriteReveal {
   position: relative;
-  width: clamp(96px, 100%, 172px);
-  height: clamp(120px, 15vw, 172px);
+  width: clamp(120px, 16vw, 176px);
+  height: clamp(120px, 16vw, 176px);
   z-index: 2;
   overflow: hidden;
   background-color: #f4f6f9;
@@ -884,8 +894,9 @@
 }
 
 @media (max-width: 1280px) {
-  .gameplayGrid {
-    grid-template-columns: minmax(0, 1fr) clamp(96px, 13vw, 156px) clamp(210px, 32%, 300px);
+  .hintsPanel {
+    flex-basis: clamp(210px, 32%, 300px);
+    width: clamp(210px, 32%, 300px);
   }
 }
 
@@ -906,28 +917,18 @@
   top: 0;
   margin-bottom: 0;
   min-height: auto;
-  padding-left: 1.2rem;
-  padding-right: 1.2rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
-.containerDaily .gameplayGrid {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto auto;
-  grid-template-areas:
-    "top"
-    "bottom"
-    "sprite"
-    "hints";
+.containerDaily .gameLayout {
+  flex-direction: column;
 }
 
 .containerDaily .spriteReveal {
   width: 130px;
   min-width: 130px;
   height: 130px;
-}
-
-.containerDaily .spriteDock {
-  justify-content: flex-start;
 }
 
 .containerDaily .hintsPanel {
@@ -1298,21 +1299,6 @@
     padding: 14px 14px 12px;
   }
 
-  .gameplayGrid {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto;
-    grid-template-areas:
-      "top"
-      "bottom"
-      "sprite"
-      "hints";
-  }
-
-  .mainTopPanel,
-  .mainBottomPanel {
-    width: 100%;
-  }
-
   .wordPanel .panelLabel {
     width: 100%;
   }
@@ -1323,14 +1309,26 @@
     max-width: 100%;
   }
 
+  .gameLayout {
+    flex-direction: column;
+  }
+
+  .bottomRow {
+    flex-direction: column;
+  }
+
   .spriteDock {
-    justify-content: center;
     align-items: center;
   }
 
   .spriteReveal {
     width: min(172px, 48vw);
     height: min(172px, 48vw);
+  }
+
+  .hintsPanel {
+    width: 100%;
+    flex-basis: auto;
   }
 
   .hintsPanel {

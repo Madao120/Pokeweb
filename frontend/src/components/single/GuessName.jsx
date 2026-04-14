@@ -262,9 +262,7 @@ function GuessName({
     const penalizeOnClose = () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
-        navigator.sendBeacon(
-          buildApiUrl(`/game/abandon?userId=${user.id}`),
-        );
+        navigator.sendBeacon(buildApiUrl(`/game/abandon?userId=${user.id}`));
       }
     };
 
@@ -285,7 +283,12 @@ function GuessName({
 
   const syncExitState = useCallback(async () => {
     const currentSession = sessionRef.current;
-    if (!isDailyMode && user?.id && currentSession && !currentSession.gameOver) {
+    if (
+      !isDailyMode &&
+      user?.id &&
+      currentSession &&
+      !currentSession.gameOver
+    ) {
       skipAutoAbandonRef.current = true;
       try {
         await abandonGame(user.id);
@@ -651,78 +654,80 @@ function GuessName({
         <div
           className={`${styles.panel} ${styles.wordPanel} ${panelsVisible ? styles.wordPanelVisible : ""}`}
         >
-          <div className={styles.gameplayGrid}>
-            <div className={styles.mainTopPanel}>
+          <div className={styles.gameLayout}>
+            <div className={styles.mainColumn}>
               <p className={styles.panelLabel}>Pokemon a adivinar</p>
               <p className={maskedWordClassName}>
                 {session.maskedWord.split("").join(" ")}
               </p>
-            </div>
 
-            <div className={styles.mainBottomPanel}>
-              {!isDailyMode && (
-                <div className={styles.livesBar}>
-                  PS&nbsp;
-                  {Array.from({ length: MAX_INTENTOS }, (_, i) => {
-                    const remaining = MAX_INTENTOS - intentos;
-                    let colorClass = styles.lifeGreen;
-                    if (remaining <= 2) colorClass = styles.lifeRed;
-                    else if (remaining <= 4) colorClass = styles.lifeYellow;
-                    const isUsed = i < intentos;
-                    return (
-                      <span
-                        key={i}
-                        className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className={styles.usedLetters}>
-                <span className={styles.usedLabel}>USADAS:</span>
-                {session.guessedLetters && session.guessedLetters.length > 0 ? (
-                  [...session.guessedLetters].map((l) => (
-                    <span key={l} className={styles.letterChip}>
-                      {l}
-                    </span>
-                  ))
-                ) : (
-                  <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
-                    -
-                  </span>
-                )}
-              </div>
-
-              {puntosActuales !== null && (
-                <p className={styles.ptsPreview}>
-                  +{puntosActuales} PTS SI ADIVINAS
-                </p>
-              )}
-            </div>
-
-            <div className={styles.spriteDock}>
-              <div
-                className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""} ${wordFailFlash ? styles.spriteRevealFailFlash : ""} ${wordSuccessFlash ? styles.spriteRevealSuccessFlash : ""}`}
-              >
-                <img
-                  src="/ball1.png"
-                  alt="Poke Ball"
-                  className={`${styles.ballImg} ${ballWobble ? styles.ballWobble : ""}`}
-                />
-
-                <div className={styles.spriteWhiteLayer} />
-
-                <div className={styles.spriteRevealInner}>
-                  {spriteUrl ? (
-                    <img
-                      src={spriteUrl}
-                      alt={session.gameOver ? session.pokemon.name : "Poke Ball"}
-                      className={styles.spriteImg}
-                    />
-                  ) : (
-                    <span className={styles.spriteFallback}>SPRITE</span>
+              <div className={styles.bottomRow}>
+                <div className={styles.bottomLeft}>
+                  {!isDailyMode && (
+                    <div className={styles.livesBar}>
+                      PS&nbsp;
+                      {Array.from({ length: MAX_INTENTOS }, (_, i) => {
+                        const remaining = MAX_INTENTOS - intentos;
+                        let colorClass = styles.lifeGreen;
+                        if (remaining <= 2) colorClass = styles.lifeRed;
+                        else if (remaining <= 4) colorClass = styles.lifeYellow;
+                        const isUsed = i < intentos;
+                        return (
+                          <span
+                            key={i}
+                            className={`${styles.lifeBlock} ${isUsed ? styles.lifeUsed : colorClass}`}
+                          />
+                        );
+                      })}
+                    </div>
                   )}
+
+                  <div className={styles.usedLetters}>
+                    <span className={styles.usedLabel}>USADAS:</span>
+                    {session.guessedLetters && session.guessedLetters.length > 0 ? (
+                      [...session.guessedLetters].map((l) => (
+                        <span key={l} className={styles.letterChip}>
+                          {l}
+                        </span>
+                      ))
+                    ) : (
+                      <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>
+                        -
+                      </span>
+                    )}
+                  </div>
+
+                  {puntosActuales !== null && (
+                    <p className={styles.ptsPreview}>
+                      +{puntosActuales} PTS SI ADIVINAS
+                    </p>
+                  )}
+                </div>
+
+                <div className={styles.spriteDock}>
+                  <div
+                    className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""} ${wordFailFlash ? styles.spriteRevealFailFlash : ""} ${wordSuccessFlash ? styles.spriteRevealSuccessFlash : ""}`}
+                  >
+                    <img
+                      src="/ball1.png"
+                      alt="Poke Ball"
+                      className={`${styles.ballImg} ${ballWobble ? styles.ballWobble : ""}`}
+                    />
+
+                    <div className={styles.spriteWhiteLayer} />
+
+                    <div className={styles.spriteRevealInner}>
+                      {spriteUrl ? (
+                        <img
+                          src={spriteUrl}
+                          alt={session.gameOver ? session.pokemon.name : "Poke Ball"}
+                          className={styles.spriteImg}
+                        />
+                      ) : (
+                        <span className={styles.spriteFallback}>SPRITE</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
