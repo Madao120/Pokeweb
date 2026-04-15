@@ -3,6 +3,9 @@ package com.example.demo.dto.room;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.example.demo.dto.pokemon.PokemonM2;
+import com.example.demo.dto.pokemon.PokemonOptionM3;
 import lombok.Data;
 
 /**
@@ -40,9 +43,12 @@ public class RoomStateDTO {
 
     // Si cada jugador ha terminado ya
     private Map<Long, Boolean> playerFinished;
+    private Map<Long, Integer> playerLives;
+    private Map<Long, Integer> playerHits;
 
     // Orden de llegada (para mostrar posiciones en tiempo real)
     private List<Long> finishOrder;
+    private Map<Long, Long> finishTimesMs;
 
     // Votaciones en sala
     private Map<String, Integer> modeVotes;
@@ -75,5 +81,24 @@ public class RoomStateDTO {
         private boolean mostrarGeneracion;
         private boolean mostrarTipo2;
         private Set<Character> guessedLetters;
+        private PokemonM2 currentRoundSound;
+        private int currentRoundNumber;
+        private int totalRounds;
+        private int totalLives;
+        private int aciertos;
+        private int fallos;
+        private int vidasRestantes;
+        private int unresolvedRounds;
+        private boolean finishedByTimeout;
+        private long completedAtMs;
+        private int puntosGanados;
+        private Boolean ultimoAcierto;
+        private String ultimoPokemonCorrecto;
+        private PokemonOptionM3 pokemon;
+        private double focusX;
+        private double focusY;
+        private double zoomActual;
+        private int maxFallos;
+        private long nextGuessAllowedAtMs;
     }
 }

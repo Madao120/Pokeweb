@@ -130,6 +130,30 @@ public class RoomController {
         return ResponseEntity.ok(dto);
     }
 
+    @PostMapping("/{code}/guess-sound")
+    public ResponseEntity<RoomStateDTO> guessSound(
+            @PathVariable String code,
+            @RequestParam Long userId,
+            @RequestParam Long pokemonId) {
+
+        RoomStateDTO dto = roomService.guessSound(code, userId, pokemonId);
+        Room room = roomService.getRoom(code);
+        broadcastRoomState(code, room, dto.getMessage());
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{code}/guess-sprite")
+    public ResponseEntity<RoomStateDTO> guessSprite(
+            @PathVariable String code,
+            @RequestParam Long userId,
+            @RequestParam Long pokemonId) {
+
+        RoomStateDTO dto = roomService.guessSprite(code, userId, pokemonId);
+        Room room = roomService.getRoom(code);
+        broadcastRoomState(code, room, dto.getMessage());
+        return ResponseEntity.ok(dto);
+    }
+
     @PostMapping("/{code}/next-round")
     public ResponseEntity<RoomStateDTO> nextRound(
             @PathVariable String code,

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import com.example.demo.dto.room.RoomStateDTO;
 import com.example.demo.dto.room.RoomStateDTO.PlayerSessionDTO;
 import com.example.demo.model.GameSession;
+import com.example.demo.model.GameSessionM2;
+import com.example.demo.model.GameSessionM3Multi;
 import com.example.demo.model.Room;
 import com.example.demo.model.Room.State;
 
@@ -121,18 +123,46 @@ public class RoomService {
         if (room.getPlayerIds().size() < 2)
             throw new RuntimeException("NOT_ENOUGH_PLAYERS");
 
-        // Crear una GameSession POR JUGADOR con el MISMO pokemon
-        var pokemon = pokemonApiService.getRandomPokemon();
-        room.getPlayerIds().forEach(pid ->
-            room.getPlayerSessions().put(pid, new GameSession(pokemon))
-        );
-
         room.setCurrentMode(mode);
         room.setState(State.PLAYING);
+        room.configureRoundDuration(mode);
         room.setRoundStartTime(Instant.now().plusMillis(3000));
         room.getFinishOrder().clear();
+        room.getFinishTimesMs().clear();
         room.getPostRoundVotes().clear();
         room.getLastRoundPoints().clear();
+
+        if (mode == Room.GameMode.GUESS_SOUND) {
+            var rounds = pokemonApiService.buildGuessSoundRounds(4);
+            room.setSoundRounds(rounds);
+            room.getPlayerIds().forEach(pid ->
+                room.getPlayerSoundSessions().put(pid, new GameSessionM2(rounds))
+            );
+            room.getPlayerSessions().clear();
+            room.getPlayerSpriteSessions().clear();
+        } else if (mode == Room.GameMode.GUESS_SPRITE) {
+            var pokemon = pokemonApiService.getRandomPokemonOptionM3();
+            double focusX = 20 + ThreadLocalRandom.current().nextDouble() * 60;
+            double focusY = 20 + ThreadLocalRandom.current().nextDouble() * 60;
+            double zoomInicial = 3.1 + ThreadLocalRandom.current().nextDouble() * 1.8;
+
+            room.getPlayerIds().forEach(pid ->
+                room.getPlayerSpriteSessions().put(
+                    pid,
+                    new GameSessionM3Multi(pokemon, focusX, focusY, zoomInicial)
+                )
+            );
+            room.getPlayerSessions().clear();
+            room.getPlayerSoundSessions().clear();
+        } else {
+            // Crear una GameSession POR JUGADOR con el MISMO pokemon
+            var pokemon = pokemonApiService.getRandomPokemon();
+            room.getPlayerIds().forEach(pid ->
+                room.getPlayerSessions().put(pid, new GameSession(pokemon))
+            );
+            room.getPlayerSoundSessions().clear();
+            room.getPlayerSpriteSessions().clear();
+        }
 
         return room;
     }
@@ -144,6 +174,8 @@ public class RoomService {
 
         if (room.getState() != State.PLAYING)
             throw new RuntimeException("ROOM_NOT_PLAYING");
+        if (room.getCurrentMode() != Room.GameMode.HANGMAN)
+            throw new RuntimeException("INVALID_GAME_MODE");
         if (!room.getPlayerIds().contains(userId))
             throw new RuntimeException("NOT_IN_ROOM");
 
@@ -183,6 +215,8 @@ public class RoomService {
 
         if (room.getState() != State.PLAYING)
             throw new RuntimeException("ROOM_NOT_PLAYING");
+        if (room.getCurrentMode() != Room.GameMode.HANGMAN)
+            throw new RuntimeException("INVALID_GAME_MODE");
         if (!room.getPlayerIds().contains(userId))
             throw new RuntimeException("NOT_IN_ROOM");
         if (room.isCountdownActive()) {
@@ -209,11 +243,86 @@ public class RoomService {
         return toDTO(room, userId, null);
     }
 
+    public RoomStateDTO guessSound(String code, Long userId, Long pokemonId) {
+        Room room = getRoom(code);
+
+        if (room.getState() != State.PLAYING)
+            throw new RuntimeException("ROOM_NOT_PLAYING");
+        if (room.getCurrentMode() != Room.GameMode.GUESS_SOUND)
+            throw new RuntimeException("INVALID_GAME_MODE");
+        if (!room.getPlayerIds().contains(userId))
+            throw new RuntimeException("NOT_IN_ROOM");
+        if (room.isCountdownActive()) {
+            throw new RuntimeException("ROUND_COUNTDOWN_ACTIVE");
+        }
+        if (room.isTimeUp()) {
+            return finishRoundByTimeout(room);
+        }
+
+        GameSessionM2 session = room.getPlayerSoundSessions().get(userId);
+        if (session == null || session.isGameOver()) {
+            return toDTO(room, userId, null);
+        }
+
+        session.adivinarPokemon(pokemonId);
+        if (session.isGameOver()) {
+            session.markCompleted(room.getElapsedRoundMs());
+            room.getFinishTimesMs().putIfAbsent(userId, session.getCompletedAtMs());
+        }
+
+        if (room.allFinished() || room.isTimeUp()) {
+            return finishRound(room, userId);
+        }
+
+        return toDTO(room, userId, null);
+    }
+
+    public RoomStateDTO guessSprite(String code, Long userId, Long pokemonId) {
+        Room room = getRoom(code);
+
+        if (room.getState() != State.PLAYING)
+            throw new RuntimeException("ROOM_NOT_PLAYING");
+        if (room.getCurrentMode() != Room.GameMode.GUESS_SPRITE)
+            throw new RuntimeException("INVALID_GAME_MODE");
+        if (!room.getPlayerIds().contains(userId))
+            throw new RuntimeException("NOT_IN_ROOM");
+        if (room.isCountdownActive()) {
+            throw new RuntimeException("ROUND_COUNTDOWN_ACTIVE");
+        }
+        if (room.isTimeUp()) {
+            return finishRoundByTimeout(room);
+        }
+
+        GameSessionM3Multi session = room.getPlayerSpriteSessions().get(userId);
+        if (session == null || session.isGameOver()) {
+            return toDTO(room, userId, null);
+        }
+        if (session.isGuessBlocked()) {
+            throw new RuntimeException("GUESS_SPRITE_COOLDOWN_ACTIVE");
+        }
+
+        session.adivinarPokemon(pokemonId, room.getElapsedRoundMs());
+        if (session.isGameOver() && session.isGanado()) {
+            room.getFinishOrder().add(userId);
+            room.getFinishTimesMs().putIfAbsent(userId, session.getCompletedAtMs());
+        }
+
+        if (room.allFinished() || room.isTimeUp()) {
+            return finishRound(room, userId);
+        }
+
+        return toDTO(room, userId, null);
+    }
+
     // ── Terminar ronda (todos acabaron o timeout) ─────────────────────────────
 
     private RoomStateDTO finishRound(Room room, Long requestingUserId) {
         room.setState(State.ROUND_FINISHED);
-        room.calculateRoundPoints();
+        if (room.getCurrentMode() == Room.GameMode.GUESS_SOUND) {
+            calculateGuessSoundRoundPoints(room);
+        } else {
+            room.calculateRoundPoints();
+        }
         return toDTO(room, requestingUserId, "¡Ronda terminada!");
     }
 
@@ -221,13 +330,31 @@ public class RoomService {
         if (room.getState() == State.ROUND_FINISHED) {
             return toDTO(room, null, null);
         }
-        // Marcar como gameOver a los que no terminaron
-        room.getPlayerSessions().forEach((pid, session) -> {
-            if (!session.isGameOver()) {
-                session.setGameOver(true);
-                session.setGanado(false);
-            }
-        });
+        if (room.getCurrentMode() == Room.GameMode.GUESS_SOUND) {
+            long elapsedMs = room.getElapsedRoundMs();
+            room.getPlayerSoundSessions().forEach((pid, session) -> {
+                if (!session.isGameOver()) {
+                    session.finishByTimeout(elapsedMs);
+                } else if (session.getCompletedAtMs() == 0L) {
+                    session.markCompleted(elapsedMs);
+                }
+                room.getFinishTimesMs().putIfAbsent(pid, session.getCompletedAtMs());
+            });
+        } else if (room.getCurrentMode() == Room.GameMode.GUESS_SPRITE) {
+            room.getPlayerSpriteSessions().forEach((pid, session) -> {
+                if (!session.isGameOver()) {
+                    session.finishByTimeout();
+                }
+            });
+        } else {
+            // Marcar como gameOver a los que no terminaron
+            room.getPlayerSessions().forEach((pid, session) -> {
+                if (!session.isGameOver()) {
+                    session.setGameOver(true);
+                    session.setGanado(false);
+                }
+            });
+        }
         return finishRound(room, null);
     }
 
@@ -308,6 +435,38 @@ public class RoomService {
 
     // ── toDTO ─────────────────────────────────────────────────────────────────
 
+    private void calculateGuessSoundRoundPoints(Room room) {
+        int n = room.getPlayerIds().size();
+        room.getLastRoundPoints().clear();
+        room.getFinishOrder().clear();
+
+        List<Long> rankedPlayers = room.getPlayerIds().stream()
+            .sorted(
+                Comparator
+                    .comparingInt((Long pid) -> {
+                        GameSessionM2 session = room.getPlayerSoundSessions().get(pid);
+                        return session == null ? 0 : session.getVidasRestantes();
+                    })
+                    .reversed()
+                    .thenComparingLong(pid -> room.getFinishTimesMs().getOrDefault(pid, Long.MAX_VALUE))
+            )
+            .collect(Collectors.toList());
+
+        int rankedIndex = 0;
+        for (Long pid : rankedPlayers) {
+            GameSessionM2 session = room.getPlayerSoundSessions().get(pid);
+            room.getFinishOrder().add(pid);
+
+            int points = 0;
+            if (session != null && session.getVidasRestantes() > 0) {
+                points = (n - rankedIndex) * 2;
+                rankedIndex++;
+                room.getRoundScores().merge(pid, points, Integer::sum);
+            }
+            room.getLastRoundPoints().put(pid, points);
+        }
+    }
+
     public RoomStateDTO toDTO(Room room, Long requestingUserId, String message) {
         RoomStateDTO dto = new RoomStateDTO();
         dto.setRoomCode(room.getRoomCode());
@@ -315,6 +474,7 @@ public class RoomService {
         dto.setLeaderId(room.getLeaderId());
         dto.setPlayerIds(new ArrayList<>(room.getPlayerIds()));
         dto.setFinishOrder(new ArrayList<>(room.getFinishOrder()));
+        dto.setFinishTimesMs(new HashMap<>(room.getFinishTimesMs()));
         dto.setRoundScores(new HashMap<>(room.getRoundScores()));
         dto.setRemainingMs(room.getRemainingMs());
         dto.setCountdownRemainingMs(room.getCountdownRemainingMs());
@@ -328,28 +488,66 @@ public class RoomService {
 
         // Sesión individual del jugador que hace la petición
         if (requestingUserId != null) {
-            GameSession mySession = room.getPlayerSessions().get(requestingUserId);
-            if (mySession != null) {
-                dto.setMySession(toSessionDTO(mySession));
-                applyTimeBasedHints(dto, room);
-                if (mySession.isGameOver()) {
-                    dto.setPokemonName(mySession.getPokemon().getName());
+            if (room.getCurrentMode() == Room.GameMode.GUESS_SOUND) {
+                GameSessionM2 mySoundSession = room.getPlayerSoundSessions().get(requestingUserId);
+                if (mySoundSession != null) {
+                    dto.setMySession(toSessionDTO(mySoundSession));
                 }
-                dto.setPokemonType1(mySession.getPokemon().getType1());
-                dto.setPokemonType2(mySession.getPokemon().getType2());
-                dto.setPokemonGeneration(mySession.getPokemon().getGeneration());
+            } else if (room.getCurrentMode() == Room.GameMode.GUESS_SPRITE) {
+                GameSessionM3Multi mySpriteSession = room.getPlayerSpriteSessions().get(requestingUserId);
+                if (mySpriteSession != null) {
+                    dto.setMySession(toSessionDTO(mySpriteSession));
+                    if (mySpriteSession.isGameOver()) {
+                        dto.setPokemonName(mySpriteSession.getPokemon().getName());
+                    }
+                }
+            } else {
+                GameSession mySession = room.getPlayerSessions().get(requestingUserId);
+                if (mySession != null) {
+                    dto.setMySession(toSessionDTO(mySession));
+                    applyTimeBasedHints(dto, room);
+                    if (mySession.isGameOver()) {
+                        dto.setPokemonName(mySession.getPokemon().getName());
+                    }
+                    dto.setPokemonType1(mySession.getPokemon().getType1());
+                    dto.setPokemonType2(mySession.getPokemon().getType2());
+                    dto.setPokemonGeneration(mySession.getPokemon().getGeneration());
+                }
             }
         }
 
         // Progreso de todos los jugadores
         Map<Long, String> maskedWords = new HashMap<>();
         Map<Long, Boolean> finished = new HashMap<>();
-        room.getPlayerSessions().forEach((pid, s) -> {
-            maskedWords.put(pid, s.getMaskedWord());
-            finished.put(pid, s.isGameOver());
-        });
+        Map<Long, Integer> lives = new HashMap<>();
+        Map<Long, Integer> hits = new HashMap<>();
+        if (room.getCurrentMode() == Room.GameMode.GUESS_SOUND) {
+            room.getPlayerSoundSessions().forEach((pid, s) -> {
+                maskedWords.put(pid, "R" + s.getCurrentRoundNumber() + "/" + s.getTotalRounds());
+                finished.put(pid, s.isGameOver());
+                lives.put(pid, s.getVidasRestantes());
+                hits.put(pid, s.getAciertos());
+            });
+        } else if (room.getCurrentMode() == Room.GameMode.GUESS_SPRITE) {
+            room.getPlayerSpriteSessions().forEach((pid, s) -> {
+                maskedWords.put(
+                    pid,
+                    s.isGanado() ? "ACERTADO" : s.getFallos() + "/" + s.getMaxFallos() + " fallos"
+                );
+                finished.put(pid, s.isGameOver());
+                lives.put(pid, Math.max(0, s.getMaxFallos() - Math.min(s.getFallos(), s.getMaxFallos())));
+                hits.put(pid, s.isGanado() ? 1 : 0);
+            });
+        } else {
+            room.getPlayerSessions().forEach((pid, s) -> {
+                maskedWords.put(pid, s.getMaskedWord());
+                finished.put(pid, s.isGameOver());
+            });
+        }
         dto.setPlayerMaskedWords(maskedWords);
         dto.setPlayerFinished(finished);
+        dto.setPlayerLives(lives);
+        dto.setPlayerHits(hits);
 
         // Puntos de última ronda
         if (!room.getLastRoundPoints().isEmpty())
@@ -392,6 +590,42 @@ public class RoomService {
         dto.setMostrarGeneracion(false);
         dto.setMostrarTipo2(false);
         dto.setGuessedLetters(new HashSet<>(s.getGuessedLetters()));
+        return dto;
+    }
+
+    private PlayerSessionDTO toSessionDTO(GameSessionM2 s) {
+        PlayerSessionDTO dto = new PlayerSessionDTO();
+        dto.setGameOver(s.isGameOver());
+        dto.setGanado(s.getVidasRestantes() > 0);
+        dto.setCurrentRoundSound(s.getCurrentRound());
+        dto.setCurrentRoundNumber(s.getCurrentRoundNumber());
+        dto.setTotalRounds(s.getTotalRounds());
+        dto.setTotalLives(s.getTotalLives());
+        dto.setAciertos(s.getAciertos());
+        dto.setFallos(s.getFallos());
+        dto.setVidasRestantes(s.getVidasRestantes());
+        dto.setUnresolvedRounds(s.getUnresolvedRounds());
+        dto.setFinishedByTimeout(s.isFinishedByTimeout());
+        dto.setCompletedAtMs(s.getCompletedAtMs());
+        dto.setPuntosGanados(s.getPuntosGanados());
+        dto.setUltimoAcierto(s.getUltimoAcierto());
+        dto.setUltimoPokemonCorrecto(s.getUltimoPokemonCorrecto());
+        return dto;
+    }
+
+    private PlayerSessionDTO toSessionDTO(GameSessionM3Multi s) {
+        PlayerSessionDTO dto = new PlayerSessionDTO();
+        dto.setGameOver(s.isGameOver());
+        dto.setGanado(s.isGanado());
+        dto.setFallos(s.getFallos());
+        dto.setPuntosGanados(s.getPuntosGanados());
+        dto.setPokemon(s.getPokemon());
+        dto.setFocusX(s.getFocusX());
+        dto.setFocusY(s.getFocusY());
+        dto.setZoomActual(s.getZoomActual());
+        dto.setMaxFallos(s.getMaxFallos());
+        dto.setNextGuessAllowedAtMs(s.getNextGuessAllowedAtMs());
+        dto.setCompletedAtMs(s.getCompletedAtMs());
         return dto;
     }
 

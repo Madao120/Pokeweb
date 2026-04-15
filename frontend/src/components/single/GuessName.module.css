@@ -432,6 +432,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .hintKey {
@@ -451,6 +452,8 @@
   line-height: 1.2;
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .bottomPanel {

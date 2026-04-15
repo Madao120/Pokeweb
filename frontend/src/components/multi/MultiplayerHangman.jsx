@@ -4,6 +4,10 @@ import styles from "./MultiplayerHangman.module.css";
 
 const LETTER_COOLDOWN_MS = 5000;
 const WORD_COOLDOWN_MS = 5000;
+const ROUND_DURATION_MS = 3 * 60 * 1000;
+const TYPE_1_REVEAL_MS = 60 * 1000;
+const GENERATION_REVEAL_MS = 2 * 60 * 1000;
+const TYPE_2_REVEAL_MS = 2 * 60 * 1000 + 30 * 1000;
 
 function formatClock(ms) {
   const safeMs = Math.max(0, ms || 0);
@@ -25,6 +29,13 @@ function sanitizeWordInput(value) {
 
 function normalizeName(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function toTypeClassName(value) {
+  return normalizeName(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z]/g, "");
 }
 
 function buildOrderedPlayers(orderedPlayers, roomState) {
@@ -69,6 +80,11 @@ function MultiplayerHangman({
   const [timerNow, setTimerNow] = useState(Date.now());
   const [spriteUrl, setSpriteUrl] = useState(null);
   const timeoutRefreshRef = useRef(false);
+  const hintRefreshRef = useRef({
+    type1: false,
+    generation: false,
+    type2: false,
+  });
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -80,6 +96,11 @@ function MultiplayerHangman({
 
   useEffect(() => {
     timeoutRefreshRef.current = false;
+    hintRefreshRef.current = {
+      type1: false,
+      generation: false,
+      type2: false,
+    };
   }, [roomState?.state, roomState?.countdownRemainingMs, roomState?.remainingMs]);
 
   useEffect(() => {
@@ -134,6 +155,19 @@ function MultiplayerHangman({
     return Math.max(0, base - Math.max(0, timerNow - syncedAt - (roomState?.countdownRemainingMs || 0)));
   }, [roomState, timerNow]);
 
+  const elapsedRoundMs = useMemo(() => {
+    if (!isPlaying || countdownRemaining > 0) return 0;
+    return Math.max(0, ROUND_DURATION_MS - roundRemaining);
+  }, [countdownRemaining, isPlaying, roundRemaining]);
+
+  const mostrarTipo1 = Boolean(session?.mostrarTipo1) || elapsedRoundMs >= TYPE_1_REVEAL_MS;
+  const mostrarGeneracion =
+    Boolean(session?.mostrarGeneracion) || elapsedRoundMs >= GENERATION_REVEAL_MS;
+  const mostrarTipo2 = Boolean(session?.mostrarTipo2) || elapsedRoundMs >= TYPE_2_REVEAL_MS;
+
+  const type1Class = styles[`type${toTypeClassName(roomState?.pokemonType1)}`] || "";
+  const type2Class = styles[`type${toTypeClassName(roomState?.pokemonType2)}`] || "";
+
   useEffect(() => {
     if (!isPlaying) return;
     if (countdownRemaining > 0 || roundRemaining > 0 || timeoutRefreshRef.current) {
@@ -142,6 +176,26 @@ function MultiplayerHangman({
     timeoutRefreshRef.current = true;
     onRefreshState?.();
   }, [countdownRemaining, isPlaying, onRefreshState, roundRemaining]);
+
+  useEffect(() => {
+    if (!isPlaying || countdownRemaining > 0) return;
+
+    const milestones = [
+      ["type1", elapsedRoundMs >= TYPE_1_REVEAL_MS],
+      ["generation", elapsedRoundMs >= GENERATION_REVEAL_MS],
+      ["type2", elapsedRoundMs >= TYPE_2_REVEAL_MS],
+    ];
+
+    const shouldRefresh = milestones.some(([key, reached]) => {
+      if (!reached || hintRefreshRef.current[key]) return false;
+      hintRefreshRef.current[key] = true;
+      return true;
+    });
+
+    if (shouldRefresh) {
+      onRefreshState?.();
+    }
+  }, [countdownRemaining, elapsedRoundMs, isPlaying, onRefreshState]);
 
   const letterCooldownMs = Math.max(0, letterCooldownUntil - timerNow);
   const wordCooldownMs = Math.max(0, wordCooldownUntil - timerNow);
@@ -235,7 +289,11 @@ function MultiplayerHangman({
   return (
     <div className={styles.page}>
       <div className={styles.shell}>
-        <main className={styles.mainPanel}>
+        <main
+          className={`${styles.mainPanel} ${
+            isRoundFinished || isMatchFinished ? styles.mainPanelEndState : ""
+          }`}
+        >
           {!isMatchFinished ? (
             <>
               <div className={styles.mainTop}>
@@ -322,8 +380,10 @@ function MultiplayerHangman({
                       <div className={styles.hintList}>
                         <div className={styles.hintRow}>
                           <span className={styles.hintKey}>Tipo 1:</span>
-                          <strong className={styles.hintValue}>
-                            {session?.mostrarTipo1
+                          <strong
+                            className={`${mostrarTipo1 ? styles.typeBadge : styles.hintValue} ${mostrarTipo1 ? type1Class : ""}`}
+                          >
+                            {mostrarTipo1
                               ? roomState?.pokemonType1 || "-"
                               : "Se revela al 1:00"}
                           </strong>
@@ -331,15 +391,17 @@ function MultiplayerHangman({
                         <div className={styles.hintRow}>
                           <span className={styles.hintKey}>Generacion:</span>
                           <strong className={styles.hintValue}>
-                            {session?.mostrarGeneracion
+                            {mostrarGeneracion
                               ? roomState?.pokemonGeneration || "-"
                               : "Se revela al 2:00"}
                           </strong>
                         </div>
                         <div className={styles.hintRow}>
                           <span className={styles.hintKey}>Tipo 2:</span>
-                          <strong className={styles.hintValue}>
-                            {session?.mostrarTipo2
+                          <strong
+                            className={`${mostrarTipo2 ? styles.typeBadge : styles.hintValue} ${mostrarTipo2 ? type2Class : ""}`}
+                          >
+                            {mostrarTipo2
                               ? roomState?.pokemonType2 || "ninguno"
                               : "Se revela al 2:30"}
                           </strong>
@@ -349,72 +411,74 @@ function MultiplayerHangman({
                   </div>
                 </section>
 
-                <aside className={styles.playersPanel}>
-                  <div className={styles.sideHeader}>
-                    <p className={styles.sideTitle}>TOP GAME</p>
-                    <span className={styles.connectionTag}>
-                      {socketConnected ? "Conectado" : "Sin conexion"}
-                    </span>
-                  </div>
+                {!isRoundFinished && (
+                  <aside className={styles.playersPanel}>
+                    <div className={styles.sideHeader}>
+                      <p className={styles.sideTitle}>TOP GAME</p>
+                      <span className={styles.connectionTag}>
+                        {socketConnected ? "Conectado" : "Sin conexion"}
+                      </span>
+                    </div>
 
-                  <div className={styles.playersList}>
-                    {orderedRoomPlayers.map((player, index) => {
-                      const finishedIndex = roomState?.finishOrder?.findIndex(
-                        (id) => String(id) === String(player.id),
-                      );
-                      const hasFinished = finishedIndex !== -1;
-                      const playerDone = roomState?.playerFinished?.[player.id];
-                      const roundPoints =
-                        roomState?.lastRoundPoints?.[player.id] ?? 0;
-                      const totalPoints =
-                        roomState?.roundScores?.[player.id] ?? 0;
-                      let status = "Jugando";
-                      if (!isPlaying && !isRoundFinished && !isMatchFinished) {
-                        status = "Preparado";
-                      }
-                      if (hasFinished) status = `#${finishedIndex + 1} terminado`;
-                      if (!hasFinished && playerDone && isRoundFinished) {
-                        status = "Sin puntos";
-                      }
-                      if (isMatchFinished) status = `${totalPoints} pts`;
+                    <div className={styles.playersList}>
+                      {orderedRoomPlayers.map((player, index) => {
+                        const finishedIndex = roomState?.finishOrder?.findIndex(
+                          (id) => String(id) === String(player.id),
+                        );
+                        const hasFinished = finishedIndex !== -1;
+                        const playerDone = roomState?.playerFinished?.[player.id];
+                        const roundPoints =
+                          roomState?.lastRoundPoints?.[player.id] ?? 0;
+                        const totalPoints =
+                          roomState?.roundScores?.[player.id] ?? 0;
+                        let status = "Jugando";
+                        if (!isPlaying && !isRoundFinished && !isMatchFinished) {
+                          status = "Preparado";
+                        }
+                        if (hasFinished) status = `#${finishedIndex + 1} terminado`;
+                        if (!hasFinished && playerDone && isRoundFinished) {
+                          status = "Sin puntos";
+                        }
+                        if (isMatchFinished) status = `${totalPoints} pts`;
 
-                      return (
-                        <article
-                          key={player.id}
-                          className={`${styles.playerCard} ${String(player.id) === String(user?.id) ? styles.playerCardSelf : ""}`}
-                        >
-                          <div className={styles.playerPos}>
-                            {isMatchFinished
-                              ? `#${index + 1}`
-                              : hasFinished
-                                ? `#${finishedIndex + 1}`
-                                : "..."}
-                          </div>
-                          {player.profilePictureUrl ? (
-                            <img
-                              className={styles.playerAvatar}
-                              src={player.profilePictureUrl}
-                              alt={player.name}
-                            />
-                          ) : (
-                            <div className={styles.playerAvatarFallback}>
-                              {player.name.charAt(0).toUpperCase()}
+                        return (
+                          <article
+                            key={player.id}
+                            className={`${styles.playerCard} ${String(player.id) === String(user?.id) ? styles.playerCardSelf : ""}`}
+                          >
+                            <div className={styles.playerPos}>
+                              {isMatchFinished
+                                ? `#${index + 1}`
+                                : hasFinished
+                                  ? `#${finishedIndex + 1}`
+                                  : "..."}
                             </div>
-                          )}
-                          <div className={styles.playerMeta}>
-                            <p className={styles.playerName}>{player.name}</p>
-                            <p className={styles.playerStatus}>{status}</p>
-                            {!isMatchFinished && isRoundFinished && (
-                              <p className={styles.playerPoints}>
-                                +{roundPoints} pts
-                              </p>
+                            {player.profilePictureUrl ? (
+                              <img
+                                className={styles.playerAvatar}
+                                src={player.profilePictureUrl}
+                                alt={player.name}
+                              />
+                            ) : (
+                              <div className={styles.playerAvatarFallback}>
+                                {player.name.charAt(0).toUpperCase()}
+                              </div>
                             )}
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                </aside>
+                            <div className={styles.playerMeta}>
+                              <p className={styles.playerName}>{player.name}</p>
+                              <p className={styles.playerStatus}>{status}</p>
+                              {!isMatchFinished && isRoundFinished && (
+                                <p className={styles.playerPoints}>
+                                  +{roundPoints} pts
+                                </p>
+                              )}
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </aside>
+                )}
               </div>
 
               {session?.gameOver && roomState?.pokemonName && (
@@ -502,15 +566,28 @@ function MultiplayerHangman({
                   <div className={styles.resultsList}>
                     {finalists.map((player, index) => (
                       <div className={styles.resultRow} key={player.id}>
-                        <span>#{index + 1}</span>
-                        <span>{player.name}</span>
-                        <span>+{player.roundPoints} pts</span>
+                        <span className={styles.resultPos}>#{index + 1}</span>
+                        {player.profilePictureUrl ? (
+                          <img
+                            className={styles.resultAvatar}
+                            src={player.profilePictureUrl}
+                            alt={player.name}
+                          />
+                        ) : (
+                          <div className={styles.resultAvatarFallback}>
+                            {player.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className={styles.resultName}>{player.name}</span>
+                        <span className={styles.resultScore}>
+                          +{player.roundPoints} pts
+                        </span>
                       </div>
                     ))}
                   </div>
                   <div className={styles.hostActions}>
                     <button
-                      className={`${styles.primaryBtn} ${styles.btnFinishRed}`}
+                      className={`${styles.primaryBtn} ${styles.btnFinishRed} ${styles.hostActionBtn}`}
                       type="button"
                       disabled={!isLeader || Boolean(actionLoading)}
                       onClick={onRepeatMode}
@@ -518,7 +595,7 @@ function MultiplayerHangman({
                       {actionLoading === "repeat" ? "..." : "REPETIR MODO"}
                     </button>
                     <button
-                      className={`${styles.secondaryBtn} ${styles.btnFinishYellow}`}
+                      className={`${styles.secondaryBtn} ${styles.btnFinishYellow} ${styles.hostActionBtn}`}
                       type="button"
                       disabled={!isLeader || Boolean(actionLoading)}
                       onClick={onChangeMode}
@@ -526,7 +603,7 @@ function MultiplayerHangman({
                       {actionLoading === "change-mode" ? "..." : "CAMBIAR MODO"}
                     </button>
                     <button
-                      className={`${styles.dangerBtn} ${styles.btnFinishBlue}`}
+                      className={`${styles.dangerBtn} ${styles.btnFinishBlue} ${styles.hostActionBtn}`}
                       type="button"
                       disabled={!isLeader || Boolean(actionLoading)}
                       onClick={onFinishMatch}

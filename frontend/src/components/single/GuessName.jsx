@@ -566,6 +566,9 @@ function GuessName({
   const mostrarTipo1 = session?.mostrarTipo1 ?? intentos >= 2;
   const mostrarGeneracion = session?.mostrarGeneracion ?? intentos >= 4;
   const mostrarTipo2 = session?.mostrarTipo2 ?? intentos >= 6;
+  const hintLabelTipo1 = isMobile ? "Tipo1" : "Tipo 1:";
+  const hintLabelGeneracion = isMobile ? "Gen" : "Generacion:";
+  const hintLabelTipo2 = isMobile ? "Tipo2" : "Tipo 2:";
 
   const scoreGanado = (() => {
     if (isDailyMode) return null;
@@ -826,7 +829,7 @@ function GuessName({
             <div className={`${styles.panel} ${styles.hintsPanel}`}>
               <div className={styles.hintList}>
                 <div className={styles.hintRow}>
-                  <span className={styles.hintKey}>Tipo 1:</span>
+                  <span className={styles.hintKey}>{hintLabelTipo1}</span>
                   {mostrarTipo1 ? (
                     <span
                       className={`${styles.typeBadge} ${styles[`type${session.pokemon.type1}`] || ""}`}
@@ -838,7 +841,7 @@ function GuessName({
                   )}
                 </div>
                 <div className={styles.hintRow}>
-                  <span className={styles.hintKey}>Generacion:</span>
+                  <span className={styles.hintKey}>{hintLabelGeneracion}</span>
                   {mostrarGeneracion ? (
                     <span className={styles.hintVal}>
                       {session.pokemon.generation}
@@ -848,7 +851,7 @@ function GuessName({
                   )}
                 </div>
                 <div className={styles.hintRow}>
-                  <span className={styles.hintKey}>Tipo 2:</span>
+                  <span className={styles.hintKey}>{hintLabelTipo2}</span>
                   {mostrarTipo2 ? (
                     <span
                       className={`${styles.typeBadge} ${styles[`type${session.pokemon.type2}`] || ""}`}
@@ -984,7 +987,7 @@ function GuessName({
               onClick={handleChangeMinigame}
               disabled={loading}
             >
-              ADIVINASTE! SIGUIENTE RONDA
+              SIGUIENTE RONDA
             </button>
             <button
               className={`${styles.btnStart} ${styles.btnFinishBlue}`}

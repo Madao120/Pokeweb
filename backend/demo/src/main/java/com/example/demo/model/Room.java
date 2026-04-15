@@ -3,6 +3,8 @@ package com.example.demo.model;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.example.demo.dto.pokemon.PokemonM2;
 import lombok.Data;
 
 /**
@@ -37,6 +39,9 @@ public class Room {
     // ── Sesiones individuales ─────────────────────────────────────────────────
     // Cada jugador tiene su propia GameSession con la misma palabra
     private final Map<Long, GameSession> playerSessions = new ConcurrentHashMap<>();
+    private final Map<Long, GameSessionM2> playerSoundSessions = new ConcurrentHashMap<>();
+    private final Map<Long, GameSessionM3Multi> playerSpriteSessions = new ConcurrentHashMap<>();
+    private List<PokemonM2> soundRounds = new ArrayList<>();
 
     // ── Puntuación acumulada entre rondas ──────────────────────────────────────
     // roundScores acumula los puntos de TODAS las rondas jugadas
@@ -49,6 +54,7 @@ public class Room {
     // Orden en que los jugadores terminaron la ronda actual (para calcular posiciones)
     // Se rellena conforme van terminando; los que no terminan no aparecen
     private final List<Long> finishOrder = new ArrayList<>();
+    private final Map<Long, Long> finishTimesMs = new ConcurrentHashMap<>();
 
     // Puntos ganados en la última ronda (para mostrar en ROUND_FINISHED)
     private final Map<Long, Integer> lastRoundPoints = new ConcurrentHashMap<>();
@@ -59,8 +65,10 @@ public class Room {
 
     // ── Timer ─────────────────────────────────────────────────────────────────
     private static final long ROUND_DURATION_MS = 3 * 60 * 1000L; // 3 minutos
+    private static final long GUESS_SOUND_DURATION_MS = 2 * 60 * 1000L; // 2 minutos
     private static final long COUNTDOWN_DURATION_MS = 3 * 1000L; // 3 segundos
     private Instant roundStartTime;
+    private long roundDurationMs = ROUND_DURATION_MS;
 
     // ── Constructor ───────────────────────────────────────────────────────────
     public Room(String roomCode, String password, Long leaderId) {
@@ -81,7 +89,7 @@ public class Room {
     public boolean isTimeUp() {
         if (roundStartTime == null) return false;
         if (isCountdownActive()) return false;
-        return Instant.now().isAfter(roundStartTime.plusMillis(ROUND_DURATION_MS));
+        return Instant.now().isAfter(roundStartTime.plusMillis(roundDurationMs));
     }
 
     public boolean isCountdownActive() {
@@ -96,14 +104,30 @@ public class Room {
     }
 
     public long getRemainingMs() {
-        if (roundStartTime == null) return ROUND_DURATION_MS;
-        if (isCountdownActive()) return ROUND_DURATION_MS;
+        if (roundStartTime == null) return roundDurationMs;
+        if (isCountdownActive()) return roundDurationMs;
         long elapsed = Instant.now().toEpochMilli() - roundStartTime.toEpochMilli();
-        return Math.max(0, ROUND_DURATION_MS - elapsed);
+        return Math.max(0, roundDurationMs - elapsed);
+    }
+
+    public long getElapsedRoundMs() {
+        return Math.max(0L, roundDurationMs - getRemainingMs());
+    }
+
+    public void configureRoundDuration(GameMode mode) {
+        this.roundDurationMs = mode == GameMode.GUESS_SOUND
+            ? GUESS_SOUND_DURATION_MS
+            : ROUND_DURATION_MS;
     }
 
     /** Todos los jugadores han terminado su sesión (gameOver) */
     public boolean allFinished() {
+        if (currentMode == GameMode.GUESS_SOUND) {
+            return playerSoundSessions.values().stream().allMatch(GameSessionM2::isGameOver);
+        }
+        if (currentMode == GameMode.GUESS_SPRITE) {
+            return playerSpriteSessions.values().stream().allMatch(GameSessionM3Multi::isGameOver);
+        }
         return playerSessions.values().stream().allMatch(GameSession::isGameOver);
     }
 
@@ -133,9 +157,14 @@ public class Room {
     /** Prepara la sala para una nueva ronda (limpia sesiones y finishOrder) */
     public void resetRound(boolean clearModeSelection) {
         playerSessions.clear();
+        playerSoundSessions.clear();
+        playerSpriteSessions.clear();
+        soundRounds = new ArrayList<>();
         finishOrder.clear();
+        finishTimesMs.clear();
         lastRoundPoints.clear();
         roundStartTime = null;
+        roundDurationMs = ROUND_DURATION_MS;
         postRoundVotes.clear();
         if (clearModeSelection) {
             currentMode = null;

@@ -3,11 +3,14 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
   overflow: hidden;
   background: linear-gradient(180deg, #0f2740, #091c31);
 }
 
 .top-global-banner {
+  flex-shrink: 0;
   height: 54px;
   width: 100%;
   display: flex;
@@ -16,8 +19,6 @@
   gap: 20px;
   background: linear-gradient(180deg, #0d2740, #0b1f34);
   border-bottom: 2px solid #52c6ff;
-  position: sticky;
-  top: 0;
   z-index: 100;
   padding-left: 20px;
   padding-right: 20px;
@@ -96,6 +97,7 @@
 
 .app-routes {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
@@ -103,6 +105,13 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
+}
+
+@supports (height: 100svh) {
+  .app-shell {
+    min-height: 100svh;
+    height: 100svh;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,7 @@
 import styles from "./MultiplayerPage.module.css";
 import MultiplayerHangman from "./MultiplayerHangman";
+import MultiplayerGuessSound from "./MultiplayerGuessSound";
+import MultiplayerGuessSprite from "./MultiplayerGuessSprite";
 import RoomLobby from "./RoomLobby";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -13,6 +15,8 @@ import {
   getMultiplayerRoomState,
   getUser,
   guessMultiplayerLetter,
+  guessMultiplayerSprite,
+  guessMultiplayerSound,
   guessMultiplayerWord,
   joinMultiplayerRoom,
   kickMultiplayerPlayer,
@@ -63,6 +67,9 @@ function mapJoinError(message) {
   if (message?.includes("NOT_ENOUGH_PLAYERS")) return "Se necesitan al menos 2 jugadores.";
   if (message?.includes("ROUND_COUNTDOWN_ACTIVE")) return "La ronda esta a punto de empezar.";
   if (message?.includes("CANNOT_FINISH_NOW")) return "Ahora no se puede terminar la partida.";
+  if (message?.includes("GUESS_SPRITE_COOLDOWN_ACTIVE")) {
+    return "Debes esperar 10 segundos tras cada fallo.";
+  }
   if (message?.includes("WS_CONNECTION_ERROR")) {
     return "No se ha podido establecer conexion";
   }
@@ -536,6 +543,38 @@ function MultiplayerPage({ user }) {
     }
   };
 
+  const handleGuessSound = async (pokemonId) => {
+    setActionLoading("guess-sound");
+    setError("");
+    try {
+      const updated = await guessMultiplayerSound(roomState.roomCode, user.id, pokemonId);
+      applyRoomState(updated, true);
+      return updated;
+    } catch (err) {
+      const message = mapJoinError(err.message);
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const handleGuessSprite = async (pokemonId) => {
+    setActionLoading("guess-sprite");
+    setError("");
+    try {
+      const updated = await guessMultiplayerSprite(roomState.roomCode, user.id, pokemonId);
+      applyRoomState(updated, true);
+      return updated;
+    } catch (err) {
+      const message = mapJoinError(err.message);
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setActionLoading("");
+    }
+  };
+
   const handleRepeatMode = async () => {
     setActionLoading("repeat");
     setError("");
@@ -643,6 +682,14 @@ function MultiplayerPage({ user }) {
     roomState &&
     roomState.gameMode === "HANGMAN" &&
     ["PLAYING", "ROUND_FINISHED", "FINISHED"].includes(roomState.state);
+  const shouldRenderGuessSound =
+    roomState &&
+    roomState.gameMode === "GUESS_SOUND" &&
+    ["PLAYING", "ROUND_FINISHED", "FINISHED"].includes(roomState.state);
+  const shouldRenderGuessSprite =
+    roomState &&
+    roomState.gameMode === "GUESS_SPRITE" &&
+    ["PLAYING", "ROUND_FINISHED", "FINISHED"].includes(roomState.state);
 
   useEffect(() => {
     if (step !== "lobby") {
@@ -654,7 +701,7 @@ function MultiplayerPage({ user }) {
       return;
     }
 
-    if (roomState && !shouldRenderHangman) {
+    if (roomState && !shouldRenderHangman && !shouldRenderGuessSound && !shouldRenderGuessSprite) {
       if (lobbyTransitionTimerRef.current) {
         window.clearTimeout(lobbyTransitionTimerRef.current);
       }
@@ -663,16 +710,32 @@ function MultiplayerPage({ user }) {
       return;
     }
 
-    if (renderLobbyState && shouldRenderHangman && !isLobbyExiting) {
+    if (
+      renderLobbyState &&
+      (shouldRenderHangman || shouldRenderGuessSound || shouldRenderGuessSprite) &&
+      !isLobbyExiting
+    ) {
       setIsLobbyExiting(true);
       lobbyTransitionTimerRef.current = window.setTimeout(() => {
         setRenderLobbyState(null);
         setIsLobbyExiting(false);
       }, LOBBY_EXIT_MS);
     }
-  }, [step, roomState, shouldRenderHangman, renderLobbyState, isLobbyExiting]);
+  }, [
+    step,
+    roomState,
+    shouldRenderHangman,
+    shouldRenderGuessSound,
+    shouldRenderGuessSprite,
+    renderLobbyState,
+    isLobbyExiting,
+  ]);
 
-  if (step === "lobby" && roomState && shouldRenderHangman) {
+  if (
+    step === "lobby" &&
+    roomState &&
+    (shouldRenderHangman || shouldRenderGuessSound || shouldRenderGuessSprite)
+  ) {
     if (renderLobbyState) {
       return (
         <RoomLobby
@@ -701,15 +764,47 @@ function MultiplayerPage({ user }) {
         />
       );
     }
+    if (shouldRenderHangman) {
+      return (
+        <MultiplayerHangman
+          user={user}
+          roomState={roomState}
+          orderedPlayers={orderedPlayers}
+          socketConnected={socketConnected}
+          actionLoading={actionLoading}
+          onGuessLetter={handleGuessLetter}
+          onGuessWord={handleGuessWord}
+          onRepeatMode={handleRepeatMode}
+          onChangeMode={handleChangeMode}
+          onFinishMatch={handleFinishMatch}
+          onRefreshState={handleRefreshState}
+        />
+      );
+    }
+    if (shouldRenderGuessSprite) {
+      return (
+        <MultiplayerGuessSprite
+          user={user}
+          roomState={roomState}
+          orderedPlayers={orderedPlayers}
+          socketConnected={socketConnected}
+          actionLoading={actionLoading}
+          onGuessSprite={handleGuessSprite}
+          onRepeatMode={handleRepeatMode}
+          onChangeMode={handleChangeMode}
+          onFinishMatch={handleFinishMatch}
+          onRefreshState={handleRefreshState}
+        />
+      );
+    }
     return (
-      <MultiplayerHangman
+      <MultiplayerGuessSound
         user={user}
         roomState={roomState}
         orderedPlayers={orderedPlayers}
         socketConnected={socketConnected}
         actionLoading={actionLoading}
-        onGuessLetter={handleGuessLetter}
-        onGuessWord={handleGuessWord}
+        onGuessSound={handleGuessSound}
         onRepeatMode={handleRepeatMode}
         onChangeMode={handleChangeMode}
         onFinishMatch={handleFinishMatch}

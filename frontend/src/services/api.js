@@ -452,6 +452,38 @@ export async function guessMultiplayerWord(code, userId, palabra) {
   return await response.json();
 }
 
+export async function guessMultiplayerSound(code, userId, pokemonId) {
+  const response = await fetch(
+    buildApiUrl(
+      `/rooms/${code}/guess-sound?userId=${userId}&pokemonId=${encodeURIComponent(pokemonId)}`,
+    ),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido responder el sonido");
+  }
+
+  return await response.json();
+}
+
+export async function guessMultiplayerSprite(code, userId, pokemonId) {
+  const response = await fetch(
+    buildApiUrl(
+      `/rooms/${code}/guess-sprite?userId=${userId}&pokemonId=${encodeURIComponent(pokemonId)}`,
+    ),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido responder el sprite");
+  }
+
+  return await response.json();
+}
+
 export async function repeatMultiplayerRound(code, leaderId) {
   const response = await fetch(
     buildApiUrl(`/rooms/${code}/repeat?leaderId=${leaderId}`),
