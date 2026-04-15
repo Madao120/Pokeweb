@@ -59,6 +59,7 @@ public class Room {
 
     // ── Timer ─────────────────────────────────────────────────────────────────
     private static final long ROUND_DURATION_MS = 3 * 60 * 1000L; // 3 minutos
+    private static final long COUNTDOWN_DURATION_MS = 3 * 1000L; // 3 segundos
     private Instant roundStartTime;
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -79,11 +80,24 @@ public class Room {
 
     public boolean isTimeUp() {
         if (roundStartTime == null) return false;
+        if (isCountdownActive()) return false;
         return Instant.now().isAfter(roundStartTime.plusMillis(ROUND_DURATION_MS));
+    }
+
+    public boolean isCountdownActive() {
+        if (roundStartTime == null) return false;
+        return Instant.now().isBefore(roundStartTime);
+    }
+
+    public long getCountdownRemainingMs() {
+        if (roundStartTime == null) return 0L;
+        long countdownRemaining = roundStartTime.toEpochMilli() - Instant.now().toEpochMilli();
+        return Math.max(0L, countdownRemaining);
     }
 
     public long getRemainingMs() {
         if (roundStartTime == null) return ROUND_DURATION_MS;
+        if (isCountdownActive()) return ROUND_DURATION_MS;
         long elapsed = Instant.now().toEpochMilli() - roundStartTime.toEpochMilli();
         return Math.max(0, ROUND_DURATION_MS - elapsed);
     }
@@ -117,12 +131,16 @@ public class Room {
     }
 
     /** Prepara la sala para una nueva ronda (limpia sesiones y finishOrder) */
-    public void resetRound() {
+    public void resetRound(boolean clearModeSelection) {
         playerSessions.clear();
         finishOrder.clear();
         lastRoundPoints.clear();
         roundStartTime = null;
         postRoundVotes.clear();
+        if (clearModeSelection) {
+            currentMode = null;
+            modeVotes.clear();
+        }
         state = State.WAITING;
     }
 }

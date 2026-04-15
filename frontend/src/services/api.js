@@ -406,6 +406,94 @@ export async function voteMultiplayerMode(code, userId, mode) {
   return await response.json();
 }
 
+export async function startMultiplayerRound(code, userId, mode) {
+  const response = await fetch(
+    buildApiUrl(`/rooms/${code}/start?userId=${userId}&mode=${encodeURIComponent(mode)}`),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido iniciar la ronda");
+  }
+
+  return await response.json();
+}
+
+export async function guessMultiplayerLetter(code, userId, letra) {
+  const response = await fetch(
+    buildApiUrl(
+      `/rooms/${code}/guess-letter?userId=${userId}&letra=${encodeURIComponent(letra)}`,
+    ),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido enviar la letra");
+  }
+
+  return await response.json();
+}
+
+export async function guessMultiplayerWord(code, userId, palabra) {
+  const response = await fetch(
+    buildApiUrl(
+      `/rooms/${code}/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
+    ),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido enviar la palabra");
+  }
+
+  return await response.json();
+}
+
+export async function repeatMultiplayerRound(code, leaderId) {
+  const response = await fetch(
+    buildApiUrl(`/rooms/${code}/repeat?leaderId=${leaderId}`),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido repetir la ronda");
+  }
+
+  return await response.json();
+}
+
+export async function changeMultiplayerMode(code, leaderId) {
+  const response = await fetch(
+    buildApiUrl(`/rooms/${code}/change-mode?leaderId=${leaderId}`),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido volver a la sala");
+  }
+
+  return await response.json();
+}
+
+export async function finishMultiplayerGame(code, leaderId) {
+  const response = await fetch(
+    buildApiUrl(`/rooms/${code}/finish?leaderId=${leaderId}`),
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "No se ha podido terminar la partida");
+  }
+
+  return await response.json();
+}
+
 export async function kickMultiplayerPlayer(code, leaderId, targetId) {
   const response = await fetch(buildApiUrl(`/rooms/${code}/kick`), {
     method: "POST",

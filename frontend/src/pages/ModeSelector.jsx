@@ -47,7 +47,11 @@ function ModeSelector({
     const goBackToModes = async (event) => {
       if (event?.defaultPrevented) return;
 
-      if (modeRef.current === "multi" && !event?.detail?.skipMultiplayerConfirm) {
+      if (
+        modeRef.current === "multi" &&
+        window.__MULTI_SHOULD_CONFIRM_EXIT &&
+        !event?.detail?.skipMultiplayerConfirm
+      ) {
         const confirmExit = window.confirm(
           "Quieres salir de la sala multijugador? Tus datos no se guardaran si vuelves a entrar luego.",
         );

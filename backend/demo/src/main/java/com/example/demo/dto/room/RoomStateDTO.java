@@ -55,6 +55,7 @@ public class RoomStateDTO {
 
     // ── Timer ────────────────────────────────────────────────────────────────
     private long remainingMs;
+    private long countdownRemainingMs;
 
     // ── Fin de partida ───────────────────────────────────────────────────────
     // Clasificación final ordenada por puntuación total

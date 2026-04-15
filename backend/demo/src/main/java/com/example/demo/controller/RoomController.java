@@ -4,7 +4,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.game.GuessLetterMessage;
 import com.example.demo.dto.room.CreateRoomRequest;
@@ -16,25 +22,9 @@ import com.example.demo.dto.room.VoteModeRequest;
 import com.example.demo.dto.room.VotePostRoundRequest;
 import com.example.demo.model.Room;
 import com.example.demo.service.RoomService;
+
 import jakarta.validation.Valid;
 
-/**
- * REST + WebSocket para multijugador.
- *
- * REST:
- *   POST   /rooms                        → crear sala
- *   POST   /rooms/{code}/join            → unirse
- *   POST   /rooms/{code}/kick            → expulsar jugador (líder)
- *   POST   /rooms/{code}/start           → iniciar ronda
- *   POST   /rooms/{code}/next-round      → nueva ronda (vuelve a sala)
- *   POST   /rooms/{code}/finish          → terminar partida completa
- *   GET    /rooms/{code}                 → estado actual (reconexión)
- *
- * WebSocket STOMP:
- *   Enviar a:      /app/room/{code}/guess
- *   Suscribirse:   /topic/room/{code}
- *   Suscribirse:   /topic/room/{code}/player/{userId}  (estado individual)
- */
 @RestController
 @RequestMapping("/rooms")
 public class RoomController {
@@ -44,19 +34,19 @@ public class RoomController {
 
     public RoomController(RoomService roomService, SimpMessagingTemplate messaging) {
         this.roomService = roomService;
-        this.messaging   = messaging;
+        this.messaging = messaging;
     }
-
-    // ── Crear sala ─────────────────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<RoomStateDTO> createRoom(@Valid @RequestBody CreateRoomRequest req) {
         Room room = roomService.createRoom(req.getUserId(), req.getPassword());
-        return ResponseEntity.ok(roomService.toDTO(room, req.getUserId(),
-                "Sala creada. Código: " + room.getRoomCode()));
+        RoomStateDTO dto = roomService.toDTO(
+            room,
+            req.getUserId(),
+            "Sala creada. Codigo: " + room.getRoomCode()
+        );
+        return ResponseEntity.ok(dto);
     }
-
-    // ── Unirse ─────────────────────────────────────────────────────────────────
 
     @PostMapping("/{code}/join")
     public ResponseEntity<RoomStateDTO> joinRoom(
@@ -64,14 +54,10 @@ public class RoomController {
             @Valid @RequestBody JoinRoomRequest req) {
 
         Room room = roomService.joinRoom(code, req.getUserId(), req.getPassword());
-        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(),
-                "Jugador " + req.getUserId() + " se ha unido");
-
-        broadcast(code, dto);
+        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(), "Jugador unido a la sala");
+        broadcastRoomState(code, room, "Jugador unido a la sala");
         return ResponseEntity.ok(dto);
     }
-
-    // ── Expulsar jugador ───────────────────────────────────────────────────────
 
     @PostMapping("/{code}/kick")
     public ResponseEntity<RoomStateDTO> kickPlayer(
@@ -79,14 +65,10 @@ public class RoomController {
             @RequestBody KickPlayerRequest req) {
 
         Room room = roomService.kickPlayer(code, req.getLeaderId(), req.getTargetId());
-        RoomStateDTO dto = roomService.toDTO(room, req.getLeaderId(),
-                "Jugador " + req.getTargetId() + " ha sido expulsado");
-
-        broadcast(code, dto);
+        RoomStateDTO dto = roomService.toDTO(room, req.getLeaderId(), "Jugador expulsado");
+        broadcastRoomState(code, room, "Jugador expulsado");
         return ResponseEntity.ok(dto);
     }
-
-     // ── Transferir liderazgo ──────────────────────────────────────────────────
 
     @PostMapping("/{code}/leader")
     public ResponseEntity<RoomStateDTO> transferLeader(
@@ -94,14 +76,10 @@ public class RoomController {
             @RequestBody TransferLeaderRequest req) {
 
         Room room = roomService.transferLeader(code, req.getCurrentLeaderId(), req.getNewLeaderId());
-        RoomStateDTO dto = roomService.toDTO(room, req.getCurrentLeaderId(),
-                "Nuevo líder: " + req.getNewLeaderId());
-
-        broadcast(code, dto);
+        RoomStateDTO dto = roomService.toDTO(room, req.getCurrentLeaderId(), "Nuevo lider asignado");
+        broadcastRoomState(code, room, "Nuevo lider asignado");
         return ResponseEntity.ok(dto);
     }
-
-    // ── Votar modo ────────────────────────────────────────────────────────────
 
     @PostMapping("/{code}/vote-mode")
     public ResponseEntity<RoomStateDTO> voteMode(
@@ -110,14 +88,10 @@ public class RoomController {
 
         Room.GameMode mode = Room.GameMode.valueOf(req.getMode().toUpperCase());
         Room room = roomService.voteMode(code, req.getUserId(), mode);
-        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(),
-                "Voto de modo registrado");
-        broadcast(code, dto);
+        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(), "Voto de modo registrado");
+        broadcastRoomState(code, room, "Voto de modo registrado");
         return ResponseEntity.ok(dto);
     }
-
-
-    // ── Iniciar ronda ──────────────────────────────────────────────────────────
 
     @PostMapping("/{code}/start")
     public ResponseEntity<RoomStateDTO> startRound(
@@ -125,23 +99,36 @@ public class RoomController {
             @RequestParam Long userId,
             @RequestParam(defaultValue = "HANGMAN") String mode) {
 
-        Room.GameMode gameMode = Room.GameMode.valueOf(mode);
+        Room.GameMode gameMode = Room.GameMode.valueOf(mode.toUpperCase());
         Room room = roomService.startRound(code, userId, gameMode);
-
-        // Emitir estado global + estado individual a cada jugador
-        room.getPlayerIds().forEach(pid -> {
-            RoomStateDTO dto = roomService.toDTO(room, pid, "¡La ronda ha comenzado!");
-            messaging.convertAndSend("/topic/room/" + code.toUpperCase() + "/player/" + pid, dto);
-        });
-
-        // Estado global (sin sesión individual) para quien no esté suscrito por player
-        RoomStateDTO globalDto = roomService.toDTO(room, userId, "¡La ronda ha comenzado!");
-        broadcast(code, globalDto);
-
-        return ResponseEntity.ok(globalDto);
+        RoomStateDTO dto = roomService.toDTO(room, userId, "La ronda ha comenzado");
+        broadcastRoomState(code, room, "La ronda ha comenzado");
+        return ResponseEntity.ok(dto);
     }
 
-    // ── Nueva ronda ────────────────────────────────────────────────────────────
+    @PostMapping("/{code}/guess-letter")
+    public ResponseEntity<RoomStateDTO> guessLetter(
+            @PathVariable String code,
+            @RequestParam Long userId,
+            @RequestParam String letra) {
+
+        RoomStateDTO dto = roomService.guessLetter(code, userId, letra);
+        Room room = roomService.getRoom(code);
+        broadcastRoomState(code, room, dto.getMessage());
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{code}/guess-word")
+    public ResponseEntity<RoomStateDTO> guessWord(
+            @PathVariable String code,
+            @RequestParam Long userId,
+            @RequestParam String palabra) {
+
+        RoomStateDTO dto = roomService.guessWord(code, userId, palabra);
+        Room room = roomService.getRoom(code);
+        broadcastRoomState(code, room, dto.getMessage());
+        return ResponseEntity.ok(dto);
+    }
 
     @PostMapping("/{code}/next-round")
     public ResponseEntity<RoomStateDTO> nextRound(
@@ -149,13 +136,36 @@ public class RoomController {
             @RequestParam Long leaderId) {
 
         Room room = roomService.newRound(code, leaderId);
-        RoomStateDTO dto = roomService.toDTO(room, leaderId,
-                "Nueva ronda. El líder escogerá el modo de juego.");
-        broadcast(code, dto);
+        RoomStateDTO dto = roomService.toDTO(
+            room,
+            leaderId,
+            "Nueva ronda. El lider escogera el modo de juego."
+        );
+        broadcastRoomState(code, room, "Nueva ronda. El lider escogera el modo de juego.");
         return ResponseEntity.ok(dto);
     }
 
-    // ── Votar acción tras ronda ───────────────────────────────────────────────
+    @PostMapping("/{code}/repeat")
+    public ResponseEntity<RoomStateDTO> repeatRound(
+            @PathVariable String code,
+            @RequestParam Long leaderId) {
+
+        Room room = roomService.repeatCurrentMode(code, leaderId);
+        RoomStateDTO dto = roomService.toDTO(room, leaderId, "Se repite el mismo modo");
+        broadcastRoomState(code, room, "Se repite el mismo modo");
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{code}/change-mode")
+    public ResponseEntity<RoomStateDTO> changeMode(
+            @PathVariable String code,
+            @RequestParam Long leaderId) {
+
+        Room room = roomService.changeMode(code, leaderId);
+        RoomStateDTO dto = roomService.toDTO(room, leaderId, "Vuelta a la sala");
+        broadcastRoomState(code, room, "Vuelta a la sala");
+        return ResponseEntity.ok(dto);
+    }
 
     @PostMapping("/{code}/vote-post-round")
     public ResponseEntity<RoomStateDTO> votePostRound(
@@ -164,13 +174,10 @@ public class RoomController {
 
         Room.PostRoundAction action = Room.PostRoundAction.valueOf(req.getAction().toUpperCase());
         Room room = roomService.votePostRoundAction(code, req.getUserId(), action);
-        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(),
-                "Voto post-ronda registrado");
-        broadcast(code, dto);
+        RoomStateDTO dto = roomService.toDTO(room, req.getUserId(), "Voto post-ronda registrado");
+        broadcastRoomState(code, room, "Voto post-ronda registrado");
         return ResponseEntity.ok(dto);
     }
-
-    // ── Terminar partida ───────────────────────────────────────────────────────
 
     @PostMapping("/{code}/finish")
     public ResponseEntity<RoomStateDTO> finishGame(
@@ -178,11 +185,10 @@ public class RoomController {
             @RequestParam Long leaderId) {
 
         RoomStateDTO dto = roomService.finishGame(code, leaderId);
-        broadcast(code, dto);
+        Room room = roomService.getRoom(code);
+        broadcastRoomState(code, room, dto.getMessage());
         return ResponseEntity.ok(dto);
     }
-
-    // ── Estado actual (reconexión) ─────────────────────────────────────────────
 
     @GetMapping("/{code}")
     public ResponseEntity<RoomStateDTO> getRoom(
@@ -190,29 +196,32 @@ public class RoomController {
             @RequestParam(required = false) Long userId) {
 
         Room room = roomService.getRoom(code);
-        return ResponseEntity.ok(roomService.toDTO(room, userId, null));
+        String previousState = room.getState().name();
+        RoomStateDTO dto = roomService.getRoomState(code, userId);
+        if (!previousState.equals(room.getState().name())) {
+            broadcastRoomState(code, room, dto.getMessage());
+        }
+        return ResponseEntity.ok(dto);
     }
-
-    // ── WebSocket: adivinar letra ──────────────────────────────────────────────
 
     @MessageMapping("/room/{code}/guess")
     public void handleGuess(
             @DestinationVariable String code,
             GuessLetterMessage msg) {
 
-        RoomStateDTO dto = roomService.guessLetter(code, msg.getUserId(), msg.getLetra());
-
-        // Enviar estado individual al jugador que adivinó
-        messaging.convertAndSend(
-            "/topic/room/" + code.toUpperCase() + "/player/" + msg.getUserId(), dto);
-
-        // Emitir progreso global a todos (sin sesión individual expuesta)
-        broadcast(code, dto);
+        roomService.guessLetter(code, msg.getUserId(), msg.getLetra());
+        Room room = roomService.getRoom(code);
+        broadcastRoomState(code, room, null);
     }
 
-    // ── Helper broadcast ───────────────────────────────────────────────────────
+    private void broadcastRoomState(String code, Room room, String message) {
+        String normalizedCode = code.toUpperCase();
+        RoomStateDTO globalDto = roomService.toDTO(room, null, message);
+        messaging.convertAndSend("/topic/room/" + normalizedCode, globalDto);
 
-    private void broadcast(String code, RoomStateDTO dto) {
-        messaging.convertAndSend("/topic/room/" + code.toUpperCase(), dto);
+        room.getPlayerIds().forEach(pid -> {
+            RoomStateDTO playerDto = roomService.toDTO(room, pid, message);
+            messaging.convertAndSend("/topic/room/" + normalizedCode + "/player/" + pid, playerDto);
+        });
     }
 }

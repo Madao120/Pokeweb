@@ -6,19 +6,26 @@ function RoomLobby({
   roomState,
   socketConnected,
   error,
+  isExiting = false,
   orderedPlayers,
   minigames,
   myVotedMode,
   canManagePlayers,
+  canStartRound,
+  canFinishMatch,
   actionLoading,
   onVoteMode,
+  onStartMode,
   onKickPlayer,
   onTransferLeader,
+  onFinishMatch,
 }) {
   return (
     <div className={styles.page}>
       <div className={styles.lobbyShell}>
-        <aside className={styles.usersPanel}>
+        <aside
+          className={`${styles.usersPanel} ${isExiting ? styles.usersPanelExit : styles.usersPanelEnter}`}
+        >
           <h3 className={styles.sectionTitle}>Jugadores</h3>
           <div className={styles.playersList}>
             {orderedPlayers.map((player) => (
@@ -83,7 +90,9 @@ function RoomLobby({
           </div>
         </aside>
 
-        <div className={styles.mainPanel}>
+        <div
+          className={`${styles.mainPanel} ${isExiting ? styles.mainPanelExit : styles.mainPanelEnter}`}
+        >
           <div className={styles.lobbyTop}>
             <div>
               <p className={styles.welcome}>MODO MULTIJUGADOR</p>
@@ -99,15 +108,50 @@ function RoomLobby({
           {error && <p className={styles.error}>{error}</p>}
 
           <section className={styles.gamesColumn}>
-            <h3 className={styles.sectionTitle}>Minijuegos</h3>
+            <div className={styles.gamesHeader}>
+              <h3 className={styles.sectionTitle}>Minijuegos</h3>
+              {canFinishMatch && (
+                <button
+                  className={`${styles.actionBtn} ${styles.finishBtn}`}
+                  type="button"
+                  disabled={Boolean(actionLoading)}
+                  onClick={onFinishMatch}
+                >
+                  {actionLoading === "finish-match"
+                    ? "Terminando..."
+                    : "Terminar partida"}
+                </button>
+              )}
+            </div>
             <div className={styles.gamesGrid}>
               {minigames.map((game) => (
-                <article className={styles.gameCard} key={game.key}>
+                <article
+                  className={`${styles.gameCard} ${roomState?.gameMode === game.key ? styles.gameCardActive : ""}`}
+                  key={game.key}
+                >
                   <p className={styles.gameTitle}>{game.title}</p>
                   <p className={styles.gameDesc}>{game.desc}</p>
                   <p className={styles.voteCount}>
                     Votos: {roomState?.modeVotes?.[game.key] ?? 0}
                   </p>
+                  {canStartRound && (
+                    <button
+                      className={styles.startBtn}
+                      type="button"
+                      disabled={
+                        Boolean(actionLoading) ||
+                        roomState.state !== "WAITING" ||
+                        orderedPlayers.length < 2
+                      }
+                      onClick={() => onStartMode(game.key)}
+                    >
+                      {actionLoading === `start:${game.key}`
+                        ? "Iniciando..."
+                        : orderedPlayers.length < 2
+                          ? "Min. 2 jugadores"
+                          : "Iniciar"}
+                    </button>
+                  )}
                   <button
                     className={styles.voteBtn}
                     type="button"

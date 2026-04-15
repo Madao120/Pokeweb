@@ -129,9 +129,10 @@ public class RoomService {
 
         room.setCurrentMode(mode);
         room.setState(State.PLAYING);
-        room.setRoundStartTime(Instant.now());
+        room.setRoundStartTime(Instant.now().plusMillis(3000));
         room.getFinishOrder().clear();
         room.getPostRoundVotes().clear();
+        room.getLastRoundPoints().clear();
 
         return room;
     }
@@ -145,6 +146,10 @@ public class RoomService {
             throw new RuntimeException("ROOM_NOT_PLAYING");
         if (!room.getPlayerIds().contains(userId))
             throw new RuntimeException("NOT_IN_ROOM");
+
+        if (room.isCountdownActive()) {
+            throw new RuntimeException("ROUND_COUNTDOWN_ACTIVE");
+        }
 
         // Comprobar timer antes de procesar
         if (room.isTimeUp()) {
@@ -166,6 +171,37 @@ public class RoomService {
         }
 
         // Comprobar si todos terminaron o se acabó el tiempo
+        if (room.allFinished() || room.isTimeUp()) {
+            return finishRound(room, userId);
+        }
+
+        return toDTO(room, userId, null);
+    }
+
+    public RoomStateDTO guessWord(String code, Long userId, String palabra) {
+        Room room = getRoom(code);
+
+        if (room.getState() != State.PLAYING)
+            throw new RuntimeException("ROOM_NOT_PLAYING");
+        if (!room.getPlayerIds().contains(userId))
+            throw new RuntimeException("NOT_IN_ROOM");
+        if (room.isCountdownActive()) {
+            throw new RuntimeException("ROUND_COUNTDOWN_ACTIVE");
+        }
+        if (room.isTimeUp()) {
+            return finishRoundByTimeout(room);
+        }
+
+        GameSession session = room.getPlayerSessions().get(userId);
+        if (session == null || session.isGameOver())
+            return toDTO(room, userId, null);
+
+        session.adivinarPalabra(palabra);
+
+        if (session.isGameOver() && session.isGanado() && !room.getFinishOrder().contains(userId)) {
+            room.getFinishOrder().add(userId);
+        }
+
         if (room.allFinished() || room.isTimeUp()) {
             return finishRound(room, userId);
         }
@@ -204,7 +240,33 @@ public class RoomService {
         if (room.getState() != State.ROUND_FINISHED)
             throw new RuntimeException("ROUND_NOT_FINISHED");
 
-        room.resetRound();  // limpia sesiones, finishOrder y vuelve a WAITING
+        room.resetRound(true);  // limpia sesiones, finishOrder y vuelve a WAITING
+        return room;
+    }
+
+    public Room repeatCurrentMode(String code, Long leaderId) {
+        Room room = getRoom(code);
+        if (!room.getLeaderId().equals(leaderId))
+            throw new RuntimeException("NOT_LEADER");
+        if (room.getState() != State.ROUND_FINISHED)
+            throw new RuntimeException("ROUND_NOT_FINISHED");
+        if (room.getCurrentMode() == null)
+            throw new RuntimeException("MODE_NOT_SELECTED");
+
+        Room.GameMode currentMode = room.getCurrentMode();
+        room.resetRound(false);
+        room.getModeVotes().clear();
+        return startRound(code, leaderId, currentMode);
+    }
+
+    public Room changeMode(String code, Long leaderId) {
+        Room room = getRoom(code);
+        if (!room.getLeaderId().equals(leaderId))
+            throw new RuntimeException("NOT_LEADER");
+        if (room.getState() != State.ROUND_FINISHED)
+            throw new RuntimeException("ROUND_NOT_FINISHED");
+
+        room.resetRound(true);
         return room;
     }
 
@@ -255,6 +317,7 @@ public class RoomService {
         dto.setFinishOrder(new ArrayList<>(room.getFinishOrder()));
         dto.setRoundScores(new HashMap<>(room.getRoundScores()));
         dto.setRemainingMs(room.getRemainingMs());
+        dto.setCountdownRemainingMs(room.getCountdownRemainingMs());
         dto.setMessage(message);
         dto.setModeVotes(countModeVotes(room));
         dto.setPlayerModeVotes(buildPlayerModeVotes(room));
@@ -268,6 +331,7 @@ public class RoomService {
             GameSession mySession = room.getPlayerSessions().get(requestingUserId);
             if (mySession != null) {
                 dto.setMySession(toSessionDTO(mySession));
+                applyTimeBasedHints(dto, room);
                 if (mySession.isGameOver()) {
                     dto.setPokemonName(mySession.getPokemon().getName());
                 }
@@ -324,11 +388,27 @@ public class RoomService {
         dto.setIntentos(s.getIntentos());
         dto.setGameOver(s.isGameOver());
         dto.setGanado(s.isGanado());
-        dto.setMostrarTipo1(s.isMostrarTipo1());
-        dto.setMostrarGeneracion(s.isMostrarGeneracion());
-        dto.setMostrarTipo2(s.isMostrarTipo2());
+        dto.setMostrarTipo1(false);
+        dto.setMostrarGeneracion(false);
+        dto.setMostrarTipo2(false);
         dto.setGuessedLetters(new HashSet<>(s.getGuessedLetters()));
         return dto;
+    }
+
+    private void applyTimeBasedHints(RoomStateDTO dto, Room room) {
+        if (dto.getMySession() == null) return;
+        long remainingMs = room.getRemainingMs();
+        dto.getMySession().setMostrarTipo1(remainingMs <= 120_000L);
+        dto.getMySession().setMostrarGeneracion(remainingMs <= 60_000L);
+        dto.getMySession().setMostrarTipo2(remainingMs <= 30_000L);
+    }
+
+    public RoomStateDTO getRoomState(String code, Long userId) {
+        Room room = getRoom(code);
+        if (room.getState() == State.PLAYING && room.isTimeUp()) {
+            return finishRoundByTimeout(room);
+        }
+        return toDTO(room, userId, null);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -163,6 +163,18 @@
   font-size: 0.5rem;
 }
 
+.gamesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.gamesHeader .sectionTitle {
+  margin-bottom: 0;
+}
+
 .playersList {
   display: flex;
   flex-direction: column;
@@ -330,6 +342,12 @@
   gap: 10px;
 }
 
+.gameCardActive {
+  background: linear-gradient(180deg, rgba(255, 248, 210, 0.92), rgba(233, 221, 174, 0.92));
+  border-color: #c3a650;
+  box-shadow: inset 0 0 0 2px rgba(162, 126, 31, 0.35);
+}
+
 .gameTitle {
   color: #2f3942;
   font-family: var(--font-pixel);
@@ -358,7 +376,96 @@
   cursor: pointer;
 }
 
+.startBtn {
+  border: 0;
+  background: linear-gradient(180deg, #ddb347, #bb8420);
+  color: #fff8eb;
+  padding: 7px 10px;
+  font-family: var(--font-pixel);
+  font-size: 0.38rem;
+  cursor: pointer;
+}
+
+.actionBtn {
+  border: 0;
+  padding: 8px 12px;
+  font-family: var(--font-pixel);
+  font-size: 0.38rem;
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.finishBtn {
+  background: linear-gradient(180deg, #4fa8ff, #256fca);
+}
+
+.usersPanelEnter {
+  animation: lobbyUsersEnter 420ms ease forwards;
+}
+
+.usersPanelExit {
+  animation: lobbyUsersExit 300ms ease forwards;
+}
+
+.mainPanelEnter {
+  animation: lobbyMainEnter 440ms ease forwards;
+  animation-delay: 70ms;
+}
+
+.mainPanelExit {
+  animation: lobbyMainExit 300ms ease forwards;
+}
+
+@keyframes lobbyUsersEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lobbyUsersExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-22px);
+  }
+}
+
+@keyframes lobbyMainEnter {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lobbyMainExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
 .voteBtn:disabled {
+  opacity: 0.66;
+  cursor: not-allowed;
+}
+
+.startBtn:disabled {
   opacity: 0.66;
   cursor: not-allowed;
 }
@@ -371,6 +478,11 @@
   .sectionTitle {
     text-align: center;
     padding-top: 3px;
+  }
+
+  .gamesHeader {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .usersPanel {
@@ -440,8 +552,8 @@
 
   .mainPanel {
     padding-top: 24px;
-    padding-right: clamp(30px, 10vw, 34px);
-    padding-left: clamp(30px, 10vw, 34px);
+    padding-right: 9%;
+    padding-left: 9%;
     padding-bottom: 20px;
   }
 

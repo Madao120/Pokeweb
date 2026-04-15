@@ -51,6 +51,13 @@
   padding: 34px 50px 30px;
   background: #d9dee2;
   clip-path: var(--panel-shape);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 360ms ease;
+}
+
+.mainPanelVisible {
+  opacity: 1;
 }
 
 .mainPanel::before {
@@ -118,6 +125,32 @@
   padding-right: 7%;
 }
 
+.transitionItem {
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease;
+  will-change: opacity, transform;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.transitionEnter {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.transitionExit {
+  opacity: 0;
+}
+
+.transitionFromLeft {
+  transform: translateX(-26px);
+}
+
+.transitionFromRight {
+  transform: translateX(26px);
+}
+
 .optionCard {
   position: relative;
   isolation: isolate;
@@ -126,6 +159,29 @@
   flex-direction: column;
   gap: 14px;
   clip-path: var(--panel-shape);
+}
+
+.optionCardCreate.transitionEnter,
+.optionCardJoin.transitionEnter {
+  opacity: 1;
+}
+
+.optionCardCreate.transitionExit {
+  transform: translateX(-26px);
+  opacity: 0;
+}
+
+.optionCardJoin.transitionExit {
+  transform: translateX(26px);
+  opacity: 0;
+}
+
+.optionCardCreate.transitionEnter {
+  animation: optionCardEnterLeft 320ms ease both;
+}
+
+.optionCardJoin.transitionEnter {
+  animation: optionCardEnterRight 320ms ease both;
 }
 
 .optionCard::before {
@@ -196,6 +252,22 @@
   clip-path: var(--panel-shape);
   width: 90%;
   margin: auto;
+}
+
+.formCard.transitionEnter.transitionFromLeft {
+  animation: formEnterLeft 320ms ease both;
+}
+
+.formCard.transitionEnter.transitionFromRight {
+  animation: formEnterRight 320ms ease both;
+}
+
+.formCard.transitionExit.transitionFromLeft {
+  animation: formExitLeft 320ms ease both;
+}
+
+.formCard.transitionExit.transitionFromRight {
+  animation: formExitRight 320ms ease both;
 }
 
 .formCard::before {
@@ -397,8 +469,82 @@
   border-radius: 3px;
 }
 
+@keyframes optionCardEnterLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes optionCardEnterRight {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes formEnterLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes formEnterRight {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes formExitLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+}
+
+@keyframes formExitRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+}
+
 @media (max-width: 900px) {
   .mainPanel {
     padding: 24px 18px 20px;
+  }
+
+  .optionPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-left: 7%;
+    padding-right: 7%;
   }
 }

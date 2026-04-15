@@ -588,6 +588,71 @@ function GuessName({
     .filter(Boolean)
     .join(" ");
 
+  const resultBanner =
+    session?.gameOver && session.ganado ? (
+      <div
+        className={`${styles.resultWin} ${resultVisible ? styles.resultVisible : ""}`}
+      >
+        CORRECTO! ERA {session.pokemon.name.toUpperCase()}
+        {scoreGanado !== null && (
+          <>
+            <br />
+            {scoreGanado === 100
+              ? `GOLPE CRITICO! +${scoreGanado} PTS`
+              : `+${scoreGanado} PTS`}
+          </>
+        )}
+      </div>
+    ) : session?.gameOver ? (
+      <div
+        className={`${styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
+      >
+        DERROTA - ERA {session.pokemon.name.toUpperCase()}
+        <br />
+        -25 PTS
+      </div>
+    ) : null;
+
+  const rankingPanel = (
+    <div
+      className={`${styles.panel} ${styles.rankingPanel} ${panelsVisible ? styles.rankingPanelVisible : ""}`}
+    >
+      <p className={styles.panelLabel}>TOP GAME</p>
+      <div className={styles.rankingList}>
+        {ranking.map((player, i) => {
+          const isCurrentUser = player.id === user?.id;
+
+          return (
+            <div
+              key={player.id}
+              className={`${styles.rankingRow} ${isCurrentUser ? styles.rankingRowCurrentUser : ""}`}
+            >
+              <span className={styles.rankingPos}>#{player.rank ?? i + 1}</span>
+              {player.profilePictureUrl ? (
+                <img
+                  src={player.profilePictureUrl}
+                  alt={player.name}
+                  className={styles.rankingAvatar}
+                />
+              ) : (
+                <div className={styles.rankingAvatarFallback}>
+                  {player.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className={styles.rankingName}>{player.name}</span>
+              <span className={styles.rankingScore}>
+                {isDailyMode ? `${player.attempts ?? "-"} INT` : player.scoreM1}
+              </span>
+            </div>
+          );
+        })}
+        {ranking.length === 0 && (
+          <p className={styles.rankingEmpty}>Sin datos aun</p>
+        )}
+      </div>
+    </div>
+  );
+
   if (!session) {
     if (isDailyMode && dailyInfo?.completedToday) {
       const nextInMs = Math.max(0, dailyInfo.millisUntilNextReset || 0);
@@ -798,74 +863,8 @@ function GuessName({
             </div>
           </div>
         </div>
-
-        <div
-          className={`${styles.panel} ${styles.rankingPanel} ${panelsVisible ? styles.rankingPanelVisible : ""}`}
-        >
-          <p className={styles.panelLabel}>TOP GAME</p>
-          <div className={styles.rankingList}>
-            {ranking.map((player, i) => {
-              const isCurrentUser = player.id === user?.id;
-
-              return (
-                <div
-                  key={player.id}
-                  className={`${styles.rankingRow} ${isCurrentUser ? styles.rankingRowCurrentUser : ""}`}
-                >
-                  <span className={styles.rankingPos}>
-                    #{player.rank ?? i + 1}
-                  </span>
-                  {player.profilePictureUrl ? (
-                    <img
-                      src={player.profilePictureUrl}
-                      alt={player.name}
-                      className={styles.rankingAvatar}
-                    />
-                  ) : (
-                    <div className={styles.rankingAvatarFallback}>
-                      {player.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <span className={styles.rankingName}>{player.name}</span>
-                  <span className={styles.rankingScore}>
-                    {isDailyMode
-                      ? `${player.attempts ?? "-"} INT`
-                      : player.scoreM1}
-                  </span>
-                </div>
-              );
-            })}
-            {ranking.length === 0 && (
-              <p className={styles.rankingEmpty}>Sin datos aun</p>
-            )}
-          </div>
-        </div>
+        {!isMobile && rankingPanel}
       </div>
-
-      {session.gameOver && session.ganado && (
-        <div
-          className={`${styles.resultWin} ${resultVisible ? styles.resultVisible : ""}`}
-        >
-          CORRECTO! ERA {session.pokemon.name.toUpperCase()}
-          {scoreGanado !== null && (
-            <>
-              <br />
-              {scoreGanado === 100
-                ? `GOLPE CRITICO! +${scoreGanado} PTS`
-                : `+${scoreGanado} PTS`}
-            </>
-          )}
-        </div>
-      )}
-      {session.gameOver && !session.ganado && (
-        <div
-          className={`${styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
-        >
-          DERROTA - ERA {session.pokemon.name.toUpperCase()}
-          <br />
-          -25 PTS
-        </div>
-      )}
 
       <div
         className={`${styles.panel} ${styles.bottomPanel} ${panelsVisible ? styles.bottomPanelVisible : ""} ${session.gameOver && resultVisible ? styles.bottomPanelShifted : ""}`}
@@ -1024,8 +1023,16 @@ function GuessName({
         {error && <p className={styles.error}>{error}</p>}
       </div>
 
+      {!isMobile && resultBanner}
+      {isMobile && resultBanner && (
+        <div className={styles.mobileResultSlot}>{resultBanner}</div>
+      )}
+
       {isMobile && (
-        <div ref={revealRef} className={styles.mobileSpriteDock}>
+        <div
+          ref={revealRef}
+          className={`${styles.mobileSpriteDock} ${panelsVisible ? styles.mobileSpriteDockVisible : ""} ${session.gameOver ? styles.mobileSpriteDockResolved : ""}`}
+        >
           <div
             className={`${styles.spriteReveal} ${revealPhase === "white" ? styles.spriteRevealWhite : ""} ${revealPhase === "pokemon" ? styles.spriteRevealPokemon : ""} ${wordFailFlash ? styles.spriteRevealFailFlash : ""} ${wordSuccessFlash ? styles.spriteRevealSuccessFlash : ""}`}
           >
@@ -1051,6 +1058,8 @@ function GuessName({
           </div>
         </div>
       )}
+
+      {isMobile && <div className={styles.mobileRankingSlot}>{rankingPanel}</div>}
     </div>
   );
 }

@@ -97,7 +97,9 @@ function GuessSprite({
     if (isDailyMode) return;
     getRankingM3(user?.id)
       .then(setRanking)
-      .catch(() => {});
+      .catch(() => {
+        // Ignore ranking fetch errors silently
+      });
   }, [isDailyMode, user?.id]);
 
   useEffect(() => {
@@ -168,7 +170,10 @@ function GuessSprite({
       skipAutoAbandonRef.current = true;
       try {
         await abandonGuessSpriteGame(user.id);
-      } catch {}
+      // eslint-disable-next-line no-unused-vars
+      } catch(err) {
+        // Ignorar errores
+      }
     }
     await onGameEnd?.();
   }, [isDailyMode, onGameEnd, user?.id]);
