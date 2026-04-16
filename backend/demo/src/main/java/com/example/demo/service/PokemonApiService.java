@@ -51,7 +51,7 @@ public class PokemonApiService {
         if (id <= 251) return "Gen II Johto";
         if (id <= 386) return "Gen III Hoenn";
         if (id <= 493) return "Gen IV Sinnoh";
-        if (id <= 649) return "Gen V Unova/Teselia";
+        if (id <= 649) return "Gen V Unova";
         if (id <= 721) return "Gen VI Kalos";
         if (id <= 809) return "Gen VII Alola";
         if (id <= 905) return "Gen VIII Galar";

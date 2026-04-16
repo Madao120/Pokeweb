@@ -510,15 +510,13 @@
   transition:
     opacity 720ms ease 80ms,
     transform 720ms ease 80ms;
+  margin-top: -2rem;
+  margin-bottom: 1rem;
 }
 
 .bottomPanelVisible {
   opacity: 1;
   transform: translateY(var(--bottom-panel-shift));
-}
-
-.bottomPanelShifted {
-  --bottom-panel-shift: 16px;
 }
 
 .bottomPanel::before {
@@ -1475,10 +1473,12 @@
     margin-left: auto;
     margin-right: auto;
     align-self: center;
+    margin-top: 0.6rem;
     padding-top: 1rem;
     padding-right: 10%;
     padding-left: 10%;
     padding-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   .bottomPanelShifted {
@@ -1490,7 +1490,7 @@
     text-align: center;
   }
 
-  .btnStart{
+  .btnStart {
     font-size: 0.5rem;
   }
 

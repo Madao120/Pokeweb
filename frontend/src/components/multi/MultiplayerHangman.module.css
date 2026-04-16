@@ -21,6 +21,24 @@
   align-items: center;
 }
 
+.mainPanelEndState .mainTop,
+.mainPanelEndState .playfield,
+.mainPanelEndState .revealTextBox,
+.mainPanelEndState .resultsCard,
+.mainPanelEndState .finalCard {
+  width: min(980px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mainPanelEndState .playfield {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mainPanelEndState .wordPanel {
+  width: 100%;
+}
+
 .mainTop {
   display: flex;
   justify-content: space-between;
@@ -97,6 +115,10 @@
   grid-template-columns: minmax(0, 1fr) clamp(220px, 18vw, 280px);
   gap: 14px;
   align-items: start;
+}
+
+.playfieldRoundFinished {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .wordPanel,
@@ -179,7 +201,7 @@
 .gameLayout {
   display: flex;
   gap: 12px;
-  align-items: flex-start;
+  align-items: flex-end;
 }
 
 .mainColumn {
@@ -222,6 +244,61 @@
   gap: 10px;
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.livesBar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: 2rem;
+  background: linear-gradient(180deg, #2b2b2b, #171717);
+  border: 2px solid #5b5b5b;
+  border-radius: 999px;
+  padding: 4px 8px;
+  width: fit-content;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.7);
+  margin-top: 6px;
+  outline: 1px solid #222;
+  color: #f3f5f7;
+  font-family: var(--font-pixel);
+  font-size: 0.38rem;
+}
+
+.lifeBlock {
+  display: inline-block;
+  width: 24px;
+  height: 12px;
+  border-radius: 1px;
+  margin: 0;
+  transition:
+    background-color 0.3s,
+    opacity 0.3s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+}
+
+.lifeGreen {
+  background-color: #3ecf3e;
+  border: 1px solid #2a9a2a;
+}
+
+.lifeYellow {
+  background-color: #f5d020;
+  border: 1px solid #c4a500;
+}
+
+.lifeRed {
+  background-color: #e83030;
+  border: 1px solid #a01010;
+}
+
+.lifeUsed {
+  background-color: #2a2a2a;
+  border: 1px solid #333;
+  opacity: 0.5;
 }
 
 .usedLetters {
@@ -281,7 +358,9 @@
   background-image:
     linear-gradient(rgba(171, 178, 186, 0.5) 1px, transparent 1px),
     linear-gradient(90deg, rgba(171, 178, 186, 0.5) 1px, transparent 1px);
-  background-size: 16px 16px, 16px 16px;
+  background-size:
+    16px 16px,
+    16px 16px;
   border: 4px solid #4a525a;
   box-shadow: inset 0 0 0 2px #fff;
   display: flex;
@@ -318,12 +397,16 @@
   position: relative;
   flex: 0 0 clamp(240px, 30%, 330px);
   width: clamp(240px, 30%, 330px);
+  align-self: flex-end;
   min-height: 300px;
   background:
     linear-gradient(rgba(171, 178, 186, 0.5) 1px, transparent 1px),
     linear-gradient(90deg, rgba(171, 178, 186, 0.5) 1px, transparent 1px),
     #f4f6f9;
-  background-size: 16px 16px, 16px 16px, auto;
+  background-size:
+    16px 16px,
+    16px 16px,
+    auto;
   border: 4px solid #4a525a;
   box-shadow: inset 0 0 0 2px #fff;
   padding: 14px;
@@ -558,9 +641,17 @@
 
 .revealText {
   font-family: var(--font-pixel);
-  color: #d5efff;
   font-size: 0.5rem;
   text-align: center;
+}
+
+.revealTextWin {
+  color: #d5efff;
+}
+
+.revealTextLose {
+  color: #ff9b9b;
+  text-shadow: 1px 1px 0 rgba(69, 19, 19, 0.75);
 }
 
 .bottomPanel {
@@ -736,23 +827,36 @@
 
 .countdownOverlay {
   position: absolute;
-  inset: 0;
-  background: rgba(20, 28, 37, 0.74);
+  inset: 4px;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #f7fbff;
-  z-index: 5;
+  gap: 10px;
+  background: rgba(22, 29, 37, 0.72);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
 }
 
 .countdownLabel {
-  font-size: 0.52rem;
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  color: #d8e9f6;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .countdownValue {
-  margin-top: 14px;
-  font-size: 1.5rem;
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: clamp(1.8rem, 10vw, 4.2rem);
+  line-height: 1;
+  color: #f5b63c;
+  text-shadow:
+    0 0 12px rgba(245, 182, 60, 0.45),
+    2px 2px 0 rgba(56, 38, 7, 0.85);
 }
 
 .resultsCard,
@@ -1102,6 +1206,11 @@
     width: 100%;
   }
 
+  .livesBar {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   .usedLetters {
     justify-content: center;
   }
@@ -1193,19 +1302,41 @@
     letter-spacing: 2px;
   }
 
-  .hintList {
+  .gameLayout {
+    padding-right: 3rem;
+    padding-left: 3rem;
+  }
+
+  .bottomPanel {
+    padding-right: 3rem;
+    padding-left: 3rem;
+  }
+
+  .hintsList {
     grid-template-columns: 1fr;
   }
 
-  .input,
-  .actionBtn,
-  .letterInput {
-    width: 100%;
-    flex-basis: auto;
+  .inputRowLetter .letterInput {
+    flex: 0 0 3.2rem;
+    width: 3.2rem;
+    min-width: 3.2rem;
   }
 
-  .letterInput {
+  .inputRowLetter .actionBtn {
+    flex: 1 1 auto;
+    width: auto;
     min-width: 0;
+  }
+
+  .inputRowWord .input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  .inputRowWord .actionBtn {
+    flex: 0 0 clamp(7.8rem, 34vw, 9.8rem);
+    width: clamp(7.8rem, 34vw, 9.8rem);
   }
 
   .resultRow,

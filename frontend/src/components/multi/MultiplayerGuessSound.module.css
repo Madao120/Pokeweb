@@ -18,7 +18,7 @@
   padding: 10px 12px 0;
 }
 
-.gameOver{
+.gameOver {
   margin-top: 0.3rem;
   font-family: var(--font-pixel);
   color: #39393a;
@@ -141,6 +141,40 @@
     transform 720ms ease;
 }
 
+.countdownOverlay {
+  position: absolute;
+  inset: 4px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(22, 29, 37, 0.72);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+}
+
+.countdownLabel {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  color: #d8e9f6;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.countdownValue {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: clamp(1.8rem, 10vw, 4.2rem);
+  line-height: 1;
+  color: #f5b63c;
+  text-shadow:
+    0 0 12px rgba(245, 182, 60, 0.45),
+    2px 2px 0 rgba(56, 38, 7, 0.85);
+}
+
 .mainPanelVisible {
   opacity: 1;
   transform: translateX(0);
@@ -181,9 +215,9 @@
   --tint-rgb: 164, 172, 180;
   background: linear-gradient(
     90deg,
-    transparent 0 4.4%,
-    rgba(var(--tint-rgb), 0.68) 4.4% 95.6%,
-    transparent 95.6% 100%
+    transparent 0 6%,
+    rgba(var(--tint-rgb), 0.68) 6% 94%,
+    transparent 94% 100%
   );
   z-index: 0;
   opacity: 0;
@@ -647,6 +681,13 @@
   text-shadow: 1px 1px 0 rgba(34, 39, 45, 0.9);
 }
 
+.btnStart:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.75);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .btnFinishRed,
 .btnFinishYellow,
 .btnFinishBlue {
@@ -737,19 +778,31 @@
 
 .btnFinishRed::after {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
     linear-gradient(180deg, #f5645e, #c93a35);
 }
 
 .btnFinishYellow::after {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
     linear-gradient(180deg, #f5b63c, #c78916);
 }
 
 .btnFinishBlue::after {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
     linear-gradient(180deg, #4fa8ff, #256fca);
 }
 
@@ -929,6 +982,14 @@
   margin-top: 0.2rem;
 }
 
+.waitingText {
+  margin-top: 10px;
+  font-family: var(--font-pixel);
+  font-size: 0.42rem;
+  color: #59636b;
+  text-align: center;
+}
+
 @media (max-width: 1180px) {
   .container {
     width: 100%;
@@ -936,6 +997,11 @@
     margin: 0;
     padding: 8px;
     gap: 10px;
+  }
+
+  .mainPanelContent {
+    padding-right: 3.5rem;
+    padding-left: 3.5rem;
   }
 
   .topRow {
@@ -981,6 +1047,11 @@
     align-items: stretch;
   }
 
+  .mainPanelContent {
+    padding-right: 2.3rem;
+    padding-left: 2.3rem;
+  }
+
   .optionsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-items: stretch;
@@ -1004,5 +1075,9 @@
 
   .botonesFin {
     flex-direction: column;
+  }
+
+  .btnStart {
+    min-height: 2rem;
   }
 }

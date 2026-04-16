@@ -419,7 +419,7 @@
 .btnStart {
   flex: 1;
   padding: 0 12px;
-  height: 36px;
+  height: 40px;
   background: transparent;
   color: #f8fafc;
   font-family: var(--font-pixel);
@@ -659,11 +659,15 @@
   padding: 10px;
   width: 100%;
   opacity: 0;
-  transition: opacity 240ms ease;
+  transform: translateY(8px);
+  transition:
+    opacity 380ms ease,
+    transform 380ms ease;
 }
 
 .resultVisible {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .resultWin {
@@ -794,5 +798,27 @@
     margin-left: auto;
     margin-right: auto;
     gap: 12px;
+  }
+
+  .btnStart .btnFinishYellow {
+    padding: 5px;
+  }
+
+  .botonesFin .btnStart {
+    min-height: 48px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    text-align: center;
+    padding: 8px 10px;
+  }
+
+  .botonesFin .btnFinishYellow {
+    min-height: 56px;
+    line-height: 1.05;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 }

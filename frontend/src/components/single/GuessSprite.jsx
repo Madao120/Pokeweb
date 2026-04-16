@@ -14,6 +14,7 @@ import {
 } from "../../services/api";
 
 const EXIT_DELAY_MS = 520;
+const RESULT_FADE_MS = 380;
 const POINTS_BY_FALLOS = [100, 80, 60, 40, 20, 10];
 const MAX_DROPDOWN_RESULTS = 30;
 
@@ -143,9 +144,7 @@ function GuessSprite({
     const penalizeOnClose = () => {
       const currentSession = sessionRef.current;
       if (user?.id && currentSession && !currentSession.gameOver) {
-        navigator.sendBeacon(
-          buildApiUrl(`/game/m3/abandon?userId=${user.id}`),
-        );
+        navigator.sendBeacon(buildApiUrl(`/game/m3/abandon?userId=${user.id}`));
       }
     };
 
@@ -166,12 +165,17 @@ function GuessSprite({
 
   const syncExitState = useCallback(async () => {
     const currentSession = sessionRef.current;
-    if (!isDailyMode && user?.id && currentSession && !currentSession.gameOver) {
+    if (
+      !isDailyMode &&
+      user?.id &&
+      currentSession &&
+      !currentSession.gameOver
+    ) {
       skipAutoAbandonRef.current = true;
       try {
         await abandonGuessSpriteGame(user.id);
-      // eslint-disable-next-line no-unused-vars
-      } catch(err) {
+        // eslint-disable-next-line no-unused-vars
+      } catch (err) {
         // Ignorar errores
       }
     }
@@ -188,7 +192,7 @@ function GuessSprite({
       if (withExit && sessionRef.current) {
         if (sessionRef.current.gameOver) {
           setResultVisible(false);
-          await wait(240);
+          await wait(RESULT_FADE_MS);
         }
         setPanelsVisible(false);
         await wait(EXIT_DELAY_MS);
@@ -382,7 +386,7 @@ function GuessSprite({
   const handleChangeMinigame = useCallback(async () => {
     if (sessionRef.current?.gameOver) {
       setResultVisible(false);
-      await wait(240);
+      await wait(RESULT_FADE_MS);
     }
     await syncExitState();
     setPanelsVisible(false);
@@ -393,7 +397,7 @@ function GuessSprite({
   const handleChangeMode = useCallback(async () => {
     if (sessionRef.current?.gameOver) {
       setResultVisible(false);
-      await wait(240);
+      await wait(RESULT_FADE_MS);
     }
     await syncExitState();
     setPanelsVisible(false);
@@ -596,7 +600,7 @@ function GuessSprite({
                   onClick={handleChangeMinigame}
                   disabled={loading}
                 >
-                  ADIVINASTE! SIGUIENTE RONDA
+                  SIGUIENTE RONDA
                 </button>
                 <button
                   className={`${styles.btnStart} ${styles.btnFinishBlue}`}

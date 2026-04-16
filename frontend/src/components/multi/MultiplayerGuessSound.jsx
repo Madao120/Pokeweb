@@ -122,6 +122,7 @@ function MultiplayerGuessSound({
   const sessionRef = useRef(null);
   const timeoutRefreshRef = useRef(false);
   const isLeader = String(roomState?.leaderId) === String(user?.id);
+  const hostActionsDisabled = !isLeader || Boolean(actionLoading);
   const isPlaying = roomState?.state === "PLAYING";
   const isRoundFinished = roomState?.state === "ROUND_FINISHED";
   const isMatchFinished = roomState?.state === "FINISHED";
@@ -249,6 +250,16 @@ function MultiplayerGuessSound({
   }, [awaitingManualAdvance, visibleRound?.ronda]);
 
   useEffect(() => {
+    const isTerminalState =
+      roomState?.state === "ROUND_FINISHED" || roomState?.state === "FINISHED";
+
+    // Keep fail-reveal UI alive until the player confirms "SIGUIENTE RONDA",
+    // even if the room already moved to a terminal state.
+    if (awaitingManualAdvance && isTerminalState) {
+      setResolvingGuess(false);
+      return;
+    }
+
     setLocalError(null);
     setFlashState("");
     setPendingSession(null);
@@ -257,7 +268,7 @@ function MultiplayerGuessSound({
     setShowNextRoundUi(false);
     setRoundTransitioning(false);
     setResolvingGuess(false);
-  }, [roomState?.state, roomState?.gameMode]);
+  }, [awaitingManualAdvance, roomState?.state, roomState?.gameMode]);
 
   const advanceRound = useCallback(async (nextSession, options = {}) => {
     const { skipExit = false } = options;
@@ -390,6 +401,9 @@ function MultiplayerGuessSound({
   const aciertos = session?.aciertos ?? 0;
   const scoreGanado = session?.puntosGanados ?? 0;
   const showFailTint = flashState === "fail" || awaitingManualAdvance;
+  const holdFailReveal = awaitingManualAdvance;
+  const showRoundFinishedState = isRoundFinished && !holdFailReveal;
+  const showMatchFinishedState = isMatchFinished && !holdFailReveal;
   const isInteractionLocked =
     loading || awaitingManualAdvance || roundTransitioning || countdownRemaining > 0;
 
@@ -415,10 +429,10 @@ function MultiplayerGuessSound({
       <div className={styles.container}>
         <div
           className={`${styles.topRow} ${
-            isRoundFinished || isMatchFinished ? styles.topRowEndState : ""
+            showRoundFinishedState || showMatchFinishedState ? styles.topRowEndState : ""
           }`}
         >
-          {!isMatchFinished ? (
+          {!showMatchFinishedState ? (
             <>
               <div
                 className={`${styles.panel} ${styles.mainPanel} ${
@@ -427,6 +441,14 @@ function MultiplayerGuessSound({
                   showFailTint ? styles.mainPanelFlashFail : ""
                 }`}
               >
+                {countdownRemaining > 0 && (
+                  <div className={styles.countdownOverlay}>
+                    <p className={styles.countdownLabel}>A prepararos</p>
+                    <p className={styles.countdownValue}>
+                      {Math.max(1, Math.ceil(countdownRemaining / 1000))}
+                    </p>
+                  </div>
+                )}
                 <div className={styles.mainPanelTint} />
                 <div className={styles.mainPanelContent}>
                   <div className={styles.headerRow}>
@@ -573,7 +595,7 @@ function MultiplayerGuessSound({
                 </div>
               </div>
 
-              {!isRoundFinished && (
+              {!showRoundFinishedState && (
                 <div
                   className={`${styles.panel} ${styles.rankingPanel} ${
                     panelsVisible ? styles.rankingPanelVisible : ""
@@ -628,7 +650,7 @@ function MultiplayerGuessSound({
                 </div>
               )}
 
-              {isRoundFinished && (
+              {showRoundFinishedState && (
                 <section className={styles.resultsCard}>
                   <p className={styles.panelLabel}>RESULTADO DEL MINIJUEGO</p>
                   <div className={styles.resultsList}>
@@ -656,25 +678,30 @@ function MultiplayerGuessSound({
                     <button
                       className={`${styles.btnStart} ${styles.btnFinishRed}`}
                       onClick={onRepeatMode}
-                      disabled={!isLeader || Boolean(actionLoading)}
+                      disabled={hostActionsDisabled}
                     >
                       {actionLoading === "repeat" ? "..." : "REPETIR MODO"}
                     </button>
                     <button
                       className={`${styles.btnStart} ${styles.btnFinishYellow}`}
                       onClick={onChangeMode}
-                      disabled={!isLeader || Boolean(actionLoading)}
+                      disabled={hostActionsDisabled}
                     >
                       {actionLoading === "change-mode" ? "..." : "CAMBIAR MODO"}
                     </button>
                     <button
                       className={`${styles.btnStart} ${styles.btnFinishBlue}`}
                       onClick={onFinishMatch}
-                      disabled={!isLeader || Boolean(actionLoading)}
+                      disabled={hostActionsDisabled}
                     >
                       {actionLoading === "finish-match" ? "..." : "TERMINAR PARTIDA"}
                     </button>
                   </div>
+                  {!isLeader && (
+                    <p className={styles.waitingText}>
+                      Solo el lider puede continuar o terminar la partida.
+                    </p>
+                  )}
                 </section>
               )}
             </>
@@ -720,7 +747,7 @@ function MultiplayerGuessSound({
             </section>
           )}
 
-          {session?.gameOver && !isRoundFinished && !isMatchFinished && (
+          {session?.gameOver && !showRoundFinishedState && !showMatchFinishedState && (
             <div
               className={`${
                 scoreGanado >= 0 ? styles.resultWin : styles.resultLose

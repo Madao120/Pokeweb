@@ -112,6 +112,7 @@
 }
 
 .error {
+  padding-left: 3rem;
   font-family: var(--font-mono);
   margin-bottom: 16px;
   color: #ab2d2d;

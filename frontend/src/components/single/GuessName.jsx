@@ -563,9 +563,9 @@ function GuessName({
       : null;
 
   const intentos = session?.intentos ?? 0;
-  const mostrarTipo1 = session?.mostrarTipo1 ?? intentos >= 2;
-  const mostrarGeneracion = session?.mostrarGeneracion ?? intentos >= 4;
-  const mostrarTipo2 = session?.mostrarTipo2 ?? intentos >= 6;
+  const mostrarTipo1 = Boolean(session?.mostrarTipo1) || intentos >= 2;
+  const mostrarGeneracion = Boolean(session?.mostrarGeneracion) || intentos >= 4;
+  const mostrarTipo2 = Boolean(session?.mostrarTipo2) || intentos >= 6;
   const hintLabelTipo1 = isMobile ? "Tipo1" : "Tipo 1:";
   const hintLabelGeneracion = isMobile ? "Gen" : "Generacion:";
   const hintLabelTipo2 = isMobile ? "Tipo2" : "Tipo 2:";

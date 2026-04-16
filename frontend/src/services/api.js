@@ -3,10 +3,32 @@ const API_URL = (import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace(
   /\/+$/,
   "",
 );
+const DEFAULT_FETCH_TIMEOUT_MS = 12000;
 
 export function buildApiUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${API_URL}${normalizedPath}`;
+}
+
+async function apiFetch(path, options = {}, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    return await fetch(buildApiUrl(path), {
+      ...options,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      throw new Error("La conexion ha tardado demasiado. Intentalo de nuevo.");
+    }
+    throw err;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 }
 
 // Crear usuario nuevo
@@ -66,7 +88,7 @@ export async function updateProfile(userId, data) {
 
 // Iniciar partida de ahorcado para un usuario
 export async function startGame(userId) {
-  const response = await fetch(buildApiUrl(`/game/start?userId=${userId}`), {
+  const response = await apiFetch(`/game/start?userId=${userId}`, {
     method: "POST",
   });
 
@@ -79,10 +101,8 @@ export async function startGame(userId) {
 
 // Enviar una letra al backend
 export async function guessLetter(userId, letra) {
-  const response = await fetch(
-    buildApiUrl(
-      `/game/guess?userId=${userId}&letra=${encodeURIComponent(letra)}`,
-    ),
+  const response = await apiFetch(
+    `/game/guess?userId=${userId}&letra=${encodeURIComponent(letra)}`,
     { method: "POST" },
   );
 
@@ -96,10 +116,8 @@ export async function guessLetter(userId, letra) {
 
 // Enviar la palabra completa al backend
 export async function guessWord(userId, palabra) {
-  const response = await fetch(
-    buildApiUrl(
-      `/game/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
-    ),
+  const response = await apiFetch(
+    `/game/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
     { method: "POST" },
   );
 
@@ -113,7 +131,7 @@ export async function guessWord(userId, palabra) {
 
 // Abandonar partida activa (penalizacion -25 en backend)
 export async function abandonGame(userId) {
-  const response = await fetch(buildApiUrl(`/game/abandon?userId=${userId}`), {
+  const response = await apiFetch(`/game/abandon?userId=${userId}`, {
     method: "POST",
     keepalive: true,
   });
@@ -124,9 +142,12 @@ export async function abandonGame(userId) {
 }
 
 export async function forceLoseGame(userId) {
-  const response = await fetch(buildApiUrl(`/game/force-lose?userId=${userId}`), {
-    method: "POST",
-  });
+  const response = await apiFetch(
+    `/game/force-lose?userId=${userId}`,
+    {
+      method: "POST",
+    },
+  );
   if (!response.ok) {
     throw new Error("Error al forzar derrota");
   }
@@ -150,7 +171,7 @@ export async function updateScore(userId, score) {
 // Top 10 jugadores por scoreM1
 export async function getRanking(userId) {
   const query = userId ? `?userId=${userId}` : "";
-  const response = await fetch(buildApiUrl(`/users/ranking${query}`));
+  const response = await apiFetch(`/users/ranking${query}`);
   if (!response.ok) throw new Error("Error al obtener el ranking");
   return await response.json();
 }
@@ -185,10 +206,13 @@ export async function guessSoundPokemon(userId, pokemonId) {
 }
 
 export async function abandonGuessSoundGame(userId) {
-  const response = await fetch(buildApiUrl(`/game/m2/abandon?userId=${userId}`), {
-    method: "POST",
-    keepalive: true,
-  });
+  const response = await fetch(
+    buildApiUrl(`/game/m2/abandon?userId=${userId}`),
+    {
+      method: "POST",
+      keepalive: true,
+    },
+  );
   if (!response.ok) {
     throw new Error("Error al abandonar GuessSound");
   }
@@ -237,10 +261,13 @@ export async function guessSpritePokemon(userId, pokemonId) {
 }
 
 export async function abandonGuessSpriteGame(userId) {
-  const response = await fetch(buildApiUrl(`/game/m3/abandon?userId=${userId}`), {
-    method: "POST",
-    keepalive: true,
-  });
+  const response = await fetch(
+    buildApiUrl(`/game/m3/abandon?userId=${userId}`),
+    {
+      method: "POST",
+      keepalive: true,
+    },
+  );
   if (!response.ok) {
     throw new Error("Error al abandonar GuessSprite");
   }
@@ -273,16 +300,14 @@ export async function getGuessSpritePokemonList() {
 }
 
 export async function getDailyHangmanState(userId) {
-  const response = await fetch(
-    buildApiUrl(`/game/daily/m1/state?userId=${userId}`),
-  );
+  const response = await apiFetch(`/game/daily/m1/state?userId=${userId}`);
   if (!response.ok) throw new Error("Error al obtener estado diario M1");
   return await response.json();
 }
 
 export async function startDailyHangman(userId) {
-  const response = await fetch(
-    buildApiUrl(`/game/daily/m1/start?userId=${userId}`),
+  const response = await apiFetch(
+    `/game/daily/m1/start?userId=${userId}`,
     {
       method: "POST",
     },
@@ -292,10 +317,8 @@ export async function startDailyHangman(userId) {
 }
 
 export async function guessDailyHangmanLetter(userId, letra) {
-  const response = await fetch(
-    buildApiUrl(
-      `/game/daily/m1/guess-letter?userId=${userId}&letra=${encodeURIComponent(letra)}`,
-    ),
+  const response = await apiFetch(
+    `/game/daily/m1/guess-letter?userId=${userId}&letra=${encodeURIComponent(letra)}`,
     { method: "POST" },
   );
   if (!response.ok) {
@@ -306,10 +329,8 @@ export async function guessDailyHangmanLetter(userId, letra) {
 }
 
 export async function guessDailyHangmanWord(userId, palabra) {
-  const response = await fetch(
-    buildApiUrl(
-      `/game/daily/m1/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
-    ),
+  const response = await apiFetch(
+    `/game/daily/m1/guess-word?userId=${userId}&palabra=${encodeURIComponent(palabra)}`,
     { method: "POST" },
   );
   if (!response.ok) {
@@ -408,7 +429,9 @@ export async function voteMultiplayerMode(code, userId, mode) {
 
 export async function startMultiplayerRound(code, userId, mode) {
   const response = await fetch(
-    buildApiUrl(`/rooms/${code}/start?userId=${userId}&mode=${encodeURIComponent(mode)}`),
+    buildApiUrl(
+      `/rooms/${code}/start?userId=${userId}&mode=${encodeURIComponent(mode)}`,
+    ),
     { method: "POST" },
   );
 
@@ -541,7 +564,11 @@ export async function kickMultiplayerPlayer(code, leaderId, targetId) {
   return await response.json();
 }
 
-export async function transferMultiplayerLeader(code, currentLeaderId, newLeaderId) {
+export async function transferMultiplayerLeader(
+  code,
+  currentLeaderId,
+  newLeaderId,
+) {
   const response = await fetch(buildApiUrl(`/rooms/${code}/leader`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },

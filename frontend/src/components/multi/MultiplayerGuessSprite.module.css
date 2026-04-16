@@ -55,7 +55,11 @@
 
 .topRow {
   display: grid;
-  grid-template-columns: clamp(340px, 31vw, 460px) minmax(420px, 1fr) clamp(220px, 24vw, 300px);
+  grid-template-columns: clamp(340px, 31vw, 460px) minmax(420px, 1fr) clamp(
+      220px,
+      24vw,
+      300px
+    );
   gap: 14px;
   align-items: start;
   height: 100%;
@@ -154,7 +158,14 @@
   position: absolute;
   inset: 8px;
   background:
-    linear-gradient(90deg, #646c74 0 2.6%, #a6afb7 2.6% 6.2%, transparent 6.2% 93.8%, #a6afb7 93.8% 97.4%, #646c74 97.4% 100%),
+    linear-gradient(
+      90deg,
+      #646c74 0 2.6%,
+      #a6afb7 2.6% 6.2%,
+      transparent 6.2% 93.8%,
+      #a6afb7 93.8% 97.4%,
+      #646c74 97.4% 100%
+    ),
     linear-gradient(180deg, #eceff1, #dde2e6);
   clip-path: var(--panel-shape);
   z-index: -1;
@@ -177,6 +188,40 @@
   padding-bottom: 1rem;
 }
 
+.countdownOverlay {
+  position: absolute;
+  inset: 8px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(22, 29, 37, 0.72);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+}
+
+.countdownLabel {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  color: #d8e9f6;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.countdownValue {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: clamp(1.8rem, 10vw, 4.2rem);
+  line-height: 1;
+  color: #f5b63c;
+  text-shadow:
+    0 0 12px rgba(245, 182, 60, 0.45),
+    2px 2px 0 rgba(56, 38, 7, 0.85);
+}
+
 .searchPanel {
   height: 100%;
   min-height: 0;
@@ -187,6 +232,13 @@
   width: 100%;
   padding-left: 10%;
   padding-right: 10%;
+}
+
+.searchPanelEnd {
+  height: auto;
+  min-height: auto;
+  align-self: start;
+  padding-bottom: 20px;
 }
 
 .panelLabel {
@@ -252,6 +304,7 @@
   font-family: var(--font-pixel);
   font-size: 0.45rem;
   color: #3a434b;
+  padding-bottom: 1rem;
 }
 
 .statusText {
@@ -358,6 +411,13 @@
   text-shadow: 1px 1px 0 rgba(34, 39, 45, 0.9);
 }
 
+.btnStart:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.75);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .btnFinishRed,
 .btnFinishYellow,
 .btnFinishBlue {
@@ -448,19 +508,31 @@
 
 .btnFinishRed::after {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
     linear-gradient(180deg, #f5645e, #c93a35);
 }
 
 .btnFinishYellow::after {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
     linear-gradient(180deg, #f5b63c, #c78916);
 }
 
 .btnFinishBlue::after {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 28%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0) 28%
+    ),
     linear-gradient(180deg, #4fa8ff, #256fca);
 }
 
@@ -485,7 +557,9 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transition: transform 320ms ease, filter 320ms ease;
+  transition:
+    transform 320ms ease,
+    filter 320ms ease;
   image-rendering: pixelated;
   display: block;
 }
@@ -548,7 +622,11 @@
 }
 
 .playerCardSelf {
-  background: linear-gradient(180deg, rgba(255, 210, 74, 0.32), rgba(255, 187, 0, 0.18));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 210, 74, 0.32),
+    rgba(255, 187, 0, 0.18)
+  );
   box-shadow:
     inset 0 0 0 2px rgba(255, 246, 197, 0.95),
     0 0 0 2px rgba(180, 120, 0, 0.45);
@@ -645,6 +723,40 @@
   box-shadow: inset 0 0 0 2px #fff;
 }
 
+.resultsCardEnter {
+  animation: winnersSlideInUp 760ms cubic-bezier(0.2, 0.9, 0.22, 1) both;
+}
+
+.resultsCardExit {
+  animation: winnersSlideOutDown 240ms ease-in both;
+}
+
+@keyframes winnersSlideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(64px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes winnersSlideOutDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-12px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(42px);
+  }
+}
+
 .blockTitle {
   margin: 0 0 10px;
   font-family: var(--font-pixel);
@@ -691,12 +803,40 @@
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 1rem;
+}
+
+.hostActionsInPanel {
+  margin-top: 8px;
+  padding-top: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.hostActionBtn {
+  width: min(88%, 290px);
+  min-height: 46px;
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.waitingText {
+  margin-top: 10px;
+  font-family: var(--font-pixel);
+  font-size: 0.42rem;
+  color: #59636b;
+  text-align: center;
 }
 
 .podiumWinner {
-  background: linear-gradient(180deg, rgba(255, 210, 74, 0.32), rgba(255, 187, 0, 0.18));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 210, 74, 0.32),
+    rgba(255, 187, 0, 0.18)
+  );
 }
 
 @media (max-width: 1080px) {
@@ -773,6 +913,12 @@
     min-width: 110px;
     padding: 0;
     margin: 0;
+  }
+
+  .hostActionBtn {
+    width: min(92%, 320px);
+    min-height: 44px;
+    font-size: 0.68rem;
   }
 
   .searchPanel {

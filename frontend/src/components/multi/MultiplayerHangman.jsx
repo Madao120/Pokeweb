@@ -202,6 +202,8 @@ function MultiplayerHangman({
   const guessedLetters = session?.guessedLetters
     ? Array.from(session.guessedLetters)
     : [];
+  const intentos = session?.intentos ?? 0;
+  const maxIntentos = 7;
   const letterDisabled =
     !isPlaying ||
     countdownRemaining > 0 ||
@@ -313,7 +315,11 @@ function MultiplayerHangman({
                 </div>
               </div>
 
-              <div className={styles.playfield}>
+              <div
+                className={`${styles.playfield} ${
+                  isRoundFinished ? styles.playfieldRoundFinished : ""
+                }`}
+              >
                 <section className={styles.wordPanel}>
                   {countdownRemaining > 0 && (
                     <div className={styles.countdownOverlay}>
@@ -333,6 +339,26 @@ function MultiplayerHangman({
 
                       <div className={styles.bottomRow}>
                         <div className={styles.bottomLeft}>
+                          <div className={styles.livesBar}>
+                            PS&nbsp;
+                            {Array.from({ length: maxIntentos }, (_, i) => {
+                              const remaining = maxIntentos - intentos;
+                              let colorClass = styles.lifeGreen;
+                              if (remaining <= 2) colorClass = styles.lifeRed;
+                              else if (remaining <= 4) colorClass = styles.lifeYellow;
+                              const isUsed = i < intentos;
+
+                              return (
+                                <span
+                                  key={i}
+                                  className={`${styles.lifeBlock} ${
+                                    isUsed ? styles.lifeUsed : colorClass
+                                  }`}
+                                />
+                              );
+                            })}
+                          </div>
+
                           <p className={styles.usedLetters}>
                             <span className={styles.usedLabel}>USADAS:</span>{" "}
                             {guessedLetters.length
@@ -483,10 +509,14 @@ function MultiplayerHangman({
 
               {session?.gameOver && roomState?.pokemonName && (
                 <div className={styles.revealTextBox}>
-                  <p className={styles.revealText}>
+                  <p
+                    className={`${styles.revealText} ${
+                      session.ganado ? styles.revealTextWin : styles.revealTextLose
+                    }`}
+                  >
                     {session.ganado
                       ? `Correcto, era ${roomState.pokemonName.toUpperCase()}`
-                      : `No llegaste a tiempo. Era ${roomState.pokemonName.toUpperCase()}`}
+                      : `Te has quedado sin puntos de vida. Era ${roomState.pokemonName.toUpperCase()}`}
                   </p>
                 </div>
               )}

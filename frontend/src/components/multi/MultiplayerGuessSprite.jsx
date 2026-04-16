@@ -4,6 +4,7 @@ import styles from "./MultiplayerGuessSprite.module.css";
 import { getGuessSpritePokemonList } from "../../services/api";
 
 const MAX_DROPDOWN_RESULTS = 30;
+const WINNERS_EXIT_MS = 240;
 
 function formatClock(ms) {
   const safeMs = Math.max(0, ms || 0);
@@ -50,6 +51,7 @@ function MultiplayerGuessSprite({
 }) {
   const session = roomState?.mySession || null;
   const isLeader = String(roomState?.leaderId) === String(user?.id);
+  const hostActionsDisabled = !isLeader || Boolean(actionLoading);
   const isPlaying = roomState?.state === "PLAYING";
   const isRoundFinished = roomState?.state === "ROUND_FINISHED";
   const isMatchFinished = roomState?.state === "FINISHED";
@@ -59,7 +61,13 @@ function MultiplayerGuessSprite({
   const [localError, setLocalError] = useState("");
   const [feedback, setFeedback] = useState("");
   const [timerNow, setTimerNow] = useState(Date.now());
+  const [showRoundResults, setShowRoundResults] = useState(isRoundFinished);
+  const [roundResultsPhase, setRoundResultsPhase] = useState(
+    isRoundFinished ? "enter" : "hidden",
+  );
+  const [delayMatchFinishedView, setDelayMatchFinishedView] = useState(false);
   const timeoutRefreshRef = useRef(false);
+  const wasRoundFinishedRef = useRef(false);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -78,6 +86,45 @@ function MultiplayerGuessSprite({
     setLocalError("");
     setFeedback("");
   }, [roomState?.state, roomState?.gameMode]);
+
+  useEffect(() => {
+    let enterFrameA;
+    let enterFrameB;
+    let exitTimer;
+
+    if (isRoundFinished) {
+      setShowRoundResults(true);
+      setDelayMatchFinishedView(false);
+      setRoundResultsPhase("enterPrep");
+      enterFrameA = window.requestAnimationFrame(() => {
+        enterFrameB = window.requestAnimationFrame(() => {
+          setRoundResultsPhase("enter");
+        });
+      });
+    } else if (wasRoundFinishedRef.current) {
+      setRoundResultsPhase("exit");
+      if (isMatchFinished) {
+        setDelayMatchFinishedView(true);
+      }
+      exitTimer = window.setTimeout(() => {
+        setShowRoundResults(false);
+        setRoundResultsPhase("hidden");
+        setDelayMatchFinishedView(false);
+      }, WINNERS_EXIT_MS);
+    } else {
+      setShowRoundResults(false);
+      setRoundResultsPhase("hidden");
+      setDelayMatchFinishedView(false);
+    }
+
+    wasRoundFinishedRef.current = isRoundFinished;
+
+    return () => {
+      if (enterFrameA) window.cancelAnimationFrame(enterFrameA);
+      if (enterFrameB) window.cancelAnimationFrame(enterFrameB);
+      if (exitTimer) window.clearTimeout(exitTimer);
+    };
+  }, [isMatchFinished, isRoundFinished]);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,6 +174,14 @@ function MultiplayerGuessSprite({
   }, [countdownRemaining, isPlaying, onRefreshState, roundRemaining]);
 
   const cooldownMs = Math.max(0, (session?.nextGuessAllowedAtMs || 0) - timerNow);
+  const showPostRoundActions = isRoundFinished || session?.gameOver;
+  const showMatchFinishedView = isMatchFinished && !delayMatchFinishedView;
+  const winnersCardClassName =
+    roundResultsPhase === "exit"
+      ? styles.resultsCardExit
+      : roundResultsPhase === "enter"
+        ? styles.resultsCardEnter
+        : "";
   const canGuess =
     isPlaying &&
     countdownRemaining <= 0 &&
@@ -230,11 +285,15 @@ function MultiplayerGuessSprite({
         </div>
       </div>
 
-      {!isMatchFinished ? (
+      {!showMatchFinishedView ? (
         <>
           <div className={styles.topRow}>
             <div className={styles.leftColumn}>
-              <div className={`${styles.panel} ${styles.searchPanel}`}>
+              <div
+                className={`${styles.panel} ${styles.searchPanel} ${
+                  showPostRoundActions ? styles.searchPanelEnd : ""
+                }`}
+              >
                 <p className={styles.panelLabel}>GUESS SPRITE</p>
 
                 <div className={styles.livesBar}>
@@ -326,39 +385,52 @@ function MultiplayerGuessSprite({
                 {feedback && <p className={styles.feedback}>{feedback}</p>}
                 {localError && <p className={styles.error}>{localError}</p>}
 
-                {(isRoundFinished || session?.gameOver) && (
-                  <div className={styles.hostActions}>
+                {showPostRoundActions && (
+                  <div className={`${styles.hostActions} ${styles.hostActionsInPanel}`}>
                     <button
-                      className={`${styles.btnStart} ${styles.btnFinishRed}`}
+                      className={`${styles.btnStart} ${styles.hostActionBtn} ${styles.btnFinishRed}`}
                       type="button"
-                      disabled={!isLeader || Boolean(actionLoading)}
+                      disabled={hostActionsDisabled}
                       onClick={onRepeatMode}
                     >
                       {actionLoading === "repeat" ? "..." : "REPETIR MODO"}
                     </button>
                     <button
-                      className={`${styles.btnStart} ${styles.btnFinishYellow}`}
+                      className={`${styles.btnStart} ${styles.hostActionBtn} ${styles.btnFinishYellow}`}
                       type="button"
-                      disabled={!isLeader || Boolean(actionLoading)}
+                      disabled={hostActionsDisabled}
                       onClick={onChangeMode}
                     >
                       {actionLoading === "change-mode" ? "..." : "CAMBIAR MODO"}
                     </button>
                     <button
-                      className={`${styles.btnStart} ${styles.btnFinishBlue}`}
+                      className={`${styles.btnStart} ${styles.hostActionBtn} ${styles.btnFinishBlue}`}
                       type="button"
-                      disabled={!isLeader || Boolean(actionLoading)}
+                      disabled={hostActionsDisabled}
                       onClick={onFinishMatch}
                     >
                       {actionLoading === "finish-match" ? "..." : "TERMINAR PARTIDA"}
                     </button>
                   </div>
                 )}
+                {showPostRoundActions && !isLeader && (
+                  <p className={styles.waitingText}>
+                    Solo el lider puede continuar o terminar la partida.
+                  </p>
+                )}
               </div>
             </div>
 
             <div className={styles.middleColumn}>
               <div className={`${styles.panel} ${styles.imagePanel}`}>
+                {countdownRemaining > 0 && (
+                  <div className={styles.countdownOverlay}>
+                    <p className={styles.countdownLabel}>A prepararos</p>
+                    <p className={styles.countdownValue}>
+                      {Math.max(1, Math.ceil(countdownRemaining / 1000))}
+                    </p>
+                  </div>
+                )}
                 <div className={styles.spriteViewport}>
                   {session?.pokemon?.spriteUrl ? (
                     <img
@@ -445,8 +517,8 @@ function MultiplayerGuessSprite({
             )}
           </div>
 
-          {isRoundFinished && (
-            <section className={styles.resultsCard}>
+          {showRoundResults && (
+            <section className={`${styles.resultsCard} ${winnersCardClassName}`}>
               <p className={styles.blockTitle}>Resultado del minijuego</p>
               <div className={styles.resultsList}>
                 {finalists.map((player, index) => (
