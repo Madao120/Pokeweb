@@ -32,6 +32,9 @@
 
   --shadow-glow: 0 0 12px var(--green-glow), 0 0 2px var(--green-dim);
   --shadow-inset: inset 0 1px 4px rgba(0, 0, 0, 0.7);
+  --scroll-track: #e3e7ec;
+  --scroll-thumb: #bcc5cf;
+  --scroll-thumb-hover: #a9b4c0;
 }
 
 *,
@@ -73,18 +76,28 @@ body {
   background-size: 24px 24px;
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: var(--bg-deep);
+  background: var(--scroll-track);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: var(--green-dim);
-  border-radius: 3px;
+  background: var(--scroll-thumb);
+  border-radius: 4px;
+  border: 1px solid #d3d9e0;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--green-primary);
+  background: var(--scroll-thumb-hover);
 }
 
 ::selection {

@@ -1,18 +1,16 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import styles from "./AvatarPicker.module.css";
 
-// 151 pokémon de la primera generación como opciones predeterminadas
-// Se puede ampliar cambiando TOTAL_POKEMON
+// Lista de pokemon para el buscador (cacheada en memoria)
 const TOTAL_POKEMON = 1025;
 const SPRITE_BASE =
   "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
 
-// Lista de nombres cacheada para el buscador
-// Se carga una sola vez desde la PokeAPI
 let cachedNames = null;
 
 async function fetchPokemonNames() {
   if (cachedNames) return cachedNames;
+
   try {
     const res = await fetch(
       `https://pokeapi.co/api/v2/pokemon?limit=${TOTAL_POKEMON}`,
@@ -24,13 +22,13 @@ async function fetchPokemonNames() {
       sprite: `${SPRITE_BASE}/${i + 1}.png`,
     }));
   } catch {
-    // Fallback: solo IDs sin nombre
     cachedNames = Array.from({ length: TOTAL_POKEMON }, (_, i) => ({
       id: i + 1,
       name: `#${i + 1}`,
       sprite: `${SPRITE_BASE}/${i + 1}.png`,
     }));
   }
+
   return cachedNames;
 }
 
@@ -55,6 +53,7 @@ function AvatarPicker({ currentUrl, onSelect, onClose }) {
       setFiltered(pokemon);
       return;
     }
+
     setFiltered(
       pokemon.filter((p) => p.name.includes(q) || String(p.id).includes(q)),
     );
@@ -70,27 +69,28 @@ function AvatarPicker({ currentUrl, onSelect, onClose }) {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <span className={styles.title}>Elige tu avatar</span>
-          <button className={styles.btnClose} onClick={onClose}>
-            ✕
+          <button className={styles.btnClose} onClick={onClose} type="button">
+            {"\u2715"}
           </button>
         </div>
 
         <input
           className={styles.searchInput}
           type="text"
-          placeholder="Buscar por nombre o número..."
+          placeholder="Buscar por nombre o numero..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           autoFocus
         />
 
         {loadingList ? (
-          <p className={styles.loadingMsg}>Cargando pokémon...</p>
+          <p className={styles.loadingMsg}>Cargando pokemon...</p>
         ) : (
           <div className={styles.grid}>
             {filtered.map((p) => (
               <button
                 key={p.id}
+                type="button"
                 className={`${styles.cell} ${selected === p.sprite ? styles.cellSelected : ""}`}
                 onClick={() => setSelected(p.sprite)}
                 title={p.name}
@@ -124,6 +124,7 @@ function AvatarPicker({ currentUrl, onSelect, onClose }) {
           <button
             className={styles.btnConfirm}
             onClick={handleConfirm}
+            type="button"
             disabled={!selected}
           >
             Confirmar

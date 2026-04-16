@@ -16,9 +16,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  background: linear-gradient(180deg, #0d2740, #0b1f34);
-  border-bottom: 2px solid #52c6ff;
+  gap: 6px;
+  background: linear-gradient(180deg, #4e5862 0%, #3f4851 55%, #4a525a 100%);
+  border-bottom: 2px solid #4a525a;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.22);
   z-index: 100;
   padding-left: 20px;
   padding-right: 20px;
@@ -27,16 +31,193 @@
   animation: topBannerDrop 720ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
+.top-global-side {
+  flex: 1 1 0;
+  min-width: 92px;
+  display: flex;
+  align-items: center;
+}
+
+.top-global-side-left {
+  justify-content: flex-start;
+}
+
+.top-global-side-right {
+  justify-content: flex-end;
+}
+
+.top-global-center {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.top-global-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(1px 1px 0 rgba(35, 41, 48, 0.7));
+}
+
 .top-global-title {
   font-family: var(--font-pixel);
   font-size: 0.95rem;
-  color: #f2f9ff;
+  color: #eff2f5;
+  text-shadow: 1px 1px 0 rgba(35, 41, 48, 0.7);
 }
 
-.top-global-slash {
-  font-size: 1.3rem;
-  color: #63d3ff;
-  text-shadow: 0 0 8px rgba(99, 211, 255, 0.8);
+.top-global-mark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  color: #d2d8de;
+  font-family: var(--font-pixel);
+  font-size: 0.56rem;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-shadow: 1px 1px 0 rgba(39, 45, 52, 0.8);
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.top-global-mark > span {
+  display: block;
+  transform: scaleX(3.8);
+  transform-origin: center;
+}
+
+.top-global-list-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #8f99a2;
+  background: linear-gradient(180deg, #4f5963, #3f4852);
+  color: #e6ecf2;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.top-global-list-btn:hover {
+  filter: brightness(1.06);
+}
+
+.top-global-list-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.privacy-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 14, 24, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 220;
+  padding: 16px;
+  animation: privacyOverlayIn 220ms ease-out both;
+}
+
+.privacy-modal {
+  width: min(560px, 100%);
+  background: linear-gradient(180deg, #d7dde3, #c6ced5);
+  border: 3px solid #5f6973;
+  box-shadow:
+    0 0 0 2px #94a0ab,
+    0 12px 26px rgba(0, 0, 0, 0.32);
+  animation: privacyModalIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.privacy-overlay.is-exit {
+  animation: privacyOverlayOut 220ms ease-in both;
+}
+
+.privacy-overlay.is-exit .privacy-modal {
+  animation: privacyModalOut 220ms ease-in both;
+}
+
+.privacy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #7f8a96;
+}
+
+.privacy-title {
+  font-family: var(--font-pixel);
+  font-size: 0.56rem;
+  color: #3f4954;
+}
+
+.privacy-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #7f8a96;
+  background: linear-gradient(180deg, #4f5963, #3f4852);
+  color: #e6ecf2;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.privacy-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: var(--font-mono);
+  color: #2f3944;
+}
+
+@keyframes privacyOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes privacyOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes privacyModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes privacyModalOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
 }
 
 /* Fondo cuadriculado animado — se mueve hacia la izquierda */
@@ -116,8 +297,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .top-global-banner,
-  .top-global-title,
-  .top-global-slash {
+  .top-global-title {
     opacity: 1;
     transform: none;
     animation: none;
