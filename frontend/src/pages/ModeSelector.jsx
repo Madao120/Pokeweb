@@ -12,6 +12,8 @@ function ModeSelector({
   onNavigationChange,
   onGameStart,
   onGameEnd,
+  onLeaveRiskChange,
+  requestConfirm,
 }) {
   const [mode, setMode] = useState(null);
   const [isExiting, setIsExiting] = useState(false);
@@ -52,9 +54,43 @@ function ModeSelector({
         window.__MULTI_SHOULD_CONFIRM_EXIT &&
         !event?.detail?.skipMultiplayerConfirm
       ) {
-        const confirmExit = window.confirm(
-          "Quieres salir de la sala multijugador? Tus datos no se guardaran si vuelves a entrar luego.",
-        );
+        const confirmExit = await requestConfirm?.({
+          title: "Salir de la sala multijugador",
+          message:
+            "Si sales ahora, dejaras la sala actual y ese progreso no se recuperara al volver mas tarde.",
+          confirmLabel: "Salir",
+          cancelLabel: "Quedarme",
+        });
+        if (!confirmExit) return;
+      }
+
+      if (
+        modeRef.current === "daily" &&
+        window.__DAILY_SHOULD_CONFIRM_EXIT &&
+        !event?.detail?.skipDailyConfirm
+      ) {
+        const confirmExit = await requestConfirm?.({
+          title: "Salir del reto diario",
+          message:
+            "Si sales ahora, perderas el progreso actual de la ronda diaria que aun no has completado.",
+          confirmLabel: "Salir",
+          cancelLabel: "Seguir jugando",
+        });
+        if (!confirmExit) return;
+      }
+
+      if (
+        modeRef.current === "single" &&
+        window.__SINGLE_SHOULD_CONFIRM_EXIT &&
+        !event?.detail?.skipSingleConfirm
+      ) {
+        const confirmExit = await requestConfirm?.({
+          title: "Abandonar partida",
+          message:
+            "Si sales ahora, abandonaras la partida en curso y perderas 25 puntos.",
+          confirmLabel: "Abandonar",
+          cancelLabel: "Seguir jugando",
+        });
         if (!confirmExit) return;
       }
 
@@ -78,16 +114,18 @@ function ModeSelector({
       window.removeEventListener("returnToModeMenu", goBackToModes);
       onNavigationChange?.(false);
     };
-  }, [onReturnToMenu, onGameEnd, onNavigationChange]);
+  }, [onReturnToMenu, onGameEnd, onNavigationChange, requestConfirm]);
 
   if (mode === "multi") {
-    return <MultiplayerPage user={user} />;
+    return <MultiplayerPage user={user} onLeaveRiskChange={onLeaveRiskChange} />;
   }
 
   if (mode === "daily") {
     return (
       <DailyModePage
         user={user}
+        onLeaveRiskChange={onLeaveRiskChange}
+        requestConfirm={requestConfirm}
         onBack={() =>
           window.dispatchEvent(
             new CustomEvent("returnToModeMenu", { cancelable: true }),

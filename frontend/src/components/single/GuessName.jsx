@@ -76,6 +76,7 @@ function GuessName({
   onChangeMinigame,
   autoStart = false,
   mode = "normal",
+  onLeaveRiskChange,
 }) {
   const isDailyMode = mode === "daily";
   const [session, setSession] = useState(null);
@@ -258,6 +259,33 @@ function GuessName({
     }, 1000);
     return () => window.clearInterval(timer);
   }, [isDailyMode]);
+
+  useEffect(() => {
+    if (!isDailyMode || !onLeaveRiskChange) return undefined;
+
+    const hasUnfinishedDailySession =
+      Boolean(session) && !session.gameOver && !dailyInfo?.completedToday;
+
+    window.__DAILY_SHOULD_CONFIRM_EXIT = hasUnfinishedDailySession;
+
+    onLeaveRiskChange(
+      hasUnfinishedDailySession
+        ? {
+            active: true,
+            title: "Salir del reto diario",
+            message:
+              "Si sales ahora, perderas el progreso actual de esta ronda diaria.",
+            confirmLabel: "Salir",
+            cancelLabel: "Seguir jugando",
+          }
+        : { active: false },
+    );
+
+    return () => {
+      window.__DAILY_SHOULD_CONFIRM_EXIT = false;
+      onLeaveRiskChange({ active: false });
+    };
+  }, [dailyInfo?.completedToday, isDailyMode, onLeaveRiskChange, session]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 1200px)");

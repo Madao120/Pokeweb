@@ -1,7 +1,7 @@
 import "./App.css";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -31,7 +31,10 @@ function App() {
   const [canReturnToModes, setCanReturnToModes] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [privacyClosing, setPrivacyClosing] = useState(false);
+  const [leaveRisk, setLeaveRisk] = useState({ active: false });
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const privacyCloseTimerRef = useRef(null);
+  const location = useLocation();
   const navigate = useNavigate();
 
   const closePrivacy = useCallback(() => {
@@ -70,6 +73,13 @@ function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    window.__SINGLE_SHOULD_CONFIRM_EXIT = inGame;
+    return () => {
+      window.__SINGLE_SHOULD_CONFIRM_EXIT = false;
+    };
+  }, [inGame]);
 
   const syncStoredUser = useCallback((nextUser) => {
     if (nextUser) {
@@ -116,6 +126,70 @@ function App() {
     await refreshUser();
   }, [refreshUser]);
 
+  const requestConfirm = useCallback((options) => {
+    return new Promise((resolve) => {
+      setConfirmDialog({
+        title: options?.title || "Confirmar salida",
+        message: options?.message || "Se perdera el progreso actual. Quieres continuar?",
+        confirmLabel: options?.confirmLabel || "Aceptar",
+        cancelLabel: options?.cancelLabel || "Cancelar",
+        onClose: resolve,
+      });
+    });
+  }, []);
+
+  const handleReturnToModes = useCallback(async () => {
+    const isProfilePage = location.pathname === "/profile";
+
+    if (isProfilePage) {
+      navigate("/");
+      return;
+    }
+
+    if (leaveRisk?.active) {
+      const confirmed = await requestConfirm({
+        title: leaveRisk.title || "Confirmar salida",
+        message:
+          leaveRisk.message || "Si sales ahora, perderas el progreso actual.",
+        confirmLabel: leaveRisk.confirmLabel || "Salir",
+        cancelLabel: leaveRisk.cancelLabel || "Seguir aqui",
+      });
+      if (!confirmed) return;
+    } else if (inGame) {
+      const confirmed = await requestConfirm({
+        title: "Abandonar partida",
+        message:
+          "Tienes una partida en curso. Si sales ahora perderas 25 puntos por abandono.",
+        confirmLabel: "Abandonar",
+        cancelLabel: "Seguir jugando",
+      });
+      if (!confirmed) return;
+    }
+
+    if (inGame || leaveRisk?.active) {
+      window.dispatchEvent(
+        new CustomEvent("returnToModeMenu", {
+          cancelable: true,
+          detail: {
+            skipMultiplayerConfirm: true,
+            skipDailyConfirm: true,
+            skipSingleConfirm: true,
+          },
+        }),
+      );
+      return;
+    }
+
+    if (canReturnToModes) {
+      window.dispatchEvent(
+        new CustomEvent("returnToModeMenu", { cancelable: true }),
+      );
+      return;
+    }
+
+    navigate("/");
+  }, [canReturnToModes, inGame, leaveRisk, location.pathname, navigate, requestConfirm]);
+
   return (
     <section className="app-shell">
       <header className="top-global-banner">
@@ -127,8 +201,16 @@ function App() {
           </span>
         </div>
         <div className="top-global-center">
-          <img src="/ball1.png" alt="" className="top-global-logo" aria-hidden="true" />
-          <span className="top-global-title">PokeWeb</span>
+          <img src="/logo.png" alt="" className="top-global-logo" aria-hidden="true" />
+          <button
+            type="button"
+            className="top-global-title-btn"
+            onClick={() => {
+              handleReturnToModes().catch(() => {});
+            }}
+          >
+            <span className="top-global-title">PokeWeb</span>
+          </button>
           <button
             type="button"
             className="top-global-list-btn"
@@ -194,6 +276,8 @@ function App() {
                   onNavigationChange={setCanReturnToModes}
                   onGameStart={handleGameStart}
                   onGameEnd={handleGameEnd}
+                  onLeaveRiskChange={setLeaveRisk}
+                  requestConfirm={requestConfirm}
                 />
               ) : (
                 <Navigate to="/login" />
@@ -246,12 +330,62 @@ function App() {
         </div>
       )}
 
+      {confirmDialog && (
+        <div
+          className="global-confirm-overlay"
+          onClick={() => {
+            const onClose = confirmDialog.onClose;
+            setConfirmDialog(null);
+            onClose(false);
+          }}
+        >
+          <section
+            className="global-confirm-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="global-confirm-header">
+              <p className="global-confirm-title">{confirmDialog.title}</p>
+            </div>
+            <div className="global-confirm-body">
+              <p>{confirmDialog.message}</p>
+            </div>
+            <div className="global-confirm-actions">
+              <button
+                type="button"
+                className="global-confirm-btn global-confirm-btn-ghost"
+                onClick={() => {
+                  const onClose = confirmDialog.onClose;
+                  setConfirmDialog(null);
+                  onClose(false);
+                }}
+              >
+                {confirmDialog.cancelLabel}
+              </button>
+              <button
+                type="button"
+                className="global-confirm-btn global-confirm-btn-primary"
+                onClick={() => {
+                  const onClose = confirmDialog.onClose;
+                  setConfirmDialog(null);
+                  onClose(true);
+                }}
+              >
+                {confirmDialog.confirmLabel}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {/* Banner inferior */}
       {user && (
         <NavBar
           user={user}
           inGame={inGame}
           canReturnToModes={canReturnToModes}
+          leaveRisk={leaveRisk}
+          requestConfirm={requestConfirm}
+          onReturnToModes={handleReturnToModes}
         />
       )}
     </section>

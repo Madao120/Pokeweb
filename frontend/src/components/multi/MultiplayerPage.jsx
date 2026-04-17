@@ -94,7 +94,7 @@ function stampRoomState(nextState, previousState, preservePersonal) {
   };
 }
 
-function MultiplayerPage({ user }) {
+function MultiplayerPage({ user, onLeaveRiskChange }) {
   const [step, setStep] = useState("home");
   const [createPassword, setCreatePassword] = useState("");
   const [joinCode, setJoinCode] = useState("");
@@ -229,6 +229,27 @@ function MultiplayerPage({ user }) {
       window.__MULTI_SHOULD_CONFIRM_EXIT = false;
     };
   }, [roomState]);
+
+  useEffect(() => {
+    if (!onLeaveRiskChange) return undefined;
+
+    if (roomState) {
+      onLeaveRiskChange({
+        active: true,
+        title: "Salir de la sala multijugador",
+        message:
+          "Si sales ahora, dejaras esta sala y ese progreso no se conservara para retomarlo luego.",
+        confirmLabel: "Salir",
+        cancelLabel: "Quedarme",
+      });
+    } else {
+      onLeaveRiskChange({ active: false });
+    }
+
+    return () => {
+      onLeaveRiskChange({ active: false });
+    };
+  }, [onLeaveRiskChange, roomState]);
 
   useEffect(() => {
     const handleAnimatedReturn = (event) => {
