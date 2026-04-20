@@ -245,24 +245,15 @@ function GuessSound({
         await advanceRound(data);
       } else {
         setFlashState("fail");
-
-        if (data?.gameOver) {
-          setShowNextRoundUi(false);
-          await wait(FLASH_FADE_IN_MS + FLASH_HOLD_MS);
-          setFlashState("");
-          await wait(FLASH_FADE_OUT_MS);
-          await advanceRound(data);
-        } else {
-          setFailedRoundInfo({
-            correctName: (data?.ultimoPokemonCorrecto || "?").toUpperCase(),
-          });
-          setPendingSession(data);
-          setAwaitingManualAdvance(true);
-          setShowNextRoundUi(false);
-          window.requestAnimationFrame(() => {
-            setShowNextRoundUi(true);
-          });
-        }
+        setFailedRoundInfo({
+          correctName: (data?.ultimoPokemonCorrecto || "?").toUpperCase(),
+        });
+        setPendingSession(data);
+        setAwaitingManualAdvance(true);
+        setShowNextRoundUi(false);
+        window.requestAnimationFrame(() => {
+          setShowNextRoundUi(true);
+        });
       }
     } catch (err) {
       setError(err?.message || "Error al responder la ronda.");
@@ -542,7 +533,9 @@ function GuessSound({
                   onClick={handleNextRound}
                   disabled={loading || roundTransitioning}
                 >
-                  SIGUIENTE RONDA
+                  {pendingSession?.gameOver
+                    ? "TERMINAR PARTIDA"
+                    : "SIGUIENTE RONDA"}
                 </button>
               </div>
             )}

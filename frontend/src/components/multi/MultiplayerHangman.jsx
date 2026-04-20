@@ -79,6 +79,7 @@ function MultiplayerHangman({
   const [wordCooldownUntil, setWordCooldownUntil] = useState(0);
   const [timerNow, setTimerNow] = useState(Date.now());
   const [spriteUrl, setSpriteUrl] = useState(null);
+  const letterInputRef = useRef(null);
   const timeoutRefreshRef = useRef(false);
   const hintRefreshRef = useRef({
     type1: false,
@@ -109,6 +110,12 @@ function MultiplayerHangman({
     setFeedback("");
     setLocalError("");
   }, [roomState?.state, roomState?.gameMode]);
+
+  useEffect(() => {
+    if (isPlaying && countdownRemaining <= 0 && !session?.gameOver) {
+      letterInputRef.current?.focus();
+    }
+  }, [countdownRemaining, isPlaying, session?.gameOver]);
 
   useEffect(() => {
     const pokemonName = roomState?.pokemonName;
@@ -242,6 +249,11 @@ function MultiplayerHangman({
         setFeedback("Letra acertada.");
       }
       setLetter("");
+      if (!nextSession?.gameOver) {
+        window.requestAnimationFrame(() => {
+          letterInputRef.current?.focus();
+        });
+      }
     } catch (err) {
       setLocalError(err?.message || "No se pudo enviar la letra.");
     }
@@ -525,8 +537,16 @@ function MultiplayerHangman({
                 <section className={styles.bottomPanel}>
                   <p className={styles.blockTitle}>ADIVINAR</p>
                   <div className={styles.actionsBox}>
-                    <div className={`${styles.inputRow} ${styles.inputRowLetter}`}>
+                    <div
+                      className={`${styles.inputRow} ${styles.inputRowLetter}`}
+                      onClick={() => {
+                        if (isPlaying && countdownRemaining <= 0 && !session?.gameOver) {
+                          letterInputRef.current?.focus();
+                        }
+                      }}
+                    >
                       <input
+                        ref={letterInputRef}
                         className={`${styles.input} ${styles.letterInput}`}
                         type="text"
                         maxLength={1}
@@ -541,6 +561,12 @@ function MultiplayerHangman({
                           !isPlaying || countdownRemaining > 0 || session?.gameOver
                         }
                         placeholder="_"
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleGuessLetter();
+                          }
+                        }}
                       />
                       <button
                         className={`${styles.primaryBtn} ${styles.actionBtn}`}

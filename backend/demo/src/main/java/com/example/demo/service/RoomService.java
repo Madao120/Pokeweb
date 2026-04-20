@@ -21,7 +21,7 @@ public class RoomService {
 
     private final Map<String, Room> rooms = new ConcurrentHashMap<>();
     private final PokemonApiService pokemonApiService;
-    private static final String ROOM_PASSWORD_REGEX = "^\\d{3,}$";
+    private static final int MIN_ROOM_PASSWORD_LENGTH = 3;
 
     public RoomService(PokemonApiService pokemonApiService) {
         this.pokemonApiService = pokemonApiService;
@@ -33,11 +33,12 @@ public class RoomService {
         if (userId == null) {
             throw new RuntimeException("USER_ID_REQUIRED");
         }
-        if (password == null || !password.trim().matches(ROOM_PASSWORD_REGEX)) {
+        String normalizedPassword = password == null ? null : password.trim();
+        if (normalizedPassword == null || normalizedPassword.length() < MIN_ROOM_PASSWORD_LENGTH) {
             throw new RuntimeException("INVALID_ROOM_PASSWORD");
         }
         String code = generateCode();
-        Room room = new Room(code, password.trim(), userId);
+        Room room = new Room(code, normalizedPassword, userId);
         rooms.put(code, room);
         return room;
     }

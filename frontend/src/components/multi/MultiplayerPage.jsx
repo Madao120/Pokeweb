@@ -404,14 +404,14 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     event.preventDefault();
     setError("");
 
-    if (!/^\d{3,}$/.test(createPassword)) {
-      setError("La contrasena de sala debe tener minimo 3 digitos numericos.");
+    if (createPassword.trim().length < 3) {
+      setError("La contrasena de sala debe tener al menos 3 caracteres.");
       return;
     }
 
     setLoading(true);
     try {
-      const state = await createMultiplayerRoom(user.id, createPassword);
+      const state = await createMultiplayerRoom(user.id, createPassword.trim());
       await enterLobby(state);
       setCreatePassword("");
       setHasCompletedAnyRound(false);
@@ -432,14 +432,18 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
       setError("El codigo de sala debe tener 6 digitos.");
       return;
     }
-    if (!/^\d{3,}$/.test(joinPassword)) {
-      setError("La contrasena de sala debe tener minimo 3 digitos numericos.");
+    if (joinPassword.trim().length < 3) {
+      setError("La contrasena de sala debe tener al menos 3 caracteres.");
       return;
     }
 
     setLoading(true);
     try {
-      const state = await joinMultiplayerRoom(normalizedCode, user.id, joinPassword);
+      const state = await joinMultiplayerRoom(
+        normalizedCode,
+        user.id,
+        joinPassword.trim(),
+      );
       await enterLobby(state);
       setJoinCode("");
       setJoinPassword("");
@@ -911,16 +915,14 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
           >
             <h3 className={styles.optionTitle}>Crear sala</h3>
             <p className={styles.optionText}>
-              Debes poner una contrasena numerica de al menos 3 digitos.
+              Debes poner una contrasena de al menos 3 caracteres.
             </p>
             <input
               className={styles.input}
               type="password"
-              inputMode="numeric"
-              pattern="\d*"
               maxLength={12}
               value={createPassword}
-              onChange={(e) => setCreatePassword(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => setCreatePassword(e.target.value)}
               placeholder="Contrasena de sala"
               required
             />
@@ -965,11 +967,9 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
             <input
               className={styles.input}
               type="password"
-              inputMode="numeric"
-              pattern="\d*"
               maxLength={12}
               value={joinPassword}
-              onChange={(e) => setJoinPassword(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => setJoinPassword(e.target.value)}
               placeholder="Contrasena de sala"
               required
             />

@@ -416,14 +416,16 @@ function MultiplayerGuessSound({
             Sala {roomState?.roomCode} · {roomState?.state}
           </p>
         </div>
-        <div className={styles.clockBox}>
-          <span>{countdownRemaining > 0 ? "Empieza en" : "Tiempo"}</span>
-          <strong>
-            {countdownRemaining > 0
-              ? Math.max(1, Math.ceil(countdownRemaining / 1000))
-              : formatClock(roundRemaining)}
-          </strong>
-        </div>
+        {isPlaying && (
+          <div className={styles.clockBox}>
+            <span>{countdownRemaining > 0 ? "Empieza en" : "Tiempo"}</span>
+            <strong>
+              {countdownRemaining > 0
+                ? Math.max(1, Math.ceil(countdownRemaining / 1000))
+                : formatClock(roundRemaining)}
+            </strong>
+          </div>
+        )}
       </div>
 
       <div className={styles.container}>

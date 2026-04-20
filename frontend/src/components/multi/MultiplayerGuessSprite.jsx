@@ -174,8 +174,10 @@ function MultiplayerGuessSprite({
   }, [countdownRemaining, isPlaying, onRefreshState, roundRemaining]);
 
   const cooldownMs = Math.max(0, (session?.nextGuessAllowedAtMs || 0) - timerNow);
-  const showPostRoundActions = isRoundFinished || session?.gameOver;
+  const showPostRoundActions = isRoundFinished;
   const showMatchFinishedView = isMatchFinished && !delayMatchFinishedView;
+  const showFinishedWaitingState =
+    Boolean(session?.gameOver) && !isRoundFinished && !isMatchFinished;
   const winnersCardClassName =
     roundResultsPhase === "exit"
       ? styles.resultsCardExit
@@ -212,6 +214,16 @@ function MultiplayerGuessSprite({
     () => buildOrderedPlayers(orderedPlayers, roomState, isMatchFinished),
     [isMatchFinished, orderedPlayers, roomState],
   );
+  const allPlayersFinished = useMemo(
+    () =>
+      (roomState?.playerIds || []).length > 0 &&
+      (roomState?.playerIds || []).every((playerId) =>
+        Boolean(roomState?.playerFinished?.[playerId]),
+      ),
+    [roomState],
+  );
+  const hostPostRoundActionsDisabled =
+    !isLeader || Boolean(actionLoading) || !allPlayersFinished || !isRoundFinished;
 
   const finalists = useMemo(() => {
     return orderedRoomPlayers.map((player) => ({
@@ -275,14 +287,16 @@ function MultiplayerGuessSprite({
             Sala {roomState?.roomCode} · {roomState?.state}
           </p>
         </div>
-        <div className={styles.clockBox}>
-          <span>{countdownRemaining > 0 ? "EMPIEZA EN" : "TIEMPO"}</span>
-          <strong>
-            {countdownRemaining > 0
-              ? Math.max(1, Math.ceil(countdownRemaining / 1000))
-              : formatClock(roundRemaining)}
-          </strong>
-        </div>
+        {!isMatchFinished && (
+          <div className={styles.clockBox}>
+            <span>{countdownRemaining > 0 ? "EMPIEZA EN" : "TIEMPO"}</span>
+            <strong>
+              {countdownRemaining > 0
+                ? Math.max(1, Math.ceil(countdownRemaining / 1000))
+                : formatClock(roundRemaining)}
+            </strong>
+          </div>
+        )}
       </div>
 
       {!showMatchFinishedView ? (
@@ -385,12 +399,12 @@ function MultiplayerGuessSprite({
                 {feedback && <p className={styles.feedback}>{feedback}</p>}
                 {localError && <p className={styles.error}>{localError}</p>}
 
-                {showPostRoundActions && (
+                {showPostRoundActions && isLeader && (
                   <div className={`${styles.hostActions} ${styles.hostActionsInPanel}`}>
                     <button
                       className={`${styles.btnStart} ${styles.hostActionBtn} ${styles.btnFinishRed}`}
                       type="button"
-                      disabled={hostActionsDisabled}
+                      disabled={hostPostRoundActionsDisabled}
                       onClick={onRepeatMode}
                     >
                       {actionLoading === "repeat" ? "..." : "REPETIR MODO"}
@@ -398,7 +412,7 @@ function MultiplayerGuessSprite({
                     <button
                       className={`${styles.btnStart} ${styles.hostActionBtn} ${styles.btnFinishYellow}`}
                       type="button"
-                      disabled={hostActionsDisabled}
+                      disabled={hostPostRoundActionsDisabled}
                       onClick={onChangeMode}
                     >
                       {actionLoading === "change-mode" ? "..." : "CAMBIAR MODO"}
@@ -406,17 +420,27 @@ function MultiplayerGuessSprite({
                     <button
                       className={`${styles.btnStart} ${styles.hostActionBtn} ${styles.btnFinishBlue}`}
                       type="button"
-                      disabled={hostActionsDisabled}
+                      disabled={hostPostRoundActionsDisabled}
                       onClick={onFinishMatch}
                     >
                       {actionLoading === "finish-match" ? "..." : "TERMINAR PARTIDA"}
                     </button>
                   </div>
                 )}
-                {showPostRoundActions && !isLeader && (
+                {showFinishedWaitingState && (
                   <p className={styles.waitingText}>
-                    Solo el lider puede continuar o terminar la partida.
+                    Esperando a que el resto de jugadores termine la ronda.
                   </p>
+                )}
+                {showPostRoundActions && !isLeader && (
+                  <div className={styles.waitingNotice}>
+                    <p className={styles.waitingText}>
+                      Esperando a que el lider elija el siguiente paso.
+                    </p>
+                    <p className={styles.waitingText}>
+                      Solo el lider puede repetir modo, cambiar modo o terminar la partida.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>

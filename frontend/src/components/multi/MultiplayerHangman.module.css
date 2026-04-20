@@ -1225,8 +1225,39 @@
     gap: 8px;
   }
 
+  .hintRow {
+    gap: 4px;
+  }
+
   .hintKey {
     width: 100%;
+    min-height: 34px;
+    padding: 8px 6px;
+    font-size: clamp(0.28rem, 1.5vw, 0.42rem);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    text-align: center;
+    line-height: 1.15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hintValue,
+  .typeBadge {
+    min-height: 38px;
+    padding: 8px 6px;
+    font-size: clamp(0.28rem, 1.5vw, 0.42rem);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    text-align: center;
+    line-height: 1.15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: break-word;
   }
 
   .actionsBox,
@@ -1305,6 +1336,17 @@
   .gameLayout {
     padding-right: 3rem;
     padding-left: 3rem;
+  }
+
+  .hintKey {
+    min-height: 32px;
+    font-size: 0.26rem;
+  }
+
+  .hintValue,
+  .typeBadge {
+    min-height: 36px;
+    font-size: 0.26rem;
   }
 
   .bottomPanel {

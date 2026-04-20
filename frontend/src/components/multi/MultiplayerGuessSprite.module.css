@@ -831,6 +831,20 @@
   text-align: center;
 }
 
+.waitingNotice {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 2px solid #aab2ba;
+  background: rgba(14, 35, 60, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.waitingNotice .waitingText {
+  margin-top: 0;
+}
+
 .podiumWinner {
   background: linear-gradient(
     180deg,
