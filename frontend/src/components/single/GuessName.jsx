@@ -619,18 +619,52 @@ function GuessName({
     .filter(Boolean)
     .join(" ");
 
+  const dailyCountdown = (() => {
+    if (!isDailyMode) return null;
+    const nextInMs = Math.max(0, dailyInfo?.millisUntilNextReset || 0);
+    const totalSeconds = Math.floor(nextInMs / 1000);
+    const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+    const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+    const ss = String(totalSeconds % 60).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
+  })();
+
   const resultBanner =
     session?.gameOver && session.ganado ? (
       <div
         className={`${styles.resultWin} ${resultVisible ? styles.resultVisible : ""}`}
       >
-        CORRECTO! ERA {session.pokemon.name.toUpperCase()}
-        {scoreGanado !== null && (
+        {isDailyMode ? (
+          <div className={styles.dailyResultLayout}>
+            <div className={styles.dailyResultSide}>
+              <span className={styles.dailyResultLabel}>AYER</span>
+              <span className={styles.dailyResultValue}>
+                {dailyInfo?.yesterdayPokemonName?.toUpperCase() || "-"}
+              </span>
+            </div>
+            <div className={styles.dailyResultCenter}>
+              <span className={styles.dailyResultMain}>
+                CORRECTO! ERA {session.pokemon.name.toUpperCase()}
+              </span>
+            </div>
+            <div className={styles.dailyResultSide}>
+              <span className={styles.dailyResultLabel}>SIGUIENTE EN</span>
+              <span className={styles.dailyResultValue}>
+                {dailyCountdown || "--:--:--"}
+              </span>
+            </div>
+          </div>
+        ) : (
           <>
-            <br />
-            {scoreGanado === 100
-              ? `GOLPE CRITICO! +${scoreGanado} PTS`
-              : `+${scoreGanado} PTS`}
+            CORRECTO! ERA {session.pokemon.name.toUpperCase()}
+            {scoreGanado !== null && (
+              <>
+                <br />
+                {scoreGanado === 100
+                  ? `GOLPE CRITICO! +${scoreGanado} PTS`
+                  : `+${scoreGanado} PTS`}
+              </>
+            )}
           </>
         )}
       </div>
@@ -686,16 +720,6 @@ function GuessName({
 
   if (!session) {
     if (isDailyMode && dailyInfo?.completedToday) {
-      const nextInMs = Math.max(0, dailyInfo.millisUntilNextReset || 0);
-      const totalSeconds = Math.floor(nextInMs / 1000);
-      const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-      const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
-        2,
-        "0",
-      );
-      const ss = String(totalSeconds % 60).padStart(2, "0");
-      const countdown = `${hh}:${mm}:${ss}`;
-
       return (
         <div className={styles.startScreen}>
           <p className={styles.startTitle}>AHORCADO DIARIO COMPLETADO</p>
@@ -708,7 +732,9 @@ function GuessName({
           <p className={styles.startTitle}>
             {dailyInfo.attemptsToday ?? 0} INTENTOS
           </p>
-          <p className={styles.startTitle}>SIGUIENTE EN {countdown}</p>
+          <p className={styles.startTitle}>
+            SIGUIENTE EN {dailyCountdown || "--:--:--"}
+          </p>
           <div className={styles.botonesFin}>
             <button
               className={`${styles.btnStart} ${styles.btnFinishYellow}`}

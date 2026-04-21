@@ -186,8 +186,9 @@ public class DailyGameService {
     }
 
     private DailyHangmanRoundResponse buildDailyHangmanLockedResponse(Long userId, LocalDate today, PokeUser user) {
+        DailyHangmanSession solvedSession = buildSolvedDailyHangmanSession(today, user);
         return new DailyHangmanRoundResponse(
-            null,
+            solvedSession,
             false,
             true,
             user.getDailyHangmanAttempts(),
@@ -226,6 +227,20 @@ public class DailyGameService {
 
     private boolean isCompletedToday(LocalDate playedDate, LocalDate today) {
         return playedDate != null && playedDate.equals(today);
+    }
+
+    private DailyHangmanSession buildSolvedDailyHangmanSession(LocalDate today, PokeUser user) {
+        DailyHangmanSession solvedSession = new DailyHangmanSession(
+            pokemonApiService.getDailyPokemonM1(today, "DAILY_M1")
+        );
+        solvedSession.setMaskedWord(solvedSession.getPokemon().getName().toLowerCase());
+        solvedSession.setIntentos(user.getDailyHangmanAttempts());
+        solvedSession.setGameOver(true);
+        solvedSession.setGanado(true);
+        solvedSession.setMostrarTipo1(true);
+        solvedSession.setMostrarGeneracion(true);
+        solvedSession.setMostrarTipo2(true);
+        return solvedSession;
     }
 
     private long millisUntilNextReset() {

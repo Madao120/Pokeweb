@@ -1031,6 +1031,44 @@
   margin-bottom: 10px;
 }
 
+.dailyResultLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+}
+
+.dailyResultSide,
+.dailyResultCenter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dailyResultCenter {
+  align-items: center;
+  justify-content: center;
+}
+
+.dailyResultLabel {
+  color: #9fb7c8;
+  font-size: 0.42rem;
+}
+
+.dailyResultValue,
+.dailyResultMain {
+  color: inherit;
+  font-size: 0.56rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.dailyResultMain {
+  text-align: center;
+}
+
 .resultLose {
   color: #ff7f7f;
   border: 1px solid #a23d3d;
@@ -1502,6 +1540,22 @@
     margin-top: 0;
     margin-bottom: 8px;
     font-size: 0.46rem;
+  }
+
+  .dailyResultLayout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .dailyResultSide,
+  .dailyResultCenter {
+    align-items: center;
+    text-align: center;
+  }
+
+  .dailyResultValue,
+  .dailyResultMain {
+    font-size: 0.48rem;
   }
 
   .mobileResultSlot {
