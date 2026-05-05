@@ -1075,9 +1075,19 @@
 
   .botonesFin {
     flex-direction: column;
+    gap: 0.7rem;
+    width: 100%;
   }
 
   .btnStart {
-    min-height: 2rem;
+    min-width: 0;
+    width: 100%;
+    min-height: 44px;
+    font-size: 0.62rem;
+    padding: 0 10px;
+    line-height: 1.05;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
   }
 }
