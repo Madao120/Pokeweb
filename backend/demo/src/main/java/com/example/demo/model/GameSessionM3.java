@@ -40,7 +40,7 @@ public class GameSessionM3 {
         this.focusX = focusX;
         this.focusY = focusY;
         this.zoomInicial = zoomInicial;
-        this.zoomMinimo = 1.12;
+        this.zoomMinimo = 1.08;
         this.zoomActual = zoomInicial;
     }
 
@@ -99,6 +99,7 @@ public class GameSessionM3 {
 
     private double calcularZoomActual() {
         double progress = Math.min(fallos, maxFallos) / (double) maxFallos;
-        return zoomInicial - (zoomInicial - zoomMinimo) * progress;
+        double easedProgress = Math.pow(progress, 0.72);
+        return zoomInicial - (zoomInicial - zoomMinimo) * easedProgress;
     }
 }

@@ -23,6 +23,10 @@ import com.example.demo.service.PokemonApiService;
 @RestController
 @RequestMapping("/game")
 public class GameController {
+    private static final double SPRITE_FOCUS_MIN = 35.0;
+    private static final double SPRITE_FOCUS_SPAN = 30.0;
+    private static final double SPRITE_ZOOM_BASE = 2.05;
+    private static final double SPRITE_ZOOM_SPAN = 0.65;
 
     private final PokemonApiService pokemonApiService;
     private final PokeUserService pokeUserService;
@@ -192,9 +196,9 @@ public class GameController {
     ////// MINIJUEGO 3 GUESSSPRITE
     @PostMapping("/m3/start")
     public GameSessionM3 startGuessSpriteGame(@RequestParam Long userId) {
-        double focusX = 20 + Math.random() * 60;
-        double focusY = 20 + Math.random() * 60;
-        double zoomInicial = 3.1 + Math.random() * 1.8;
+        double focusX = SPRITE_FOCUS_MIN + Math.random() * SPRITE_FOCUS_SPAN;
+        double focusY = SPRITE_FOCUS_MIN + Math.random() * SPRITE_FOCUS_SPAN;
+        double zoomInicial = SPRITE_ZOOM_BASE + Math.random() * SPRITE_ZOOM_SPAN;
 
         GameSessionM3 session = new GameSessionM3(
             pokemonApiService.getRandomPokemonOptionM3(),

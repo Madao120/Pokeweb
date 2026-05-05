@@ -18,6 +18,10 @@ import com.example.demo.model.Room.State;
 
 @Service
 public class RoomService {
+    private static final double SPRITE_FOCUS_MIN = 35.0;
+    private static final double SPRITE_FOCUS_SPAN = 30.0;
+    private static final double SPRITE_ZOOM_BASE = 2.05;
+    private static final double SPRITE_ZOOM_SPAN = 0.65;
 
     private final Map<String, Room> rooms = new ConcurrentHashMap<>();
     private final PokemonApiService pokemonApiService;
@@ -143,9 +147,9 @@ public class RoomService {
             room.getPlayerSpriteSessions().clear();
         } else if (mode == Room.GameMode.GUESS_SPRITE) {
             var pokemon = pokemonApiService.getRandomPokemonOptionM3();
-            double focusX = 20 + ThreadLocalRandom.current().nextDouble() * 60;
-            double focusY = 20 + ThreadLocalRandom.current().nextDouble() * 60;
-            double zoomInicial = 3.1 + ThreadLocalRandom.current().nextDouble() * 1.8;
+            double focusX = SPRITE_FOCUS_MIN + ThreadLocalRandom.current().nextDouble() * SPRITE_FOCUS_SPAN;
+            double focusY = SPRITE_FOCUS_MIN + ThreadLocalRandom.current().nextDouble() * SPRITE_FOCUS_SPAN;
+            double zoomInicial = SPRITE_ZOOM_BASE + ThreadLocalRandom.current().nextDouble() * SPRITE_ZOOM_SPAN;
 
             room.getPlayerIds().forEach(pid ->
                 room.getPlayerSpriteSessions().put(

@@ -813,14 +813,47 @@
 }
 
 @media (max-width: 860px) {
+  .container {
+    margin-top: -1rem;
+  }
+
   .optionsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-items: stretch;
+    gap: 8px;
+    margin-top: 0.7rem;
+    margin-bottom: 0.7rem;
   }
 
   .optionsGrid > :last-child {
     grid-column: 1 / -1;
     justify-self: center;
-    width: min(220px, 70%);
+    width: min(180px, 56%);
+  }
+
+  .optionCard {
+    min-height: 116px;
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .optionSpriteWrap {
+    min-height: 58px;
+    margin: 0;
+    padding: 2px;
+  }
+
+  .optionSprite {
+    max-width: 52px;
+    max-height: 52px;
+  }
+
+  .optionName {
+    font-size: 0.5rem;
+    padding: 6px 4px;
+  }
+
+  .rankingPanel {
+    margin-top: 3rem;
   }
 }

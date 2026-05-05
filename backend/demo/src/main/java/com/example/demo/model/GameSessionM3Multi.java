@@ -41,7 +41,7 @@ public class GameSessionM3Multi {
         this.focusX = focusX;
         this.focusY = focusY;
         this.zoomInicial = zoomInicial;
-        this.zoomMinimo = 1.12;
+        this.zoomMinimo = 1.08;
         this.zoomActual = zoomInicial;
         this.nextGuessAllowedAtMs = 0L;
         this.completedAtMs = 0L;
@@ -84,6 +84,7 @@ public class GameSessionM3Multi {
 
     private double calcularZoomActual() {
         double progress = Math.min(fallos, maxFallos) / (double) maxFallos;
-        return zoomInicial - (zoomInicial - zoomMinimo) * progress;
+        double easedProgress = Math.pow(progress, 0.72);
+        return zoomInicial - (zoomInicial - zoomMinimo) * easedProgress;
     }
 }

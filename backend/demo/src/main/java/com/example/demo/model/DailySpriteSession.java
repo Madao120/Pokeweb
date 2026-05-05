@@ -27,7 +27,7 @@ public class DailySpriteSession {
         this.focusX = focusX;
         this.focusY = focusY;
         this.zoomInicial = zoomInicial;
-        this.zoomMinimo = 1.12;
+        this.zoomMinimo = 1.08;
         this.zoomActual = zoomInicial;
     }
 
@@ -45,6 +45,6 @@ public class DailySpriteSession {
             return;
         }
 
-        zoomActual = Math.max(zoomMinimo, zoomActual - 0.35);
+        zoomActual = Math.max(zoomMinimo, zoomActual - 0.45);
     }
 }
