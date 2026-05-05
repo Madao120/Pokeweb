@@ -91,7 +91,11 @@ function Register({ onRegistered, onGoLogin }) {
         className={`${styles.panel} ${isVisible && !isExiting ? styles.panelVisible : ""}`}
       >
         <h2 className={styles.title}>REGISTRO</h2>
-        <form className={styles.form} onSubmit={handleSubmit} autoComplete="off">
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit}
+          autoComplete="off"
+        >
           <div
             className={`${styles.inputFrame} ${fieldErrors.email ? styles.inputFrameError : ""}`}
           >

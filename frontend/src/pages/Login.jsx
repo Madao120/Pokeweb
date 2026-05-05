@@ -49,7 +49,7 @@ function Login({ onLogin, onGoRegister }) {
       <div
         className={`${styles.panel} ${isVisible && !isExiting ? styles.panelVisible : ""}`}
       >
-        <h2 className={styles.title}>LOGIN</h2>
+        <h2 className={styles.title}>INICIAR SESIÓN</h2>
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputFrame}>
             <input

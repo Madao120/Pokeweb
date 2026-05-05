@@ -46,7 +46,9 @@ function Profile({ user, onProfileUpdated, onLogout }) {
 
   return (
     <div className={`${styles.page} ${isVisible ? styles.pageVisible : ""}`}>
-      <div className={`${styles.panel} ${isVisible ? styles.panelVisible : ""}`}>
+      <div
+        className={`${styles.panel} ${isVisible ? styles.panelVisible : ""}`}
+      >
         <h2 className={styles.title}>MI PERFIL</h2>
 
         <div className={styles.infoGrid}>
@@ -114,12 +116,8 @@ function Profile({ user, onProfileUpdated, onLogout }) {
           <p className={styles.success}>Perfil actualizado correctamente.</p>
         )}
 
-        <button
-          type="button"
-          className={styles.btnLogout}
-          onClick={onLogout}
-        >
-          LOGOUT
+        <button type="button" className={styles.btnLogout} onClick={onLogout}>
+          CERRAR SESIÓN
         </button>
       </div>
 

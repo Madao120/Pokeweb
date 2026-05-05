@@ -95,7 +95,7 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
 
           <div className={styles.cardsGrid}>
             <article className={styles.gameCard}>
-              <h3 className={styles.cardTitle}>Ahorcado Pokemon</h3>
+              <h3 className={styles.cardTitle}>GuessName Pokemon</h3>
               <p className={styles.cardScore}>Score M1: {user.scoreM1} pts</p>
               <button
                 className={styles.cardBtn}
@@ -170,4 +170,3 @@ function IndividualPage({ user, onGameStart, onGameEnd, isExiting = false }) {
 }
 
 export default IndividualPage;
-
