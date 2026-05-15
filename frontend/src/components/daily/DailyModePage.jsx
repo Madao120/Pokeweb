@@ -48,7 +48,7 @@ function DailyModePage({ user, onBack, onLeaveRiskChange, requestConfirm }) {
             handleSelectRound(1).catch(() => {});
           }}
         >
-          Ahorcado Diario
+          GuessName Diario
         </button>
         <button
           type="button"

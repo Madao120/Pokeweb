@@ -990,6 +990,10 @@
   text-align: center;
 }
 
+.btnReturnMenu {
+  margin-top: 1rem;
+}
+
 @media (max-width: 1180px) {
   .container {
     width: 100%;

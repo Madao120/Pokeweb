@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-
+import FinishPage from "./FinishPage";
 import styles from "./MultiplayerGuessSprite.module.css";
 import { getGuessSpritePokemonList } from "../../services/api";
 
@@ -24,16 +24,26 @@ function normalizeSearch(text) {
 function buildOrderedPlayers(orderedPlayers, roomState, isMatchFinished) {
   return [...orderedPlayers].sort((a, b) => {
     if (isMatchFinished) {
-      return (roomState?.roundScores?.[b.id] ?? 0) - (roomState?.roundScores?.[a.id] ?? 0);
+      return (
+        (roomState?.roundScores?.[b.id] ?? 0) -
+        (roomState?.roundScores?.[a.id] ?? 0)
+      );
     }
 
-    const posA = roomState?.finishOrder?.findIndex((id) => String(id) === String(a.id));
-    const posB = roomState?.finishOrder?.findIndex((id) => String(id) === String(b.id));
+    const posA = roomState?.finishOrder?.findIndex(
+      (id) => String(id) === String(a.id),
+    );
+    const posB = roomState?.finishOrder?.findIndex(
+      (id) => String(id) === String(b.id),
+    );
     const normalizedA = posA === -1 ? Number.MAX_SAFE_INTEGER : posA;
     const normalizedB = posB === -1 ? Number.MAX_SAFE_INTEGER : posB;
     if (normalizedA !== normalizedB) return normalizedA - normalizedB;
 
-    return (roomState?.roundScores?.[b.id] ?? 0) - (roomState?.roundScores?.[a.id] ?? 0);
+    return (
+      (roomState?.roundScores?.[b.id] ?? 0) -
+      (roomState?.roundScores?.[a.id] ?? 0)
+    );
   });
 }
 
@@ -78,7 +88,11 @@ function MultiplayerGuessSprite({
 
   useEffect(() => {
     timeoutRefreshRef.current = false;
-  }, [roomState?.state, roomState?.countdownRemainingMs, roomState?.remainingMs]);
+  }, [
+    roomState?.state,
+    roomState?.countdownRemainingMs,
+    roomState?.remainingMs,
+  ]);
 
   useEffect(() => {
     setQuery("");
@@ -160,20 +174,31 @@ function MultiplayerGuessSprite({
     const syncedAt = roomState?._syncedAt || timerNow;
     return Math.max(
       0,
-      base - Math.max(0, timerNow - syncedAt - (roomState?.countdownRemainingMs || 0)),
+      base -
+        Math.max(
+          0,
+          timerNow - syncedAt - (roomState?.countdownRemainingMs || 0),
+        ),
     );
   }, [roomState, timerNow]);
 
   useEffect(() => {
     if (!isPlaying) return;
-    if (countdownRemaining > 0 || roundRemaining > 0 || timeoutRefreshRef.current) {
+    if (
+      countdownRemaining > 0 ||
+      roundRemaining > 0 ||
+      timeoutRefreshRef.current
+    ) {
       return;
     }
     timeoutRefreshRef.current = true;
     onRefreshState?.();
   }, [countdownRemaining, isPlaying, onRefreshState, roundRemaining]);
 
-  const cooldownMs = Math.max(0, (session?.nextGuessAllowedAtMs || 0) - timerNow);
+  const cooldownMs = Math.max(
+    0,
+    (session?.nextGuessAllowedAtMs || 0) - timerNow,
+  );
   const showPostRoundActions = isRoundFinished;
   const showMatchFinishedView = isMatchFinished && !delayMatchFinishedView;
   const showFinishedWaitingState =
@@ -223,7 +248,10 @@ function MultiplayerGuessSprite({
     [roomState],
   );
   const hostPostRoundActionsDisabled =
-    !isLeader || Boolean(actionLoading) || !allPlayersFinished || !isRoundFinished;
+    !isLeader ||
+    Boolean(actionLoading) ||
+    !allPlayersFinished ||
+    !isRoundFinished;
 
   const finalists = useMemo(() => {
     return orderedRoomPlayers.map((player) => ({
@@ -313,7 +341,10 @@ function MultiplayerGuessSprite({
                 <div className={styles.livesBar}>
                   PS&nbsp;
                   {Array.from({ length: maxFallos }, (_, index) => {
-                    const remaining = Math.max(0, maxFallos - Math.min(fallos, maxFallos));
+                    const remaining = Math.max(
+                      0,
+                      maxFallos - Math.min(fallos, maxFallos),
+                    );
                     let colorClass = styles.lifeGreen;
                     if (remaining <= 2) colorClass = styles.lifeRed;
                     else if (remaining <= 4) colorClass = styles.lifeYellow;
@@ -386,7 +417,9 @@ function MultiplayerGuessSprite({
                             alt={pokemon.name}
                             className={styles.optionSprite}
                           />
-                          <span className={styles.optionName}>{pokemon.name}</span>
+                          <span className={styles.optionName}>
+                            {pokemon.name}
+                          </span>
                         </button>
                       ))}
                       {filteredOptions.length === 0 && (
@@ -400,7 +433,9 @@ function MultiplayerGuessSprite({
                 {localError && <p className={styles.error}>{localError}</p>}
 
                 {showPostRoundActions && isLeader && (
-                  <div className={`${styles.hostActions} ${styles.hostActionsInPanel}`}>
+                  <div
+                    className={`${styles.hostActions} ${styles.hostActionsInPanel}`}
+                  >
                     <button
                       className={`${styles.btnStart} ${styles.hostActionBtn} ${styles.btnFinishRed}`}
                       type="button"
@@ -423,7 +458,9 @@ function MultiplayerGuessSprite({
                       disabled={hostPostRoundActionsDisabled}
                       onClick={onFinishMatch}
                     >
-                      {actionLoading === "finish-match" ? "..." : "TERMINAR PARTIDA"}
+                      {actionLoading === "finish-match"
+                        ? "..."
+                        : "TERMINAR PARTIDA"}
                     </button>
                   </div>
                 )}
@@ -438,7 +475,8 @@ function MultiplayerGuessSprite({
                       Esperando a que el lider elija el siguiente paso.
                     </p>
                     <p className={styles.waitingText}>
-                      Solo el lider puede repetir modo, cambiar modo o terminar la partida.
+                      Solo el lider puede repetir modo, cambiar modo o terminar
+                      la partida.
                     </p>
                   </div>
                 )}
@@ -459,7 +497,11 @@ function MultiplayerGuessSprite({
                   {session?.pokemon?.spriteUrl ? (
                     <img
                       src={session.pokemon.spriteUrl}
-                      alt={session?.gameOver ? roomState?.pokemonName || "Pokemon" : "Sprite oculto"}
+                      alt={
+                        session?.gameOver
+                          ? roomState?.pokemonName || "Pokemon"
+                          : "Sprite oculto"
+                      }
                       className={`${styles.spriteImage} ${!session?.gameOver ? styles.spriteImageMasked : ""}`}
                       style={{
                         transformOrigin: `${session.focusX}% ${session.focusY}%`,
@@ -474,7 +516,8 @@ function MultiplayerGuessSprite({
 
               {countdownRemaining > 0 && (
                 <p className={styles.revealText}>
-                  La ronda empieza en {Math.max(1, Math.ceil(countdownRemaining / 1000))}
+                  La ronda empieza en{" "}
+                  {Math.max(1, Math.ceil(countdownRemaining / 1000))}
                 </p>
               )}
 
@@ -496,7 +539,8 @@ function MultiplayerGuessSprite({
                       (id) => String(id) === String(player.id),
                     );
                     const hasFinished = finishedIndex !== -1;
-                    const isCurrentUser = String(player.id) === String(user?.id);
+                    const isCurrentUser =
+                      String(player.id) === String(user?.id);
                     const playerDone = roomState?.playerFinished?.[player.id];
                     const status = hasFinished
                       ? `#${finishedIndex + 1} acertado`
@@ -510,7 +554,9 @@ function MultiplayerGuessSprite({
                         className={`${styles.playerCard} ${isCurrentUser ? styles.playerCardSelf : ""}`}
                       >
                         <span className={styles.playerPos}>
-                          {hasFinished ? `#${finishedIndex + 1}` : `#${index + 1}`}
+                          {hasFinished
+                            ? `#${finishedIndex + 1}`
+                            : `#${index + 1}`}
                         </span>
                         {player.profilePictureUrl ? (
                           <img
@@ -524,7 +570,9 @@ function MultiplayerGuessSprite({
                           </div>
                         )}
                         <div className={styles.playerMeta}>
-                          <span className={styles.playerName}>{player.name}</span>
+                          <span className={styles.playerName}>
+                            {player.name}
+                          </span>
                           <span className={styles.playerStatus}>{status}</span>
                           <span className={styles.playerHint}>
                             {roomState?.playerMaskedWords?.[player.id] || "-"}
@@ -542,7 +590,9 @@ function MultiplayerGuessSprite({
           </div>
 
           {showRoundResults && (
-            <section className={`${styles.resultsCard} ${winnersCardClassName}`}>
+            <section
+              className={`${styles.resultsCard} ${winnersCardClassName}`}
+            >
               <p className={styles.blockTitle}>Resultado del minijuego</p>
               <div className={styles.resultsList}>
                 {finalists.map((player, index) => (
@@ -560,7 +610,9 @@ function MultiplayerGuessSprite({
                       </div>
                     )}
                     <span className={styles.resultName}>{player.name}</span>
-                    <span className={styles.resultScore}>+{player.roundPoints} pts</span>
+                    <span className={styles.resultScore}>
+                      +{player.roundPoints} pts
+                    </span>
                   </div>
                 ))}
               </div>
@@ -568,36 +620,7 @@ function MultiplayerGuessSprite({
           )}
         </>
       ) : (
-        <section className={styles.finalCard}>
-          <p className={styles.blockTitle}>Clasificacion final</p>
-          <div className={styles.podiumList}>
-            {finalists.map((player, index) => (
-              <article
-                key={player.id}
-                className={`${styles.podiumRow} ${index === 0 ? styles.podiumWinner : ""}`}
-              >
-                <span className={styles.podiumPos}>#{index + 1}</span>
-                <span className={styles.resultName}>{player.name}</span>
-                <span className={styles.podiumScore}>{player.totalPoints} pts</span>
-              </article>
-            ))}
-          </div>
-          <div className={styles.hostActions}>
-            <button
-              className={`${styles.btnStart} ${styles.btnFinishBlue}`}
-              type="button"
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent("returnToModeMenu", {
-                    detail: { skipDelay: true, skipMultiplayerConfirm: true },
-                  }),
-                )
-              }
-            >
-              VOLVER AL MENU
-            </button>
-          </div>
-        </section>
+        <FinishPage finalists={finalists} />
       )}
     </div>
   );

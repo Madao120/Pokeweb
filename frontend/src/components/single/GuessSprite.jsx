@@ -527,6 +527,15 @@ function GuessSprite({
       ? 0
       : -1
     : session.puntosGanados;
+  const dailyCountdown = (() => {
+    if (!isDailyMode) return null;
+    const nextInMs = Math.max(0, dailyInfo?.millisUntilNextReset || 0);
+    const totalSeconds = Math.floor(nextInMs / 1000);
+    const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+    const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+    const ss = String(totalSeconds % 60).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
+  })();
 
   return (
     <div
@@ -695,14 +704,39 @@ function GuessSprite({
             <div
               className={`${scoreGanado >= 0 ? styles.resultWin : styles.resultLose} ${resultVisible ? styles.resultVisible : ""}`}
             >
-              {session.ganado
-                ? `CORRECTO! ERA ${session.pokemon?.name?.toUpperCase() || "?"}`
-                : `DERROTA - ERA ${session.pokemon?.name?.toUpperCase() || "?"}`}
-              <br />
-              {!isDailyMode &&
-                (scoreGanado >= 0
-                  ? `+${scoreGanado} PTS`
-                  : `${scoreGanado} PTS`)}
+              {session.ganado && isDailyMode ? (
+                <div className={styles.dailyResultLayout}>
+                  <div className={styles.dailyResultSide}>
+                    <span className={styles.dailyResultLabel}>AYER</span>
+                    <span className={styles.dailyResultValue}>
+                      {dailyInfo?.yesterdayPokemonName?.toUpperCase() || "-"}
+                    </span>
+                  </div>
+                  <div className={styles.dailyResultCenter}>
+                    <span className={styles.dailyResultMain}>
+                      CORRECTO! ERA{" "}
+                      {session.pokemon?.name?.toUpperCase() || "?"}
+                    </span>
+                  </div>
+                  <div className={styles.dailyResultSide}>
+                    <span className={styles.dailyResultLabel}>SIGUIENTE EN</span>
+                    <span className={styles.dailyResultValue}>
+                      {dailyCountdown || "--:--:--"}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {session.ganado
+                    ? `CORRECTO! ERA ${session.pokemon?.name?.toUpperCase() || "?"}`
+                    : `DERROTA - ERA ${session.pokemon?.name?.toUpperCase() || "?"}`}
+                  <br />
+                  {!isDailyMode &&
+                    (scoreGanado >= 0
+                      ? `+${scoreGanado} PTS`
+                      : `${scoreGanado} PTS`)}
+                </>
+              )}
             </div>
           )}
         </div>

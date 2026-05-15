@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-
+import FinishPage from "./FinishPage";
 import styles from "./MultiplayerHangman.module.css";
 
 const LETTER_COOLDOWN_MS = 5000;
@@ -28,7 +28,9 @@ function sanitizeWordInput(value) {
 }
 
 function normalizeName(value) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
 function toTypeClassName(value) {
@@ -42,10 +44,14 @@ function buildOrderedPlayers(orderedPlayers, roomState) {
   const finishOrder = roomState?.finishOrder || [];
   const finishedSet = new Set(finishOrder.map(String));
   const first = finishOrder
-    .map((id) => orderedPlayers.find((player) => String(player.id) === String(id)))
+    .map((id) =>
+      orderedPlayers.find((player) => String(player.id) === String(id)),
+    )
     .filter(Boolean);
 
-  const rest = orderedPlayers.filter((player) => !finishedSet.has(String(player.id)));
+  const rest = orderedPlayers.filter(
+    (player) => !finishedSet.has(String(player.id)),
+  );
   return [...first, ...rest];
 }
 
@@ -95,6 +101,26 @@ function MultiplayerHangman({
     return () => window.clearInterval(timer);
   }, []);
 
+  const countdownRemaining = useMemo(() => {
+    const base = roomState?.countdownRemainingMs || 0;
+    if (!base) return 0;
+    const syncedAt = roomState?._syncedAt || timerNow;
+    return Math.max(0, base - (timerNow - syncedAt));
+  }, [roomState, timerNow]);
+
+  const roundRemaining = useMemo(() => {
+    const base = roomState?.remainingMs || 0;
+    const syncedAt = roomState?._syncedAt || timerNow;
+    return Math.max(
+      0,
+      base -
+        Math.max(
+          0,
+          timerNow - syncedAt - (roomState?.countdownRemainingMs || 0),
+        ),
+    );
+  }, [roomState, timerNow]);
+
   useEffect(() => {
     timeoutRefreshRef.current = false;
     hintRefreshRef.current = {
@@ -102,7 +128,11 @@ function MultiplayerHangman({
       generation: false,
       type2: false,
     };
-  }, [roomState?.state, roomState?.countdownRemainingMs, roomState?.remainingMs]);
+  }, [
+    roomState?.state,
+    roomState?.countdownRemainingMs,
+    roomState?.remainingMs,
+  ]);
 
   useEffect(() => {
     setLetter("");
@@ -149,35 +179,31 @@ function MultiplayerHangman({
     };
   }, [roomState?.pokemonName]);
 
-  const countdownRemaining = useMemo(() => {
-    const base = roomState?.countdownRemainingMs || 0;
-    if (!base) return 0;
-    const syncedAt = roomState?._syncedAt || timerNow;
-    return Math.max(0, base - (timerNow - syncedAt));
-  }, [roomState, timerNow]);
-
-  const roundRemaining = useMemo(() => {
-    const base = roomState?.remainingMs || 0;
-    const syncedAt = roomState?._syncedAt || timerNow;
-    return Math.max(0, base - Math.max(0, timerNow - syncedAt - (roomState?.countdownRemainingMs || 0)));
-  }, [roomState, timerNow]);
-
   const elapsedRoundMs = useMemo(() => {
     if (!isPlaying || countdownRemaining > 0) return 0;
     return Math.max(0, ROUND_DURATION_MS - roundRemaining);
   }, [countdownRemaining, isPlaying, roundRemaining]);
 
-  const mostrarTipo1 = Boolean(session?.mostrarTipo1) || elapsedRoundMs >= TYPE_1_REVEAL_MS;
+  const mostrarTipo1 =
+    Boolean(session?.mostrarTipo1) || elapsedRoundMs >= TYPE_1_REVEAL_MS;
   const mostrarGeneracion =
-    Boolean(session?.mostrarGeneracion) || elapsedRoundMs >= GENERATION_REVEAL_MS;
-  const mostrarTipo2 = Boolean(session?.mostrarTipo2) || elapsedRoundMs >= TYPE_2_REVEAL_MS;
+    Boolean(session?.mostrarGeneracion) ||
+    elapsedRoundMs >= GENERATION_REVEAL_MS;
+  const mostrarTipo2 =
+    Boolean(session?.mostrarTipo2) || elapsedRoundMs >= TYPE_2_REVEAL_MS;
 
-  const type1Class = styles[`type${toTypeClassName(roomState?.pokemonType1)}`] || "";
-  const type2Class = styles[`type${toTypeClassName(roomState?.pokemonType2)}`] || "";
+  const type1Class =
+    styles[`type${toTypeClassName(roomState?.pokemonType1)}`] || "";
+  const type2Class =
+    styles[`type${toTypeClassName(roomState?.pokemonType2)}`] || "";
 
   useEffect(() => {
     if (!isPlaying) return;
-    if (countdownRemaining > 0 || roundRemaining > 0 || timeoutRefreshRef.current) {
+    if (
+      countdownRemaining > 0 ||
+      roundRemaining > 0 ||
+      timeoutRefreshRef.current
+    ) {
       return;
     }
     timeoutRefreshRef.current = true;
@@ -268,7 +294,7 @@ function MultiplayerHangman({
       const data = await onGuessWord(word);
       const nextSession = data?.mySession;
       const failedAttempt =
-        !(nextSession?.ganado) &&
+        !nextSession?.ganado &&
         (nextSession?.intentos ?? previousAttempts) > previousAttempts;
       if (failedAttempt) {
         setWordCooldownUntil(Date.now() + WORD_COOLDOWN_MS);
@@ -291,8 +317,12 @@ function MultiplayerHangman({
       }))
       .sort((a, b) => {
         if (isMatchFinished) return b.totalPoints - a.totalPoints;
-        const posA = roomState?.finishOrder?.findIndex((id) => String(id) === String(a.id));
-        const posB = roomState?.finishOrder?.findIndex((id) => String(id) === String(b.id));
+        const posA = roomState?.finishOrder?.findIndex(
+          (id) => String(id) === String(a.id),
+        );
+        const posB = roomState?.finishOrder?.findIndex(
+          (id) => String(id) === String(b.id),
+        );
         const normalizedA = posA === -1 ? Number.MAX_SAFE_INTEGER : posA;
         const normalizedB = posB === -1 ? Number.MAX_SAFE_INTEGER : posB;
         if (normalizedA !== normalizedB) return normalizedA - normalizedB;
@@ -357,7 +387,8 @@ function MultiplayerHangman({
                               const remaining = maxIntentos - intentos;
                               let colorClass = styles.lifeGreen;
                               if (remaining <= 2) colorClass = styles.lifeRed;
-                              else if (remaining <= 4) colorClass = styles.lifeYellow;
+                              else if (remaining <= 4)
+                                colorClass = styles.lifeYellow;
                               const isUsed = i < intentos;
 
                               return (
@@ -464,16 +495,22 @@ function MultiplayerHangman({
                           (id) => String(id) === String(player.id),
                         );
                         const hasFinished = finishedIndex !== -1;
-                        const playerDone = roomState?.playerFinished?.[player.id];
+                        const playerDone =
+                          roomState?.playerFinished?.[player.id];
                         const roundPoints =
                           roomState?.lastRoundPoints?.[player.id] ?? 0;
                         const totalPoints =
                           roomState?.roundScores?.[player.id] ?? 0;
                         let status = "Jugando";
-                        if (!isPlaying && !isRoundFinished && !isMatchFinished) {
+                        if (
+                          !isPlaying &&
+                          !isRoundFinished &&
+                          !isMatchFinished
+                        ) {
                           status = "Preparado";
                         }
-                        if (hasFinished) status = `#${finishedIndex + 1} terminado`;
+                        if (hasFinished)
+                          status = `#${finishedIndex + 1} terminado`;
                         if (!hasFinished && playerDone && isRoundFinished) {
                           status = "Sin puntos";
                         }
@@ -523,7 +560,9 @@ function MultiplayerHangman({
                 <div className={styles.revealTextBox}>
                   <p
                     className={`${styles.revealText} ${
-                      session.ganado ? styles.revealTextWin : styles.revealTextLose
+                      session.ganado
+                        ? styles.revealTextWin
+                        : styles.revealTextLose
                     }`}
                   >
                     {session.ganado
@@ -540,7 +579,11 @@ function MultiplayerHangman({
                     <div
                       className={`${styles.inputRow} ${styles.inputRowLetter}`}
                       onClick={() => {
-                        if (isPlaying && countdownRemaining <= 0 && !session?.gameOver) {
+                        if (
+                          isPlaying &&
+                          countdownRemaining <= 0 &&
+                          !session?.gameOver
+                        ) {
                           letterInputRef.current?.focus();
                         }
                       }}
@@ -558,7 +601,9 @@ function MultiplayerHangman({
                           setLetter(next.toUpperCase());
                         }}
                         disabled={
-                          !isPlaying || countdownRemaining > 0 || session?.gameOver
+                          !isPlaying ||
+                          countdownRemaining > 0 ||
+                          session?.gameOver
                         }
                         placeholder="_"
                         onKeyDown={(event) => {
@@ -582,14 +627,18 @@ function MultiplayerHangman({
                       </button>
                     </div>
 
-                    <div className={`${styles.inputRow} ${styles.inputRowWord}`}>
+                    <div
+                      className={`${styles.inputRow} ${styles.inputRowWord}`}
+                    >
                       <input
                         className={styles.input}
                         type="text"
                         value={word}
                         onChange={(event) => setWord(event.target.value)}
                         disabled={
-                          !isPlaying || countdownRemaining > 0 || session?.gameOver
+                          !isPlaying ||
+                          countdownRemaining > 0 ||
+                          session?.gameOver
                         }
                         placeholder="Palabra completa"
                         onKeyDown={(event) => {
@@ -664,7 +713,9 @@ function MultiplayerHangman({
                       disabled={!isLeader || Boolean(actionLoading)}
                       onClick={onFinishMatch}
                     >
-                      {actionLoading === "finish-match" ? "..." : "TERMINAR PARTIDA"}
+                      {actionLoading === "finish-match"
+                        ? "..."
+                        : "TERMINAR PARTIDA"}
                     </button>
                   </div>
                   {!isLeader && (
@@ -676,34 +727,7 @@ function MultiplayerHangman({
               )}
             </>
           ) : (
-            <section className={styles.finalCard}>
-              <p className={styles.blockTitle}>Clasificacion final</p>
-              <div className={styles.podiumList}>
-                {finalists.map((player, index) => (
-                  <article
-                    key={player.id}
-                    className={`${styles.podiumRow} ${index === 0 ? styles.podiumWinner : ""}`}
-                  >
-                    <span className={styles.podiumPos}>#{index + 1}</span>
-                    <span className={styles.podiumName}>{player.name}</span>
-                    <span className={styles.podiumScore}>{player.totalPoints} pts</span>
-                  </article>
-                ))}
-              </div>
-              <button
-                className={styles.primaryBtn}
-                type="button"
-                onClick={() =>
-                  window.dispatchEvent(
-                    new CustomEvent("returnToModeMenu", {
-                      detail: { skipDelay: true, skipMultiplayerConfirm: true },
-                    }),
-                  )
-                }
-              >
-                VOLVER AL MENU
-              </button>
-            </section>
+            <FinishPage finalists={finalists} />
           )}
         </main>
       </div>

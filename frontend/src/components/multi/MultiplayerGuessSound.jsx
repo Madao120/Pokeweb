@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "./MultiplayerGuessSound.module.css";
+import FinishPage from "./FinishPage";
 
 const ROUND_TRANSITION_MS = 320;
 const NEXT_ROUND_UI_EXIT_MS = 260;
@@ -82,7 +83,10 @@ function buildOrderedPlayers(orderedPlayers, roomState) {
     const timeB = finishTimesMs[b.id] ?? Number.MAX_SAFE_INTEGER;
     if (timeA !== timeB) return timeA - timeB;
 
-    return (roomState?.roundScores?.[b.id] ?? 0) - (roomState?.roundScores?.[a.id] ?? 0);
+    return (
+      (roomState?.roundScores?.[b.id] ?? 0) -
+      (roomState?.roundScores?.[a.id] ?? 0)
+    );
   });
 }
 
@@ -98,7 +102,9 @@ function MultiplayerGuessSound({
   onFinishMatch,
   onRefreshState,
 }) {
-  const [session, setSession] = useState(cloneSessionData(roomState?.mySession) || null);
+  const [session, setSession] = useState(
+    cloneSessionData(roomState?.mySession) || null,
+  );
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [panelsVisible, setPanelsVisible] = useState(false);
@@ -153,7 +159,11 @@ function MultiplayerGuessSound({
 
   useEffect(() => {
     timeoutRefreshRef.current = false;
-  }, [roomState?.state, roomState?.countdownRemainingMs, roomState?.remainingMs]);
+  }, [
+    roomState?.state,
+    roomState?.countdownRemainingMs,
+    roomState?.remainingMs,
+  ]);
 
   const countdownRemaining = useMemo(() => {
     const base = roomState?.countdownRemainingMs || 0;
@@ -167,13 +177,21 @@ function MultiplayerGuessSound({
     const syncedAt = roomState?._syncedAt || timerNow;
     return Math.max(
       0,
-      base - Math.max(0, timerNow - syncedAt - (roomState?.countdownRemainingMs || 0)),
+      base -
+        Math.max(
+          0,
+          timerNow - syncedAt - (roomState?.countdownRemainingMs || 0),
+        ),
     );
   }, [roomState, timerNow]);
 
   useEffect(() => {
     if (!isPlaying) return;
-    if (countdownRemaining > 0 || roundRemaining > 0 || timeoutRefreshRef.current) {
+    if (
+      countdownRemaining > 0 ||
+      roundRemaining > 0 ||
+      timeoutRefreshRef.current
+    ) {
       return;
     }
     timeoutRefreshRef.current = true;
@@ -204,7 +222,9 @@ function MultiplayerGuessSound({
 
     if (isRoundFinished || isMatchFinished) {
       setSession(detachedIncomingSession);
-      setVisibleRound(cloneSessionData(detachedIncomingSession?.currentRoundSound) || null);
+      setVisibleRound(
+        cloneSessionData(detachedIncomingSession?.currentRoundSound) || null,
+      );
       setVisibleRoundNumber(detachedIncomingSession?.currentRoundNumber ?? 1);
       setPendingSession(null);
       setAwaitingManualAdvance(false);
@@ -213,7 +233,9 @@ function MultiplayerGuessSound({
     }
 
     setSession(detachedIncomingSession);
-    setVisibleRound(cloneSessionData(detachedIncomingSession?.currentRoundSound) || null);
+    setVisibleRound(
+      cloneSessionData(detachedIncomingSession?.currentRoundSound) || null,
+    );
     setVisibleRoundNumber(detachedIncomingSession?.currentRoundNumber ?? 1);
   }, [
     awaitingManualAdvance,
@@ -250,12 +272,9 @@ function MultiplayerGuessSound({
   }, [awaitingManualAdvance, visibleRound?.ronda]);
 
   useEffect(() => {
-    const isTerminalState =
-      roomState?.state === "ROUND_FINISHED" || roomState?.state === "FINISHED";
-
     // Keep fail-reveal UI alive until the player confirms "SIGUIENTE RONDA",
-    // even if the room already moved to a terminal state.
-    if (awaitingManualAdvance && isTerminalState) {
+    // even if room state updates arrive meanwhile.
+    if (awaitingManualAdvance) {
       setResolvingGuess(false);
       return;
     }
@@ -321,7 +340,9 @@ function MultiplayerGuessSound({
         setAwaitingManualAdvance(false);
         setShowNextRoundUi(false);
         setCardsPhase("exit");
-        await wait(Math.max(ROUND_TRANSITION_MS, FLASH_FADE_IN_MS + FLASH_HOLD_MS));
+        await wait(
+          Math.max(ROUND_TRANSITION_MS, FLASH_FADE_IN_MS + FLASH_HOLD_MS),
+        );
         setFlashState("");
         await wait(FLASH_FADE_OUT_MS);
         await advanceRound(nextSession, { skipExit: true });
@@ -330,7 +351,8 @@ function MultiplayerGuessSound({
       } else {
         const frozenFailedSession = {
           ...nextSession,
-          currentRoundSound: cloneSessionData(currentVisibleSession?.currentRoundSound) || null,
+          currentRoundSound:
+            cloneSessionData(currentVisibleSession?.currentRoundSound) || null,
           currentRoundNumber:
             currentVisibleSession?.currentRoundNumber ??
             nextSession?.currentRoundNumber,
@@ -348,7 +370,9 @@ function MultiplayerGuessSound({
         );
         setPendingSession(nextSession);
         setFailedRoundInfo({
-          correctName: (nextSession?.ultimoPokemonCorrecto || "?").toUpperCase(),
+          correctName: (
+            nextSession?.ultimoPokemonCorrecto || "?"
+          ).toUpperCase(),
         });
         setAwaitingManualAdvance(true);
         setShowNextRoundUi(false);
@@ -405,7 +429,10 @@ function MultiplayerGuessSound({
   const showRoundFinishedState = isRoundFinished && !holdFailReveal;
   const showMatchFinishedState = isMatchFinished && !holdFailReveal;
   const isInteractionLocked =
-    loading || awaitingManualAdvance || roundTransitioning || countdownRemaining > 0;
+    loading ||
+    awaitingManualAdvance ||
+    roundTransitioning ||
+    countdownRemaining > 0;
 
   return (
     <div className={styles.page}>
@@ -431,7 +458,9 @@ function MultiplayerGuessSound({
       <div className={styles.container}>
         <div
           className={`${styles.topRow} ${
-            showRoundFinishedState || showMatchFinishedState ? styles.topRowEndState : ""
+            showRoundFinishedState || showMatchFinishedState
+              ? styles.topRowEndState
+              : ""
           }`}
         >
           {!showMatchFinishedState ? (
@@ -465,22 +494,26 @@ function MultiplayerGuessSound({
                         <div className={styles.topContainer}>
                           <div className={styles.livesBar}>
                             PS&nbsp;
-                            {Array.from({ length: session?.totalLives ?? 4 }, (_, i) => {
-                              const remaining = session?.vidasRestantes ?? 0;
-                              let colorClass = styles.lifeGreen;
-                              if (remaining <= 1) colorClass = styles.lifeRed;
-                              else if (remaining <= 2) colorClass = styles.lifeYellow;
-                              const isUsed = i >= remaining;
+                            {Array.from(
+                              { length: session?.totalLives ?? 4 },
+                              (_, i) => {
+                                const remaining = session?.vidasRestantes ?? 0;
+                                let colorClass = styles.lifeGreen;
+                                if (remaining <= 1) colorClass = styles.lifeRed;
+                                else if (remaining <= 2)
+                                  colorClass = styles.lifeYellow;
+                                const isUsed = i >= remaining;
 
-                              return (
-                                <span
-                                  key={i}
-                                  className={`${styles.lifeBlock} ${
-                                    isUsed ? styles.lifeUsed : colorClass
-                                  }`}
-                                />
-                              );
-                            })}
+                                return (
+                                  <span
+                                    key={i}
+                                    className={`${styles.lifeBlock} ${
+                                      isUsed ? styles.lifeUsed : colorClass
+                                    }`}
+                                  />
+                                );
+                              },
+                            )}
                           </div>
                           <div className={styles.multiStats}>
                             <span>Aciertos: {aciertos}</span>
@@ -499,25 +532,31 @@ function MultiplayerGuessSound({
                       <div className={styles.topContainer}>
                         <div className={styles.livesBar}>
                           PS&nbsp;
-                          {Array.from({ length: session?.totalLives ?? 4 }, (_, i) => {
-                            const remaining = session?.vidasRestantes ?? 0;
-                            let colorClass = styles.lifeGreen;
-                            if (remaining <= 1) colorClass = styles.lifeRed;
-                            else if (remaining <= 2) colorClass = styles.lifeYellow;
-                            const isUsed = i >= remaining;
+                          {Array.from(
+                            { length: session?.totalLives ?? 4 },
+                            (_, i) => {
+                              const remaining = session?.vidasRestantes ?? 0;
+                              let colorClass = styles.lifeGreen;
+                              if (remaining <= 1) colorClass = styles.lifeRed;
+                              else if (remaining <= 2)
+                                colorClass = styles.lifeYellow;
+                              const isUsed = i >= remaining;
 
-                            return (
-                              <span
-                                key={i}
-                                className={`${styles.lifeBlock} ${
-                                  isUsed ? styles.lifeUsed : colorClass
-                                }`}
-                              />
-                            );
-                          })}
+                              return (
+                                <span
+                                  key={i}
+                                  className={`${styles.lifeBlock} ${
+                                    isUsed ? styles.lifeUsed : colorClass
+                                  }`}
+                                />
+                              );
+                            },
+                          )}
                         </div>
                         <div className={styles.summaryBox}>
-                          <p className={styles.audioEnded}>Partida finalizada</p>
+                          <p className={styles.audioEnded}>
+                            Partida finalizada
+                          </p>
                           <p className={styles.aciertos}>
                             Has acertado: {aciertos}/4 pokemon
                           </p>
@@ -533,7 +572,8 @@ function MultiplayerGuessSound({
                       } ${cardsPhase === "exit" ? styles.optionsGridExit : ""}`}
                     >
                       {currentRound?.opciones?.map((option, index) => {
-                        const totalOptions = currentRound?.opciones?.length ?? 0;
+                        const totalOptions =
+                          currentRound?.opciones?.length ?? 0;
                         return (
                           <button
                             key={option.id}
@@ -545,9 +585,13 @@ function MultiplayerGuessSound({
                             <div
                               className={styles.optionCard}
                               style={{
-                                ...getOptionBackgroundStyle(option.type1, option.type2),
+                                ...getOptionBackgroundStyle(
+                                  option.type1,
+                                  option.type2,
+                                ),
                                 "--card-index": index,
-                                "--card-index-reverse": totalOptions - index - 1,
+                                "--card-index-reverse":
+                                  totalOptions - index - 1,
                               }}
                             >
                               <div className={styles.optionSpriteWrap}>
@@ -558,7 +602,9 @@ function MultiplayerGuessSound({
                                     className={styles.optionSprite}
                                   />
                                 ) : (
-                                  <span className={styles.spriteFallback}>SPRITE</span>
+                                  <span className={styles.spriteFallback}>
+                                    SPRITE
+                                  </span>
                                 )}
                               </div>
                               <p className={styles.optionName}>{option.name}</p>
@@ -609,7 +655,9 @@ function MultiplayerGuessSound({
                       const isCurrentUser = player.id === user?.id;
                       const lives = roomState?.playerLives?.[player.id] ?? 0;
                       const hits = roomState?.playerHits?.[player.id] ?? 0;
-                      const isDone = Boolean(roomState?.playerFinished?.[player.id]);
+                      const isDone = Boolean(
+                        roomState?.playerFinished?.[player.id],
+                      );
 
                       return (
                         <div
@@ -631,7 +679,9 @@ function MultiplayerGuessSound({
                             </div>
                           )}
                           <div className={styles.rankingMeta}>
-                            <span className={styles.rankingName}>{player.name}</span>
+                            <span className={styles.rankingName}>
+                              {player.name}
+                            </span>
                             <span className={styles.rankingSub}>
                               {isDone ? "Terminado" : "Jugando"}
                             </span>
@@ -671,8 +721,12 @@ function MultiplayerGuessSound({
                           </div>
                         )}
                         <span className={styles.resultName}>{player.name}</span>
-                        <span className={styles.resultMeta}>{player.lives} PS · {player.hits}/4</span>
-                        <span className={styles.resultScore}>+{player.roundPoints} PTS</span>
+                        <span className={styles.resultMeta}>
+                          {player.lives} PS · {player.hits}/4
+                        </span>
+                        <span className={styles.resultScore}>
+                          +{player.roundPoints} PTS
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -696,7 +750,9 @@ function MultiplayerGuessSound({
                       onClick={onFinishMatch}
                       disabled={hostActionsDisabled}
                     >
-                      {actionLoading === "finish-match" ? "..." : "TERMINAR PARTIDA"}
+                      {actionLoading === "finish-match"
+                        ? "..."
+                        : "TERMINAR PARTIDA"}
                     </button>
                   </div>
                   {!isLeader && (
@@ -708,58 +764,24 @@ function MultiplayerGuessSound({
               )}
             </>
           ) : (
-            <section className={styles.finalCard}>
-              <p className={styles.panelLabel}>CLASIFICACION FINAL</p>
-              <div className={styles.resultsList}>
-                {finalists
-                  .slice()
-                  .sort((a, b) => b.totalPoints - a.totalPoints)
-                  .map((player, index) => (
-                    <div className={styles.resultRow} key={player.id}>
-                      <span className={styles.resultPos}>#{index + 1}</span>
-                      {player.profilePictureUrl ? (
-                        <img
-                          className={styles.resultAvatar}
-                          src={player.profilePictureUrl}
-                          alt={player.name}
-                        />
-                      ) : (
-                        <div className={styles.resultAvatarFallback}>
-                          {player.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <span className={styles.resultName}>{player.name}</span>
-                      <span className={styles.resultScore}>{player.totalPoints} PTS</span>
-                    </div>
-                  ))}
-              </div>
-              <button
-                className={`${styles.btnStart} ${styles.btnFinishBlue}`}
-                type="button"
-                onClick={() =>
-                  window.dispatchEvent(
-                    new CustomEvent("returnToModeMenu", {
-                      detail: { skipDelay: true, skipMultiplayerConfirm: true },
-                    }),
-                  )
-                }
-              >
-                VOLVER AL MENU
-              </button>
-            </section>
+            <FinishPage finalists={finalists} />
           )}
 
-          {session?.gameOver && !showRoundFinishedState && !showMatchFinishedState && (
-            <div
-              className={`${
-                scoreGanado >= 0 ? styles.resultWin : styles.resultLose
-              } ${resultVisible ? styles.resultVisible : ""}`}
-            >
-              {scoreGanado >= 0 ? "PARTIDA COMPLETADA" : "DERROTA"}
-              <br />
-              {scoreGanado >= 0 ? `+${scoreGanado} PTS` : `${scoreGanado} PTS`}
-            </div>
-          )}
+          {session?.gameOver &&
+            !showRoundFinishedState &&
+            !showMatchFinishedState && (
+              <div
+                className={`${
+                  scoreGanado >= 0 ? styles.resultWin : styles.resultLose
+                } ${resultVisible ? styles.resultVisible : ""}`}
+              >
+                {scoreGanado >= 0 ? "PARTIDA COMPLETADA" : "DERROTA"}
+                <br />
+                {scoreGanado >= 0
+                  ? `+${scoreGanado} PTS`
+                  : `${scoreGanado} PTS`}
+              </div>
+            )}
         </div>
       </div>
     </div>
