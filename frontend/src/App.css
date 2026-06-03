@@ -361,11 +361,11 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
+  padding: 0px;
 }
 
 @supports (height: 100svh) {
