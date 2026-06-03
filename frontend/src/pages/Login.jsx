@@ -66,7 +66,7 @@ function Login({ onLogin, onGoRegister }) {
               className={styles.input}
               type="password"
               name="password"
-              placeholder="Contrasena"
+              placeholder="Contraseña"
               onChange={handleChange}
             />
           </div>

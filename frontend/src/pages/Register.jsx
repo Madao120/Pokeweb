@@ -44,7 +44,7 @@ function Register({ onRegistered, onGoLogin }) {
       return;
     }
 
-    if (normalized.includes("contrasena")) {
+    if (normalized.includes("contraseña")) {
       setFieldErrors((current) => ({ ...current, password: message }));
     }
   };
@@ -139,7 +139,7 @@ function Register({ onRegistered, onGoLogin }) {
               className={styles.input}
               type="password"
               name="password"
-              placeholder="Contrasena"
+              placeholder="Contraseña"
               value={form.password}
               onChange={handleChange}
               aria-invalid={Boolean(fieldErrors.password)}

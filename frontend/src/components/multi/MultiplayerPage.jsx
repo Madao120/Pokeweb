@@ -29,20 +29,20 @@ import {
 const MINIGAMES = [
   {
     key: "HANGMAN",
-    title: "Ahorcado",
-    desc: "Todos reciben el mismo Pokemon y compiten por terminar antes.",
+    title: "GuessName",
+    desc: "¡Adivina el nombre del pokemon letra a letra!",
     available: true,
   },
   {
     key: "GUESS_SOUND",
     title: "GuessSound",
-    desc: "Modo en preparacion para reglas multiplayer.",
+    desc: "¡Adivina el sonido de 4 pokemons!",
     available: true,
   },
   {
     key: "GUESS_SPRITE",
     title: "GuessSprite",
-    desc: "Modo en preparacion para reglas multiplayer.",
+    desc: "¡Adivina el sprite antes que los demás jugadores!",
     available: true,
   },
 ];
@@ -59,14 +59,22 @@ const LOBBY_EXIT_MS = 300;
 function mapJoinError(message) {
   if (message?.includes("ROOM_NOT_FOUND")) return "No se ha encontrado la sala";
   if (message?.includes("WRONG_PASSWORD")) return "Contrasena incorrecta";
-  if (message?.includes("ALREADY_VOTED_MODE")) return "Ya habias votado un modo.";
-  if (message?.includes("NOT_LEADER")) return "Solo el lider puede hacer esta accion.";
-  if (message?.includes("ROOM_NOT_WAITING")) return "Esta accion solo se permite en la sala de espera.";
-  if (message?.includes("ROOM_NOT_PLAYING")) return "La ronda no esta activa ahora mismo.";
-  if (message?.includes("ROUND_NOT_FINISHED")) return "La ronda actual aun no ha terminado.";
-  if (message?.includes("NOT_ENOUGH_PLAYERS")) return "Se necesitan al menos 2 jugadores.";
-  if (message?.includes("ROUND_COUNTDOWN_ACTIVE")) return "La ronda esta a punto de empezar.";
-  if (message?.includes("CANNOT_FINISH_NOW")) return "Ahora no se puede terminar la partida.";
+  if (message?.includes("ALREADY_VOTED_MODE"))
+    return "Ya habias votado un modo.";
+  if (message?.includes("NOT_LEADER"))
+    return "Solo el lider puede hacer esta accion.";
+  if (message?.includes("ROOM_NOT_WAITING"))
+    return "Esta accion solo se permite en la sala de espera.";
+  if (message?.includes("ROOM_NOT_PLAYING"))
+    return "La ronda no esta activa ahora mismo.";
+  if (message?.includes("ROUND_NOT_FINISHED"))
+    return "La ronda actual aun no ha terminado.";
+  if (message?.includes("NOT_ENOUGH_PLAYERS"))
+    return "Se necesitan al menos 2 jugadores.";
+  if (message?.includes("ROUND_COUNTDOWN_ACTIVE"))
+    return "La ronda esta a punto de empezar.";
+  if (message?.includes("CANNOT_FINISH_NOW"))
+    return "Ahora no se puede terminar la partida.";
   if (message?.includes("GUESS_SPRITE_COOLDOWN_ACTIVE")) {
     return "Debes esperar 10 segundos tras cada fallo.";
   }
@@ -182,7 +190,9 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
 
     const loadPlayers = async () => {
       try {
-        const idsMissing = roomState.playerIds.filter((id) => !playerDetails[id]);
+        const idsMissing = roomState.playerIds.filter(
+          (id) => !playerDetails[id],
+        );
         if (!idsMissing.length) return;
 
         const users = await Promise.all(idsMissing.map((id) => getUser(id)));
@@ -288,7 +298,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
 
   const applyRoomState = (nextState, preservePersonal = false) => {
     setRoomState((previousState) => {
-      const resolvedState = stampRoomState(nextState, previousState, preservePersonal);
+      const resolvedState = stampRoomState(
+        nextState,
+        previousState,
+        preservePersonal,
+      );
       const leaderChanged =
         leaderIdRef.current !== null &&
         !sameId(leaderIdRef.current, resolvedState?.leaderId);
@@ -347,7 +361,9 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
               try {
                 applyRoomState(JSON.parse(frame.body), true);
               } catch {
-                setError("Se ha recibido una actualizacion invalida del jugador.");
+                setError(
+                  "Se ha recibido una actualizacion invalida del jugador.",
+                );
               }
             },
           );
@@ -396,7 +412,10 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     await connectRoomSocket(nextRoomState.roomCode, user.id);
     applyRoomState(nextRoomState, true);
 
-    const latestState = await getMultiplayerRoomState(nextRoomState.roomCode, user.id);
+    const latestState = await getMultiplayerRoomState(
+      nextRoomState.roomCode,
+      user.id,
+    );
     applyRoomState(latestState, true);
   };
 
@@ -461,7 +480,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     setError("");
     setActionLoading(`vote:${mode}`);
     try {
-      const updated = await voteMultiplayerMode(roomState.roomCode, user.id, mode);
+      const updated = await voteMultiplayerMode(
+        roomState.roomCode,
+        user.id,
+        mode,
+      );
       applyRoomState(updated, true);
     } catch (err) {
       setError(mapJoinError(err.message));
@@ -475,7 +498,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     setError("");
     setActionLoading(`start:${mode}`);
     try {
-      const updated = await startMultiplayerRound(roomState.roomCode, user.id, mode);
+      const updated = await startMultiplayerRound(
+        roomState.roomCode,
+        user.id,
+        mode,
+      );
       applyRoomState(updated, true);
     } catch (err) {
       setError(mapJoinError(err.message));
@@ -540,7 +567,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     setActionLoading("guess-letter");
     setError("");
     try {
-      const updated = await guessMultiplayerLetter(roomState.roomCode, user.id, letra);
+      const updated = await guessMultiplayerLetter(
+        roomState.roomCode,
+        user.id,
+        letra,
+      );
       applyRoomState(updated, true);
       return updated;
     } catch (err) {
@@ -556,7 +587,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     setActionLoading("guess-word");
     setError("");
     try {
-      const updated = await guessMultiplayerWord(roomState.roomCode, user.id, palabra);
+      const updated = await guessMultiplayerWord(
+        roomState.roomCode,
+        user.id,
+        palabra,
+      );
       applyRoomState(updated, true);
       return updated;
     } catch (err) {
@@ -572,7 +607,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     setActionLoading("guess-sound");
     setError("");
     try {
-      const updated = await guessMultiplayerSound(roomState.roomCode, user.id, pokemonId);
+      const updated = await guessMultiplayerSound(
+        roomState.roomCode,
+        user.id,
+        pokemonId,
+      );
       applyRoomState(updated, true);
       return updated;
     } catch (err) {
@@ -588,7 +627,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
     setActionLoading("guess-sprite");
     setError("");
     try {
-      const updated = await guessMultiplayerSprite(roomState.roomCode, user.id, pokemonId);
+      const updated = await guessMultiplayerSprite(
+        roomState.roomCode,
+        user.id,
+        pokemonId,
+      );
       applyRoomState(updated, true);
       return updated;
     } catch (err) {
@@ -642,7 +685,10 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
   const handleRefreshState = async () => {
     if (!roomState?.roomCode) return;
     try {
-      const updated = await getMultiplayerRoomState(roomState.roomCode, user.id);
+      const updated = await getMultiplayerRoomState(
+        roomState.roomCode,
+        user.id,
+      );
       applyRoomState(updated, true);
     } catch (err) {
       setError(mapJoinError(err.message));
@@ -683,7 +729,9 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
             <p className={styles.subtitle}>Has sido expulsado de la sala</p>
           </div>
           <div className={styles.kickedBox}>
-            <p className={styles.kickedText}>El lider de la sala te ha expulsado.</p>
+            <p className={styles.kickedText}>
+              El lider de la sala te ha expulsado.
+            </p>
             <button
               className={styles.optionBtn}
               type="button"
@@ -726,7 +774,12 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
       return;
     }
 
-    if (roomState && !shouldRenderHangman && !shouldRenderGuessSound && !shouldRenderGuessSprite) {
+    if (
+      roomState &&
+      !shouldRenderHangman &&
+      !shouldRenderGuessSound &&
+      !shouldRenderGuessSprite
+    ) {
       if (lobbyTransitionTimerRef.current) {
         window.clearTimeout(lobbyTransitionTimerRef.current);
       }
@@ -737,7 +790,9 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
 
     if (
       renderLobbyState &&
-      (shouldRenderHangman || shouldRenderGuessSound || shouldRenderGuessSprite) &&
+      (shouldRenderHangman ||
+        shouldRenderGuessSound ||
+        shouldRenderGuessSprite) &&
       !isLobbyExiting
     ) {
       setIsLobbyExiting(true);
@@ -904,7 +959,9 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
       >
         <div className={styles.header}>
           <p className={styles.welcome}>MODO MULTIJUGADOR</p>
-          <p className={styles.subtitle}>Crea una sala o unete con codigo y contrasena</p>
+          <p className={styles.subtitle}>
+            Crea una sala o unete con codigo y contrasena
+          </p>
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
@@ -937,7 +994,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
               >
                 Volver
               </button>
-              <button className={styles.optionBtn} type="submit" disabled={loading}>
+              <button
+                className={styles.optionBtn}
+                type="submit"
+                disabled={loading}
+              >
                 {loading ? "Creando..." : "Crear sala"}
               </button>
             </div>
@@ -960,7 +1021,9 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
               pattern="\d*"
               maxLength={6}
               value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) =>
+                setJoinCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
               placeholder="Codigo de sala"
               required
             />
@@ -984,7 +1047,11 @@ function MultiplayerPage({ user, onLeaveRiskChange }) {
               >
                 Volver
               </button>
-              <button className={styles.optionBtn} type="submit" disabled={loading}>
+              <button
+                className={styles.optionBtn}
+                type="submit"
+                disabled={loading}
+              >
                 {loading ? "Uniendo..." : "Unirse"}
               </button>
             </div>
