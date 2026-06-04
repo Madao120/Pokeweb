@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.example.demo.dto.pokemon.PokemonM2;
-import com.example.demo.dto.pokemon.PokemonOptionM3;
+import com.example.demo.dto.pokemon.PokemonM3;
 import lombok.Data;
 
 /**
@@ -94,7 +94,7 @@ public class RoomStateDTO {
         private int puntosGanados;
         private Boolean ultimoAcierto;
         private String ultimoPokemonCorrecto;
-        private PokemonOptionM3 pokemon;
+        private PokemonM3 pokemon;
         private double focusX;
         private double focusY;
         private double zoomActual;

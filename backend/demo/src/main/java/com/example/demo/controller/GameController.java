@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.model.GameSession;
 import com.example.demo.model.GameSessionM2;
 import com.example.demo.model.GameSessionM3;
-import com.example.demo.dto.pokemon.PokemonOptionM3;
+import com.example.demo.dto.pokemon.PokemonM3;
 import com.example.demo.dto.game.DailyHangmanRoundResponse;
 import com.example.demo.dto.game.DailySpriteRoundResponse;
 import com.example.demo.service.DailyGameService;
@@ -201,7 +201,7 @@ public class GameController {
         double zoomInicial = SPRITE_ZOOM_BASE + Math.random() * SPRITE_ZOOM_SPAN;
 
         GameSessionM3 session = new GameSessionM3(
-            pokemonApiService.getRandomPokemonOptionM3(),
+            pokemonApiService.getRandomPokemonM3(),
             focusX,
             focusY,
             zoomInicial
@@ -216,7 +216,7 @@ public class GameController {
     }
 
     @GetMapping("/m3/pokemon-list")
-    public List<PokemonOptionM3> getGuessSpritePokemonList() {
+    public List<PokemonM3> getGuessSpritePokemonList() {
         return pokemonApiService.getPokemonCatalogM3();
     }
 

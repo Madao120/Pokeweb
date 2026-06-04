@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PokemonOptionM3 {
+public class PokemonM3 {
     private Long id;
     private String name;
     private String spriteUrl;

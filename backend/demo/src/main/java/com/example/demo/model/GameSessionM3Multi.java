@@ -2,7 +2,7 @@ package com.example.demo.model;
 
 import java.util.Objects;
 
-import com.example.demo.dto.pokemon.PokemonOptionM3;
+import com.example.demo.dto.pokemon.PokemonM3;
 
 import lombok.Data;
 
@@ -12,7 +12,7 @@ public class GameSessionM3Multi {
     private static final int MAX_FALLOS = 7;
     private static final long GUESS_COOLDOWN_MS = 10_000L;
 
-    private PokemonOptionM3 pokemon;
+    private PokemonM3 pokemon;
     private int fallos;
     private int maxFallos;
     private boolean gameOver;
@@ -27,7 +27,7 @@ public class GameSessionM3Multi {
     private long completedAtMs;
 
     public GameSessionM3Multi(
-        PokemonOptionM3 pokemon,
+        PokemonM3 pokemon,
         double focusX,
         double focusY,
         double zoomInicial

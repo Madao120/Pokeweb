@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import com.example.demo.dto.pokemon.PokemonM1;
 import com.example.demo.dto.pokemon.PokemonM2;
 import com.example.demo.dto.pokemon.PokemonOptionM2;
-import com.example.demo.dto.pokemon.PokemonOptionM3;
+import com.example.demo.dto.pokemon.PokemonM3;
 
 
 @Service
@@ -27,7 +27,7 @@ public class PokemonApiService {
     // Para un pokemon aleatorio
     private final Random random = new Random();
     private static final int MAX_POKEMON_ID = 1025;
-    private volatile List<PokemonOptionM3> cachedPokemonCatalogM3;
+    private volatile List<PokemonM3> cachedPokemonCatalogM3;
 
     public PokemonM1 getRandomPokemon() {
         int id = random.nextInt(MAX_POKEMON_ID) + 1;
@@ -181,8 +181,8 @@ public class PokemonApiService {
         return new PokemonOptionM2(pokemonId, name, type1, type2, spriteUrl, cryUrl);
     }
 
-    public List<PokemonOptionM3> getPokemonCatalogM3() {
-        List<PokemonOptionM3> snapshot = cachedPokemonCatalogM3;
+    public List<PokemonM3> getPokemonCatalogM3() {
+        List<PokemonM3> snapshot = cachedPokemonCatalogM3;
         if (snapshot != null && !snapshot.isEmpty()) {
             return snapshot;
         }
@@ -203,7 +203,7 @@ public class PokemonApiService {
                 throw new RuntimeException("Catalogo de Pokemon vacio para M3");
             }
 
-            List<PokemonOptionM3> catalog = new ArrayList<>();
+            List<PokemonM3> catalog = new ArrayList<>();
             for (Map result : results) {
                 String name = (String) result.get("name");
                 String detailUrl = (String) result.get("url");
@@ -211,7 +211,7 @@ public class PokemonApiService {
                 if (id == null || name == null || name.isBlank()) {
                     continue;
                 }
-                catalog.add(new PokemonOptionM3(id, name, buildOfficialArtworkUrl(id)));
+                catalog.add(new PokemonM3(id, name, buildOfficialArtworkUrl(id)));
             }
 
             catalog.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
@@ -220,26 +220,26 @@ public class PokemonApiService {
         }
     }
 
-    public PokemonOptionM3 getRandomPokemonOptionM3() {
-        List<PokemonOptionM3> catalog = getPokemonCatalogM3();
+    public PokemonM3 getRandomPokemonM3() {
+        List<PokemonM3> catalog = getPokemonCatalogM3();
         if (catalog.isEmpty()) {
             throw new RuntimeException("No hay Pokemon disponibles para M3");
         }
-        PokemonOptionM3 option = catalog.get(random.nextInt(catalog.size()));
-        return new PokemonOptionM3(option.getId(), option.getName(), option.getSpriteUrl());
+        PokemonM3 option = catalog.get(random.nextInt(catalog.size()));
+        return new PokemonM3(option.getId(), option.getName(), option.getSpriteUrl());
     }
 
-    public PokemonOptionM3 getDailyPokemonM3(LocalDate date, String salt) {
+    public PokemonM3 getDailyPokemonM3(LocalDate date, String salt) {
         int id = getDeterministicPokemonId(date, salt);
-        return getPokemonOptionM3ById((long) id);
+        return getPokemonM3ById((long) id);
     }
 
-    public PokemonOptionM3 getPokemonOptionM3ById(Long pokemonId) {
-        List<PokemonOptionM3> catalog = getPokemonCatalogM3();
+    public PokemonM3 getPokemonM3ById(Long pokemonId) {
+        List<PokemonM3> catalog = getPokemonCatalogM3();
         return catalog.stream()
             .filter(p -> p.getId() != null && p.getId().equals(pokemonId))
             .findFirst()
-            .map(p -> new PokemonOptionM3(p.getId(), p.getName(), p.getSpriteUrl()))
+            .map(p -> new PokemonM3(p.getId(), p.getName(), p.getSpriteUrl()))
             .orElseThrow(() -> new RuntimeException("No se encontro Pokemon para M3 con id " + pokemonId));
     }
 

@@ -146,7 +146,7 @@ public class RoomService {
             room.getPlayerSessions().clear();
             room.getPlayerSpriteSessions().clear();
         } else if (mode == Room.GameMode.GUESS_SPRITE) {
-            var pokemon = pokemonApiService.getRandomPokemonOptionM3();
+            var pokemon = pokemonApiService.getRandomPokemonM3();
             double focusX = SPRITE_FOCUS_MIN + ThreadLocalRandom.current().nextDouble() * SPRITE_FOCUS_SPAN;
             double focusY = SPRITE_FOCUS_MIN + ThreadLocalRandom.current().nextDouble() * SPRITE_FOCUS_SPAN;
             double zoomInicial = SPRITE_ZOOM_BASE + ThreadLocalRandom.current().nextDouble() * SPRITE_ZOOM_SPAN;

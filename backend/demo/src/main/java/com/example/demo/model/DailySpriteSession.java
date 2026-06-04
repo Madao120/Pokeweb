@@ -2,14 +2,14 @@ package com.example.demo.model;
 
 import java.util.Objects;
 
-import com.example.demo.dto.pokemon.PokemonOptionM3;
+import com.example.demo.dto.pokemon.PokemonM3;
 
 import lombok.Data;
 
 @Data
 public class DailySpriteSession {
 
-    private PokemonOptionM3 pokemon;
+    private PokemonM3 pokemon;
     private boolean gameOver;
     private boolean ganado;
     private int intentos;
@@ -19,7 +19,7 @@ public class DailySpriteSession {
     private double zoomMinimo;
     private double zoomActual;
 
-    public DailySpriteSession(PokemonOptionM3 pokemon, double focusX, double focusY, double zoomInicial) {
+    public DailySpriteSession(PokemonM3 pokemon, double focusX, double focusY, double zoomInicial) {
         this.pokemon = pokemon;
         this.gameOver = false;
         this.ganado = false;
